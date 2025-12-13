@@ -1,0 +1,60 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# Archivos de entorno y logs
+.env
+# -------------------------------------------------------------------
+# 1. Dependencias Generadas (node_modules)
+# -------------------------------------------------------------------
+
+# Node_modules principal de la raíz (si existe)
+/node_modules
+
+# node_modules del backend
+sistema-planificaciones-educativas/backend/node_modules
+
+# node_modules del frontend
+sistema-planificaciones-educativas/frontend/node_modules
+
+# -------------------------------------------------------------------
+# 2. Archivos de Entorno y Secretos
+# -------------------------------------------------------------------
+
+# Archivo .env del backend
+sistema-planificaciones-educativas/backend/.env
+
+# También puedes crear un archivo de ejemplo:
+# !sistema-planificaciones-educativas/backend/.env.example
+
+# -------------------------------------------------------------------
+# 3. Archivos Generados/Logs/Caches
+# -------------------------------------------------------------------
+
+# Logs de la aplicación
+*.log
+npm-debug.log*
+
+# Archivos temporales de build
+/dist
+/build
+
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+# testing
+/coverage
+
+# production
+/build
+
+# misc
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

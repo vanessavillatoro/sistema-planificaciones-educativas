@@ -1,0 +1,2 @@
+Semana 1 del Mes 1: Requisitos Funcionales y No Funcionales
+Esta semana se enfoca en definir los requisitos del sistema web generador de planificaciones. Asume que tienes acceso a un computador y conexión a internet. Usa herramientas gratuitas como Google Docs para documentar, y busca recursos en sitios web oficiales. Dedica 2-4 horas diarias. Al final de la semana, tendrás un documento de requisitos claro que guíe el diseño.
