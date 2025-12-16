@@ -1,5 +1,5 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
-const genAI = new GoogleGenerativeAI('escribir clave API');  
+const genAI = new GoogleGenerativeAI('');  
 const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 const prompt = 'Genera una planificación básica para matemáticas en 6to grado en El Salvador.';
 async function run() {
