@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const Recurso = require('./models/Recurso.js');  // Importa el modelo de recursos
 const Planificacion = require('./models/Planificacion.js');  // Importa el modelo
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
@@ -35,10 +36,43 @@ app.post('/api/generate', async (req, res) => {
   }
 });
 
-// ... (El código de /api/create-test-user permanece igual) ...
+
+// Endpoint para generar recursos
+app.post('/api/generate-resource', async (req, res) => {
+  const { prompt, dificultad } = req.body;  // prompt y dificultad del body
+  const fullPrompt = `${prompt || 'Genera un cuestionario básico sobre las partes del cuerpo'}. Dificultad: ${dificultad || 'refuerzo'}. Incluye claves de respuestas.`;  // Ajusta prompt con dificultad
+  
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+  
+  try {
+    const result = await model.generateContent(fullPrompt);
+    const response = await result.response;
+    const text = response.text();
+    res.json({ output: text });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Endpoint para guardar recurso
+app.post('/api/save-resource', async (req, res) => {
+  try {
+    const { descripcion, dificultad, output } = req.body;  // Campos del body
+    const nuevoRecurso = new Recurso({
+      descripcion,
+      dificultad,
+      output
+    });
+    await nuevoRecurso.save();  // Guarda en DB
+    res.json({ message: 'Recurso guardado', id: nuevoRecurso._id });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 // =======================================================
-// 2. 💾 Endpoint para guardar planificación (CON VALIDACIÓN DE CAMPOS)
+// 2. Endpoint para guardar planificación (CON VALIDACIÓN DE CAMPOS)
 // =======================================================
 app.post('/api/save-plan', async (req, res) => {
   
