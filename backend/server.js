@@ -5,6 +5,7 @@ const cors = require('cors');
 const Recurso = require('./models/Recurso.js');  // Importa el modelo de recursos
 const Planificacion = require('./models/Planificacion.js');  // Importa el modelo
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const PDFDocument = require('pdfkit'); 
 
 const app = express();
 app.use(cors());
@@ -103,6 +104,63 @@ app.post('/api/save-plan', async (req, res) => {
     console.error('Error al guardar la planificación en DB:', error.message);
     res.status(500).json({ error: 'Error del servidor al guardar en base de datos.' });
   }
+});
+
+// GET /api/planificaciones: Listar todas las planificaciones
+app.get('/api/planificaciones', async (req, res) => {
+  try {
+    const planificaciones = await Planificacion.find();
+    res.json(planificaciones);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// PUT /api/planificaciones/:id: Editar una planificación por ID
+app.put('/api/planificaciones/:id', async (req, res) => {
+  try {
+    const { materia, grado, output } = req.body;
+    const planificacion = await Planificacion.findByIdAndUpdate(
+      req.params.id,
+      { materia, grado, output },
+      { new: true }
+    );
+    if (!planificacion) return res.status(404).json({ message: 'Planificación no encontrada' });
+    res.json({ message: 'Planificación actualizada', planificacion });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// DELETE /api/planificaciones/:id: Eliminar una planificación por ID
+app.delete('/api/planificaciones/:id', async (req, res) => {
+  try {
+    const planificacion = await Planificacion.findByIdAndDelete(req.params.id);
+    if (!planificacion) return res.status(404).json({ message: 'Planificación no encontrada' });
+    res.json({ message: 'Planificación eliminada' });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// GET /api/export-plan/:id: Exportar planificación a PDF
+app.get('/api/export-plan/:id', async (req, res) => {
+  try {
+    const planificacion = await Planificacion.findById(req.params.id);
+    if (!planificacion) return res.status(404).json({ message: 'Planificación no encontrada' });
+
+    const doc = new PDFDocument();
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=planificacion-${req.params.id}.pdf`);
+    doc.pipe(res);
+
+    doc.text(`Materia: ${planificacion.materia}`);
+    doc.text(`Grado: ${planificacion.grado}`);
+    doc.text(`Output: ${planificacion.output}`);
+    doc.end();
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 const PORT = process.env.PORT || 5000;
