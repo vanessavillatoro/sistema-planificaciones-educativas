@@ -6,6 +6,8 @@ const Recurso = require('./models/Recurso.js');  // Importa el modelo de recurso
 const Planificacion = require('./models/Planificacion.js');  // Importa el modelo
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const PDFDocument = require('pdfkit'); 
+const { Document, Packer, Paragraph, TextRun } = require('docx');
+
 
 const app = express();
 app.use(cors());
@@ -158,6 +160,37 @@ app.get('/api/export-plan/:id', async (req, res) => {
     doc.text(`Grado: ${planificacion.grado}`);
     doc.text(`Output: ${planificacion.output}`);
     doc.end();
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/export-plan/:id/docx', async (req, res) => {
+  try {
+    const planificacion = await Planificacion.findById(req.params.id);
+    if (!planificacion) return res.status(404).json({ message: 'No encontrada' });
+
+    const doc = new Document({
+      sections: [{
+        properties: {},
+        children: [
+          new Paragraph({
+            children: [new TextRun(`Materia: ${planificacion.materia}`)],
+          }),
+          new Paragraph({
+            children: [new TextRun(`Grado: ${planificacion.grado}`)],
+          }),
+          new Paragraph({
+            children: [new TextRun(`Output: ${planificacion.output}`)],
+          }),
+        ],
+      }],
+    });
+
+    const buffer = await Packer.toBuffer(doc);
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    res.setHeader('Content-Disposition', `attachment; filename=planificacion-${req.params.id}.docx`);
+    res.send(buffer);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
