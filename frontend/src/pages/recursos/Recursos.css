@@ -1,0 +1,386 @@
+/* --- Estructura Base --- */
+
+.recursos-page {
+    display: flex;
+    justify-content: center;
+    padding: 40px 20px;
+    min-height: 100vh;
+    transition: background 0.3s ease;
+}
+
+.recursos-page.light { background-color: #ffffff; }
+.recursos-page.dark { background-color: #2d3748; }
+
+.recursos-card {
+    width: 100%;
+    max-width: 950px;
+    padding: 40px;
+    border-radius: 30px;
+    transition: all 0.3s ease;
+}
+
+.light .recursos-card { background: var(--card-bg); color: black; }
+.dark .recursos-card { background: #4a5568; color: white; }
+
+/* --- BOTONES --- */
+
+.dark .btn-clear,
+.dark .btn-generate-main-small,
+.dark .btn-sync-white {
+    background: white !important;
+    color: black !important;
+    border: 1px solid #050505;
+}
+
+.light .btn-clear,
+.light .btn-generate-main-small,
+.light .btn-sync-white {
+    background: linear-gradient(90deg, #4299e1, #1a365d);
+    color: #ffffff;
+    border: 1px solid #7a7a7a;
+}
+
+/* --- Header Centrado --- */
+
+.header-centered {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.header-centered h1 {
+    margin: 0;
+    font-size: 2.5rem;
+    font-weight: 800;
+}
+
+.subtitle-ia {
+    margin-top: 10px;
+    font-size: 1.1rem;
+    font-style: italic;
+    opacity: 0.8;
+}
+
+/* --- Grid y Formulario --- */
+
+.recursos-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.full-width-input { grid-column: span 2; }
+
+.dropdown-header,
+.recursos-grid input {
+    width: 100%;
+    min-height: 55px;
+    height: auto;
+    padding: 12px 25px;
+    border-radius: 12px;
+    font-size: 1rem;
+    background-color: white;
+    border: 1px solid #7a7a7a;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #333;
+}
+
+.selected-text-content {
+    white-space: pre-line !important;
+    text-align: left;
+    display: block;
+    width: 100%;
+    line-height: 1.5;
+    word-break: break-word;
+    flex: 1;
+}
+
+.dark .dropdown-header,
+.dark .recursos-grid input {
+    background-color: #4a5568;
+    border: 1px solid white;
+    color: white;
+}
+
+/* --- SECCIÓN DE BOTONES --- */
+
+.form-footer {
+    margin-top: 40px;
+    display: flex;
+    justify-content: center;
+}
+
+.footer-buttons-container {
+    display: flex;
+    gap: 15px;
+    width: 100%;
+    max-width: 850px;
+}
+
+.btn-footer {
+    flex: 1;
+    height: 45px;
+    padding: 0 20px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+/* --- ÁREA DE RESULTADO --- */
+
+.resultado-container {
+    margin-top: 30px;
+    padding: 25px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid #7a7a7a;
+    animation: fadeIn 0.5s ease;
+}
+
+.resultado-texto {
+    background: white;
+    color: #333;
+    padding: 25px;
+    border-radius: 15px;
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.dark .resultado-texto {
+    background: #2d3748;
+    color: white;
+    border: 1px solid #4a5568;
+}
+
+/* --- ESTILOS MARKDOWN CON INTERLINEADO 1.5 --- */
+
+.markdown-body {
+    text-align: left;
+    line-height: 1.5 !important;
+    font-size: 1.05rem;
+}
+
+.markdown-body p {
+    margin-top: 0;
+    margin-bottom: 1.2rem;
+}
+
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3 {
+    margin-top: 1.5rem;
+    margin-bottom: 0.6rem;
+    color: #2c5282;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.dark .markdown-body h1,
+.dark .markdown-body h2,
+.dark .markdown-body h3 {
+    color: #63b3ed;
+}
+
+.markdown-body ul,
+.markdown-body ol {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+}
+
+.markdown-body li {
+    margin-bottom: 0.5rem;
+    line-height: 1.5;
+}
+
+.markdown-body hr {
+    margin: 20px 0;
+    height: 1px;
+    border: 0;
+    background: #cbd5e0;
+}
+
+/* Estilo para que las fracciones de KaTeX se vean grandes y claras */
+.styled-math .katex {
+    font-size: 1.25em; 
+    color: inherit; /* Cambiado para heredar el color del padre (dark/light) */
+}
+
+.styled-math p {
+    line-height: 2.2;   
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.styled-math .katex-html {
+    vertical-align: middle;
+}
+
+.styled-math .katex {
+    font-size: 1.3em !important; 
+}
+
+.styled-math p {
+    margin-bottom: 1.5rem;
+    line-height: 2; 
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 768px) {
+    .footer-buttons-container { flex-direction: column; }
+    .recursos-grid { grid-template-columns: 1fr; }
+    .full-width-input { grid-column: span 1; }
+}
+
+/* --- NUEVOS ESTILOS PARA ELIMINAR PLANIFICACIONES --- */
+
+.dropdown-option-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px !important;
+    transition: background 0.2s ease;
+    cursor: pointer;
+}
+
+.dropdown-option-item:hover {
+    background-color: rgba(66, 153, 225, 0.1);
+}
+
+.option-text {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-right: 15px;
+    text-align: left;
+}
+
+.btn-delete-inline {
+    background: #fff5f5 !important;
+    border: 1px solid #feb2b2 !important;
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    opacity: 0; /* Oculto por defecto */
+    color: #c53030 !important;
+}
+
+.dropdown-option-item:hover .btn-delete-inline {
+    opacity: 1; /* Aparece al pasar el mouse por la fila */
+}
+
+.btn-delete-inline:hover {
+    background-color: #feb2b2 !important;
+    color: #ffffff !important;
+    transform: scale(1.1);
+}
+
+.dark .btn-delete-inline {
+    background: #2d3748 !important;
+    border: 1px solid #f56565 !important;
+    color: #f56565 !important;
+}
+
+.dark .btn-delete-inline:hover {
+    background-color: #f56565 !important;
+    color: white !important;
+}
+
+.dropdown-list {
+    list-style: none;
+    padding: 0;
+    margin: 5px 0 0 0;
+    position: absolute;
+    width: 100%;
+    background: white;
+    border: 1px solid #cbd5e0;
+    border-radius: 12px;
+    z-index: 1000;
+    max-height: 250px;
+    overflow-y: auto;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.dark .dropdown-list {
+    background: #2d3748;
+    border-color: #4a5568;
+}
+
+.placeholder-option {
+    padding: 10px 15px;
+    color: #a0aec0;
+    font-style: italic;
+    border-bottom: 1px solid #edf2f7;
+    cursor: pointer;
+}
+
+.dark .placeholder-option {
+    border-bottom-color: #4a5568;
+}
+
+/* --- AJUSTES PARA CAMPOS DINÁMICOS (OBJETIVOS E INDICADORES) --- */
+
+/* Permite que el contenedor del textarea crezca según el contenido */
+.dropdown-header.dinamic-height {
+    height: auto !important;
+    min-height: 55px;
+    display: flex;
+    flex-direction: column; /* Alinea el textarea y el icono correctamente */
+    align-items: flex-start;
+    padding: 12px 25px;
+}
+
+/* Estilo para el textarea dentro del dropdown */
+.dropdown-textarea-header {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: inherit;
+    font-family: inherit;
+    font-size: 1rem;
+    resize: none;
+    padding: 0;
+    outline: none;
+    overflow: hidden; /* Oculta el scroll interno para forzar el crecimiento */
+    line-height: 1.5;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+/* Ajuste para el icono cuando el campo es largo */
+.dropdown-header.dinamic-height .icon-v {
+    align-self: flex-end; /* Mueve la flecha abajo a la derecha si hay mucho texto */
+    margin-top: -20px;
+    cursor: pointer;
+}
+
+/* Asegura que el dropdown de ancho completo no limite la altura */
+.custom-dropdown.full-width-input {
+    height: auto !important;
+}
+
+.dark .dropdown-textarea-header {
+    color: white;
+}
+
+.light .dropdown-textarea-header {
+    color: #333;
+}

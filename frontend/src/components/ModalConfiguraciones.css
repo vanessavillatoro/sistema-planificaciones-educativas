@@ -1,0 +1,79 @@
+.modal-config-content {
+  width: 450px;
+  border-radius: 20px;
+  padding: 30px;
+  position: relative;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  transition: background 0.3s ease;
+}
+
+.modal-config-content.light { background: white; color: #333; }
+.modal-config-content.dark { background: #2c3444; color: white; }
+
+.modal-config-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-config-header h2 {
+  font-size: 24px;
+  margin: 0;
+  font-weight: 600;
+}
+
+.close-btn-config {
+  background: none;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  color: inherit;
+  line-height: 1;
+}
+
+.modal-divider {
+  border: 0;
+  border-top: 1px solid rgba(128, 128, 128, 0.2);
+  margin: 15px 0 10px 0;
+}
+
+.config-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 0;
+}
+
+.config-item span {
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.select-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.config-item select {
+  border: none;
+  background: transparent;
+  color: #636e72;
+  font-size: 18px;
+  cursor: pointer;
+  outline: none;
+  appearance: none; /* Quita la flecha por defecto del sistema */
+  text-align: right;
+  font-family: inherit;
+}
+
+.modal-config-content.dark select {
+  color: #b2bec3;
+}
+
+.arrow-icon-svg {
+  width: 16px;
+  height: 16px;
+  color: #636e72;
+  pointer-events: none;
+}
