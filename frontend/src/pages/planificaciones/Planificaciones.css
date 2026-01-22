@@ -1,12 +1,13 @@
+/* --- TU CÓDIGO ORIGINAL (TAL CUAL LO PASASTE) --- */
 /* Colores basados en image_c0d478.png */
 :root {
-    --azul-oscuro: #0b0948; /* El azul de los encabezados */
+    --azul-oscuro: #0b0948;
     --gris-borde: #333;
     --blanco: #ffffff;
 }
 
 :root {
-    --azul-planificacion: #002060; /* El azul oscuro de tus encabezados */
+    --azul-planificacion: #002060;
     --blanco-celda: #ffffff;
     --borde-tabla: #000000;
 }
@@ -56,7 +57,7 @@
 input, .dropdown-header, .objetivos-area {
   padding: 0 15px; 
   border-radius: 12px;
-  font-size: 1.1rem !important; /* Aumentamos a 1.1rem para que coincida con el impacto visual de 'Seccion' */
+  font-size: 1.1rem !important; 
   width: 100%;
   height: 55px;
   box-sizing: border-box;
@@ -77,8 +78,6 @@ input, .dropdown-header, .objetivos-area {
   font-size: 1.1rem !important;
   color: #ffffff;
 }
-
-
 
 .planning-table {
     width: 100%;
@@ -176,7 +175,7 @@ input, .dropdown-header {
   border-radius: 12px ;
   font-size: 0.9rem;
   width: 100%;
-  height: 55px; /* Altura corregida para igualdad total */
+  height: 55px; 
   box-sizing: border-box;
   border: 1.5px solid var(--input-border) ; 
   background: #ffffff;
@@ -203,7 +202,7 @@ input, .dropdown-header {
 /* BLOQUE DE UNIÓN DE PIEZA ÚNICA */
 .custom-dropdown.is-open .dropdown-header {
     border-radius: 12px 12px 0 0 !important;
-    border-bottom: none !important; /* Une las piezas visualmente */
+    border-bottom: none !important; 
 }
 
 .dropdown-list {
@@ -213,29 +212,29 @@ input, .dropdown-header {
     right: 0;
     background-color: #ffffff;
     border: 1.5px solid var(--input-border);
-    border-top: none !important; /* Elimina la línea divisoria */
+    border-top: none !important; 
     border-radius: 0 0 12px 12px;
     z-index: 1000;
-    margin-top: -1.5px !important; /* Solapa bordes para bloque único */
+    margin-top: -1.5px !important; 
     max-height: 200px; 
     overflow-y: auto; 
     box-shadow: 0 10px 25px rgba(0,0,0,0.1);
     padding: 0;
     margin: 0;
-    list-style: none !important; /* Quita puntos negros */
+    list-style: none !important; 
 }
 
 .dropdown-list li {
    padding: 12px 15px;
     color: #000000;
     cursor: pointer;
-    font-size: 1.1rem !important; /* Igualamos al tamaño de los campos */
+    font-size: 1.1rem !important; 
     list-style: none !important;
 }
 
 /* En modo oscuro, las opciones deben resaltar */
 .app.dark .dropdown-list li {
-    color: #000000; /* Mantenerlas negras si el fondo del desplegable es gris claro */
+    color: #000000; 
 }
 
 .full-width-input-container {
@@ -314,7 +313,20 @@ button.theme-toggle, .theme-toggle-btn, [role="button"] {
     border: none;
 }
 
+/* --- LO NUEVO: SOLO MEDIA QUERIES PARA RESPONSIVIDAD --- */
+@media (max-width: 992px) {
+    .input-grid {
+        grid-template-columns: repeat(2, 1fr); /* 2 columnas en tablets */
+    }
+}
+
 @media (max-width: 768px) {
+    .form-container {
+        padding: 20px;
+    }
+    .input-grid {
+        grid-template-columns: 1fr; /* 1 columna en móviles */
+    }
     .footer-buttons-container {
         flex-direction: column;
         gap: 12px;
@@ -326,4 +338,7 @@ button.theme-toggle, .theme-toggle-btn, [role="button"] {
         grid-template-columns: 1fr;
     }
     .full-width-input { grid-column: span 1; }
+    .full-width-input-container {
+        flex-direction: column;
+    }
 }

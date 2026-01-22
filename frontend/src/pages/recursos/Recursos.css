@@ -212,7 +212,7 @@
 /* Estilo para que las fracciones de KaTeX se vean grandes y claras */
 .styled-math .katex {
     font-size: 1.25em; 
-    color: inherit; /* Cambiado para heredar el color del padre (dark/light) */
+    color: inherit; 
 }
 
 .styled-math p {
@@ -279,12 +279,12 @@
     padding: 4px 8px;
     border-radius: 6px;
     transition: all 0.2s ease;
-    opacity: 0; /* Oculto por defecto */
+    opacity: 0; 
     color: #c53030 !important;
 }
 
 .dropdown-option-item:hover .btn-delete-inline {
-    opacity: 1; /* Aparece al pasar el mouse por la fila */
+    opacity: 1; 
 }
 
 .btn-delete-inline:hover {
@@ -338,17 +338,15 @@
 
 /* --- AJUSTES PARA CAMPOS DINÁMICOS (OBJETIVOS E INDICADORES) --- */
 
-/* Permite que el contenedor del textarea crezca según el contenido */
 .dropdown-header.dinamic-height {
     height: auto !important;
     min-height: 55px;
     display: flex;
-    flex-direction: column; /* Alinea el textarea y el icono correctamente */
+    flex-direction: column; 
     align-items: flex-start;
     padding: 12px 25px;
 }
 
-/* Estilo para el textarea dentro del dropdown */
 .dropdown-textarea-header {
     width: 100%;
     background: transparent;
@@ -359,20 +357,18 @@
     resize: none;
     padding: 0;
     outline: none;
-    overflow: hidden; /* Oculta el scroll interno para forzar el crecimiento */
+    overflow: hidden; 
     line-height: 1.5;
     margin-top: 5px;
     margin-bottom: 5px;
 }
 
-/* Ajuste para el icono cuando el campo es largo */
 .dropdown-header.dinamic-height .icon-v {
-    align-self: flex-end; /* Mueve la flecha abajo a la derecha si hay mucho texto */
+    align-self: flex-end; 
     margin-top: -20px;
     cursor: pointer;
 }
 
-/* Asegura que el dropdown de ancho completo no limite la altura */
 .custom-dropdown.full-width-input {
     height: auto !important;
 }
@@ -383,4 +379,32 @@
 
 .light .dropdown-textarea-header {
     color: #333;
+}
+
+/* --- LO NUEVO: AJUSTES ADICIONALES DE RESPONSIVIDAD (SIN TOCAR LO ANTERIOR) --- */
+
+@media (max-width: 600px) {
+    .recursos-page {
+        padding: 20px 10px;
+    }
+    .recursos-card {
+        padding: 20px;
+        border-radius: 20px;
+    }
+    .header-centered h1 {
+        font-size: 1.8rem;
+    }
+    .dropdown-header, .recursos-grid input {
+        padding: 10px 15px;
+        font-size: 0.9rem;
+    }
+    .resultado-container {
+        padding: 15px;
+    }
+    .btn-footer {
+        white-space: normal; /* Permite que el texto del botón baje de línea si es largo */
+        height: auto;
+        min-height: 45px;
+        padding: 10px;
+    }
 }

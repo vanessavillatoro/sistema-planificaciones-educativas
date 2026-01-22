@@ -84,7 +84,7 @@ const Planificaciones = ({ darkMode }) => {
       return;
     }
 
-    const confirmar = window.confirm(`¿Deseas mover "${formData.tema || formData.nombreUnidad}" a la papelera?`);
+    const confirmar = window.confirm(`¿Desea mover "${formData.tema || formData.nombreUnidad}" a la papelera?`);
     if (!confirmar) {
       limpiarFormulario();
       return;
@@ -99,7 +99,7 @@ const Planificaciones = ({ darkMode }) => {
       });
 
       if (response.ok) {
-        alert("🗑️ Movido a la papelera correctamente.");
+        alert("Movido a la papelera correctamente.");
         limpiarFormulario();
       } else {
         limpiarFormulario();
@@ -489,14 +489,14 @@ const exportarAGestion = async () => {
 
         <textarea
           className="objetivos-area"
-          placeholder="Escribe aquí tus sugerencias (Ej: Cambia solo los objetivos por estos: ...)"
+          placeholder="Escriba los cambios que desea realizar a su planificacion, (por ejemplo, agregar 4 indicadores de logro en lugar de 3)"
           value={formData.sugerencias}
           onChange={(e) => setFormData({...formData, sugerencias: e.target.value})}
         ></textarea>
 
         <div className="button-group">
           <button className="btn-primary" onClick={generarConAPI} disabled={loading}>
-            {loading ? "Generando..." : resultado ? "Actualizar con sugerencias" : "Generar planificacion"}
+            {loading ? "Generando..." : resultado ? "Guardar cambios " : "Generar planificacion"}
           </button>
           
           {resultado && (
@@ -507,7 +507,7 @@ const exportarAGestion = async () => {
                 disabled={saving}
                 style={{ backgroundColor: '#28a745', marginLeft: '10px' }}
               >
-                {saving ? "Guardando..." : "Guardar para Recursos"}
+                {saving ? "Guardando..." : "Exportar a recursos"}
               </button>
 
               <button 
@@ -516,7 +516,7 @@ const exportarAGestion = async () => {
                 disabled={saving}
                 style={{ backgroundColor: '#6f42c1', marginLeft: '10px' }}
               >
-                {saving ? "Exportando..." : "Exportar a Gestión"}
+                {saving ? "Exportando..." : "Exportar a gestión"}
               </button>
 
               <button 
@@ -524,12 +524,12 @@ const exportarAGestion = async () => {
                 onClick={copiarPlanificacion}
                 style={{ backgroundColor: '#007bff', marginLeft: '10px' }}
               >
-                📋 Copiar Planificación
+                Copiar planificación
               </button>
             </>
           )}
 
-          <button className="btn-secondary" onClick={moverAPapelera}>Borrar o limpiar campos</button>
+          <button className="btn-secondary" onClick={moverAPapelera}>Limpiar campos</button>
         </div>
 
         {resultado && (

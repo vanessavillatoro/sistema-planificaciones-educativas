@@ -1,10 +1,15 @@
+/* --- MODIFICACIÓN RESPONSIVE --- */
 .modal-config-content {
-  width: 450px;
+  /* Cambiamos width fijo por max-width y un ancho porcentual */
+  width: 90%;
+  max-width: 450px; 
   border-radius: 20px;
   padding: 30px;
   position: relative;
   box-shadow: 0 10px 30px rgba(0,0,0,0.3);
   transition: background 0.3s ease;
+  /* Asegura que no se pegue a los bordes de la pantalla */
+  margin: auto; 
 }
 
 .modal-config-content.light { background: white; color: #333; }
@@ -62,7 +67,7 @@
   font-size: 18px;
   cursor: pointer;
   outline: none;
-  appearance: none; /* Quita la flecha por defecto del sistema */
+  appearance: none;
   text-align: right;
   font-family: inherit;
 }
@@ -76,4 +81,21 @@
   height: 16px;
   color: #636e72;
   pointer-events: none;
+}
+
+/* --- NUEVA MEDIA QUERY PARA MÓVILES PEQUEÑOS --- */
+@media (max-width: 480px) {
+  .modal-config-content {
+    padding: 20px; /* Reducimos espacio interno */
+    width: 95%;    /* Aprovechamos más el ancho */
+  }
+
+  .modal-config-header h2 {
+    font-size: 20px; /* Texto un poco más pequeño */
+  }
+
+  .config-item span, 
+  .config-item select {
+    font-size: 16px; /* Ajuste de legibilidad */
+  }
 }

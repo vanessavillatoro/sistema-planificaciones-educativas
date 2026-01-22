@@ -89,49 +89,167 @@ const Gestion = ({ darkMode }) => {
 
   // --- NUEVA FUNCIÓN: EXPORTAR WORD ---
   // --- FUNCIÓN EXPORTAR WORD (CON FORMATO DE IMAGEN) ---
-  const exportarWord = (item) => {
-    const contenidoBruto = typeof item.datos === 'string' ? item.datos : (item.datos?.contenido || item.contenido || "");
+const exportarWord = (item) => {
+    const normalizar = (t) => t ? t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
+    const esPlanificacion = normalizar(item.tipo || "").includes('planifica');
     
-    // Procesamos el texto con tu función de renderizado para obtener el HTML con estilos
-    const contenidoConFormato = renderizarEstiloIA(contenidoBruto);
-    
-    // Creamos el esqueleto del documento Word con los estilos visuales
+    let contenidoFinal = "";
+
+    if (esPlanificacion) {
+      // Intentamos extraer datos de múltiples niveles para evitar campos vacíos
+      const d = item.datos || {};
+      const root = item || {};
+      const extra = d.datos || {}; // Tercer nivel por si acaso
+
+      const docente = `${d.nombre || root.nombre || extra.nombre || ""} ${d.apellido || root.apellido || extra.apellido || ""}`.trim();
+      const grado = d.grado || root.grado || extra.grado || "";
+      const seccion = d.seccion || root.seccion || extra.seccion || "";
+      const municipio = d.municipio || root.municipio || extra.municipio || "";
+      const departamento = d.departamento || root.departamento || extra.departamento || "";
+      const nivel = d.nivel || root.nivel || extra.nivel || "";
+      const centro = d.centroEscolar || root.centroEscolar || extra.centroEscolar|| "";
+      const materia = d.materia || root.materia || extra.materia || "";
+      const unidadNombre = d.nombreUnidad || root.nombreUnidad || extra.nombreUnidad || "";
+      const unidadNum = d.numUnidad || root.numUnidad || extra.numUnidad || "";
+      const fecha = d.fecha || root.fecha || extra.fecha || "";
+      const duracion = d.duracion || root.duracion || extra.duracion || "";
+      const dificultad = d.dificultad || root.dificultad || extra.dificultad || "";
+      const tema = d.tema || root.tema || extra.tema || "";
+
+      const materialesArray = d.materiales || root.materiales || extra.materiales || [];
+      const actividades = d.tiempos || root.tiempos || d.actividades || extra.actividades || [];
+
+      const formatCellList = (text) => {
+        if (!text) return "";
+        return text.split('\n')
+          .map(line => line.replace(/\*/g, '').trim())
+          .filter(line => line)
+          .map(line => `• ${line}`)
+          .join('<br>');
+      };
+
+      contenidoFinal = `
+        <table style="width: 100%; border-collapse: collapse; font-family: Arial; border: 1pt solid #000;">
+          <tr>
+            <td colspan="9" style="background-color: #002060; color: white; text-align: center; font-weight: bold; padding: 2pt; border: 1pt solid #000; font-size: 10pt;">PLANIFICACIÓN GENERADA</td>
+          </tr>
+          
+          <tr>
+            <td style="background-color: #002060; color: white; font-weight: bold; border: 1pt solid #000; padding: 2pt; width: 12%; font-size: 8pt;">Docente:</td>
+            <td colspan="3" style="border: 1pt solid #000; padding: 2pt; font-size: 8pt;">${docente || "vanessa villatoro"}</td>
+            <td style="background-color: #002060; color: white; font-weight: bold; border: 1pt solid #000; padding: 2pt; width: 10%; font-size: 8pt;">Grado:</td>
+            <td colspan="2" style="border: 1pt solid #000; padding: 2pt; font-size: 8pt;">${grado}</td>
+            <td style="background-color: #002060; color: white; font-weight: bold; border: 1pt solid #000; padding: 2pt; width: 10%; font-size: 8pt;">Seccion:</td>
+            <td style="border: 1pt solid #000; padding: 2pt; font-size: 8pt;">${seccion}</td>
+          </tr>
+
+          <tr>
+            <td style="background-color: #002060; color: white; font-weight: bold; border: 1pt solid #000; padding: 2pt; font-size: 8pt;">municipio:</td>
+            <td colspan="4" style="border: 1pt solid #000; padding: 2pt; font-size: 8pt;">${municipio}</td>
+            <td style="background-color: #002060; color: white; font-weight: bold; border: 1pt solid #000; padding: 2pt; font-size: 8pt;">Departamento:</td>
+            <td colspan="3" style="border: 1pt solid #000; padding: 2pt; font-size: 8pt;">${departamento}</td>
+          </tr>
+
+          <tr>
+            <td style="background-color: #002060; color: white; font-weight: bold; border: 1pt solid #000; padding: 2pt; font-size: 8pt;">Nivel educativo:</td>
+            <td colspan="2" style="border: 1pt solid #000; padding: 2pt; font-size: 8pt;">${nivel}</td>
+            <td style="background-color: #002060; color: white; font-weight: bold; border: 1pt solid #000; padding: 2pt; font-size: 8pt;">Centro escolar:</td>
+            <td colspan="2" style="border: 1pt solid #000; padding: 2pt; font-size: 8pt;">${centro}</td>
+            <td style="background-color: #002060; color: white; font-weight: bold; border: 1pt solid #000; padding: 2pt; font-size: 8pt;">Materia:</td>
+            <td colspan="2" style="border: 1pt solid #000; padding: 2pt; font-size: 8pt;">${materia}</td>
+          </tr>
+
+          <tr>
+            <td colspan="9" style="background-color: #002060; color: white; text-align: center; font-weight: bold; padding: 2pt; border: 1pt solid #000; font-size: 8pt;">Datos específicos</td>
+          </tr>
+
+          <tr>
+            <td style="background-color: #002060; color: white; font-weight: bold; border: 1pt solid #000; padding: 2pt; font-size: 8pt;">Nombre de la unidad:</td>
+            <td colspan="3" style="border: 1pt solid #000; padding: 2pt; font-size: 8pt;">${unidadNombre}</td>
+            <td style="background-color: #002060; color: white; font-weight: bold; border: 1pt solid #000; padding: 2pt; font-size: 8pt;">n° de Unidad:</td>
+            <td colspan="2" style="border: 1pt solid #000; padding: 2pt; font-size: 8pt;">${unidadNum}</td>
+            <td style="background-color: #002060; color: white; font-weight: bold; border: 1pt solid #000; padding: 2pt; font-size: 8pt;">fecha:</td>
+            <td style="border: 1pt solid #000; padding: 2pt; font-size: 8pt;">${fecha}</td>
+          </tr>
+
+          <tr>
+            <td style="background-color: #002060; color: white; font-weight: bold; border: 1pt solid #000; padding: 2pt; font-size: 8pt;">Duracion semanal:</td>
+            <td colspan="2" style="border: 1pt solid #000; padding: 2pt; font-size: 8pt;">${duracion}</td>
+            <td style="background-color: #002060; color: white; font-weight: bold; border: 1pt solid #000; padding: 2pt; font-size: 8pt;">Nivel de dificultad:</td>
+            <td colspan="2" style="border: 1pt solid #000; padding: 2pt; font-size: 8pt;">${dificultad}</td>
+            <td style="background-color: #002060; color: white; font-weight: bold; border: 1pt solid #000; padding: 2pt; font-size: 8pt;">Tema:</td>
+            <td colspan="2" style="border: 1pt solid #000; padding: 2pt; font-size: 8pt;">${tema}</td>
+          </tr>
+
+          <tr>
+            <td style="background-color: #002060; color: white; font-weight: bold; border: 1pt solid #000; padding: 2pt; font-size: 8pt;">Indicadores de logro:</td>
+            <td colspan="8" style="border: 1pt solid #000; padding: 2pt; font-size: 7.5pt;">${formatCellList(d.indicadoresLogro || root.indicadoresLogro || extra.indicadoresLogro)}</td>
+          </tr>
+          <tr>
+            <td style="background-color: #002060; color: white; font-weight: bold; border: 1pt solid #000; padding: 2pt; font-size: 8pt;">Objetivos:</td>
+            <td colspan="8" style="border: 1pt solid #000; padding: 2pt; font-size: 7.5pt;">${formatCellList(d.objetivos || root.objetivos || extra.objetivos)}</td>
+          </tr>
+
+          <tr>
+            <td style="background-color: #002060; color: white; font-weight: bold; border: 1pt solid #000; text-align: center; padding: 2pt; font-size: 8pt;">Materiales:</td>
+            ${[0, 1, 2, 3, 4, 5, 6, 7].map(i => `<td style="border: 1pt solid #000; padding: 2pt; font-size: 7pt; vertical-align: top;">${formatCellList(materialesArray[i])}</td>`).join('')}
+          </tr>
+
+          <tr>
+            <td colspan="9" style="background-color: #002060; color: white; text-align: center; font-weight: bold; padding: 2pt; border: 1pt solid #000; font-size: 8pt;">MOMENTOS DE LA CLASE</td>
+          </tr>
+          <tr>
+            <td style="background-color: #002060; color: white; font-weight: bold; border: 1pt solid #000; text-align: center; padding: 2pt; font-size: 8pt;">Inicio</td>
+            ${[0, 1, 2, 3, 4, 5, 6, 7].map(i => `<td style="border: 1pt solid #000; padding: 2pt; font-size: 7pt; vertical-align: top;">${actividades[i]?.inicio || ""}</td>`).join('')}
+          </tr>
+          <tr>
+            <td style="background-color: #002060; color: white; font-weight: bold; border: 1pt solid #000; text-align: center; height: 40pt; padding: 2pt; font-size: 8pt;">desarrollo</td>
+            ${[0, 1, 2, 3, 4, 5, 6, 7].map(i => `<td style="border: 1pt solid #000; padding: 2pt; font-size: 7pt; vertical-align: top;">${actividades[i]?.desarrollo || ""}</td>`).join('')}
+          </tr>
+          <tr>
+            <td style="background-color: #002060; color: white; font-weight: bold; border: 1pt solid #000; text-align: center; padding: 2pt; font-size: 8pt;">cierre</td>
+            ${[0, 1, 2, 3, 4, 5, 6, 7].map(i => `<td style="border: 1pt solid #000; padding: 2pt; font-size: 7pt; vertical-align: top;">${actividades[i]?.cierre || ""}</td>`).join('')}
+          </tr>
+
+          <tr>
+            <td style="background-color: #002060; color: white; font-weight: bold; border: 1pt solid #000; padding: 2pt; font-size: 8pt;">Indicadores de evaluacion:</td>
+            <td colspan="8" style="border: 1pt solid #000; padding: 2pt; font-size: 7.5pt;">${formatCellList(d.indicadoresEvaluacion || root.indicadoresEvaluacion || extra.indicadoresEvaluacion)}</td>
+          </tr>
+          <tr>
+            <td style="background-color: #002060; color: white; font-weight: bold; border: 1pt solid #000; padding: 2pt; font-size: 8pt;">Actividades complementarias:</td>
+            <td colspan="8" style="border: 1pt solid #000; padding: 2pt; font-size: 7.5pt;">${formatCellList(d.actividadesComplementarias || root.actividadesComplementarias || extra.actividadesComplementarias)}</td>
+          </tr>
+        </table>
+      `;
+    } else {
+      // --- RECURSOS (SIN MODIFICAR LÓGICA EXISTENTE) ---
+      const contenidoBruto = typeof item.datos === 'string' ? item.datos : (item.datos?.contenido || item.contenido || "");
+      contenidoFinal = renderizarEstiloIA(contenidoBruto);
+    }
+
     const header = `
       <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
       <head>
         <meta charset='utf-8'>
         <style>
-          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-          h1 { color: #1a365d; text-align: center; text-transform: uppercase; font-size: 20pt; }
-          h3 { color: #2d3748; font-size: 14pt; margin-top: 15pt; }
-          p { font-size: 12pt; line-height: 1.5; margin-bottom: 10pt; }
-          strong { color: #1a365d; }
-          table { width: 100%; border-collapse: collapse; margin: 10pt 0; }
-          th { background-color: #edf2f7; border: 1pt solid #cbd5e0; padding: 8pt; font-weight: bold; }
-          td { border: 1pt solid #cbd5e0; padding: 8pt; }
-          .bullet-point { margin-left: 20pt; }
+          @page { size: landscape; margin: 0.5in; }
+          body { font-family: Arial, sans-serif; }
+          h1 { color: #1a365d; text-align: center; }
         </style>
       </head>
       <body>
-        <div style="text-align: center; color: #718096; font-size: 9pt; letter-spacing: 2pt;">— VILLATORO'S SOLUTIONS —</div>
-        <br>
-        ${contenidoConFormato}
+        ${contenidoFinal}
       </body>
       </html>`;
-    
-    const blob = new Blob(['\ufeff', header], {
-      type: 'application/msword'
-    });
-    
+
+    const blob = new Blob(['\ufeff', header], { type: 'application/msword' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `${item.tema || 'recurso_educativo'}.doc`;
+    link.download = `${item.tema || 'planificacion'}.doc`;
     link.click();
     URL.revokeObjectURL(url);
   };
-
-  
 
 const obtenerContenidoParaModal = (item) => {
   if (!item) return "";

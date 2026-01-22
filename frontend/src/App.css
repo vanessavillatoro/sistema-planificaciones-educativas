@@ -19,6 +19,7 @@
 }
 .app { min-height: 100vh; width: 100%; background-color: var(--bg-color); 
 color: var(--text-color); font-family: sans-serif; display: flex; flex-direction: column; }
+
 .button-group {
     display: flex !important;
     justify-content: center !important; /* Esto los empuja al centro horizontal */
@@ -46,3 +47,19 @@ color: var(--text-color); font-family: sans-serif; display: flex; flex-direction
         /* Opcional: un borde negro para definirlo bien */
 }
 
+/* --- LO NUEVO: AJUSTES GLOBALES RESPONSIVE --- */
+
+@media (max-width: 600px) {
+    .button-group {
+        flex-direction: column !important; /* En móviles, botones uno sobre otro */
+        gap: 15px !important;
+        padding: 0 20px;
+        box-sizing: border-box;
+    }
+
+    .btn-primary, .btn-secondary {
+        width: 100%; /* Botones a lo ancho completo en celular */
+        padding: 15px; /* Un poco más de área táctil */
+        font-size: 1.1rem;
+    }
+}

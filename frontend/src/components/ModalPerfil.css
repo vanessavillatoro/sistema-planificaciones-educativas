@@ -224,3 +224,141 @@
 .modal-content.dark .edit-badge {
   border-color: #2c3444;
 }
+/* ... (tus otros estilos se mantienen igual) ... */
+
+.input-group {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 0;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.1);
+}
+
+.label-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* El cuadrito del lápiz que pediste */
+.btn-edit-small {
+  width: 26px;
+  height: 26px;
+  border: 1px solid #7c3aed; /* Color morado de la imagen */
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #7c3aed;
+  background: transparent;
+  cursor: pointer;
+}
+
+.input-group label {
+  font-size: 14px;
+  color: inherit;
+  font-weight: 400;
+}
+
+.input-group input {
+  border: none;
+  background: transparent;
+  color: inherit;
+  text-align: right;
+  font-size: 14px;
+  width: 50%;
+  outline: none;
+  opacity: 0.8;
+}
+
+/* Estilo del botón de guardado según la imagen clara/oscura */
+.modal-content.light .save-btn {
+  background-color: #3b82f6; /* Azul brillante */
+  color: white;
+}
+
+.modal-content.dark .save-btn {
+  background-color: #ffffff; /* Blanco en modo oscuro */
+  color: #2c3444;
+}
+
+.modal-divider {
+  border: 0;
+  border-top: 1px solid rgba(128, 128, 128, 0.2);
+  margin: 10px 0 20px 0;
+}
+
+/* ... (Todo lo anterior se mantiene) ... */
+
+.input-group input {
+  border: none;
+  background: transparent;
+  color: inherit;
+  text-align: right;
+  font-size: 14px;
+  width: 55%;
+  outline: none;
+  cursor: default; /* Cursor normal cuando no es editable */
+  transition: all 0.2s ease;
+}
+
+/* Cuando el campo está habilitado para edición */
+.input-group.is-editing input {
+  cursor: text;
+  opacity: 1;
+  color: #7c3aed; /* El texto se resalta en morado al editar */
+}
+
+/* --- SECCIÓN UNIFICADA DE FOTO DE PERFIL --- */
+
+.profile-img-container {
+  position: relative;
+  cursor: pointer;
+  display: inline-block;
+  z-index: 10; /* Asegura que esté por encima de cualquier otro elemento del header */
+  transition: transform 0.2s ease;
+}
+
+.profile-img-container:hover {
+  transform: scale(1.02);
+}
+
+.modal-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  border: 2px solid #7c3aed;
+  transition: filter 0.3s ease;
+}
+
+.profile-img-container:hover .modal-avatar {
+  filter: brightness(0.8);
+}
+
+/* Ocultar el input por completo pero mantenerlo funcional */
+.file-input-hidden {
+  display: none !important;
+}
+
+.edit-badge {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: #7c3aed; /* Color morado consistente */
+  color: white;
+  border-radius: 50%;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  border: 2px solid white;
+  pointer-events: none; /* VITAL: El clic "atraviesa" el icono y llega al contenedor */
+}
+
+/* Ajuste para modo oscuro */
+.modal-content.dark .edit-badge {
+  border-color: #2c3444;
+}

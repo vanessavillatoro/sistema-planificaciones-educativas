@@ -45,7 +45,7 @@
     border: 2px solid #e53e3e;
 }
 
-/* --- NUEVA ESTRUCTURA DE VENTANA MODAL EMERGENTE --- */
+/* --- ESTRUCTURA DE VENTANA MODAL EMERGENTE --- */
 
 .modal-overlay {
     position: fixed;
@@ -194,9 +194,49 @@
 
 .status-msg { font-size: 18px; font-weight: 600; margin-bottom: 5px; }
 
-/* Modo Oscuro (Opcional) */
+/* Modo Oscuro */
 .dark-mode .papelera-modal-window { background: #1a202c; }
 .dark-mode .papelera-body { background: #121720; }
 .dark-mode .papelera-card { background: #2d3748; }
 .dark-mode .card-title { color: white; }
 .dark-mode .papelera-footer { background: #1a202c; border-top-color: #2d3748; }
+
+/* --- SECCIÓN NUEVA: AJUSTES RESPONSIVE (SIN TOCAR LO ANTERIOR) --- */
+
+@media (max-width: 768px) {
+    .papelera-modal-window {
+        width: 95%;
+        height: 90vh;
+    }
+    .papelera-header {
+        padding: 15px 20px;
+    }
+    .header-title h4 {
+        font-size: 18px;
+    }
+    .papelera-body {
+        padding: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .papelera-global-container {
+        bottom: 15px;
+        right: 15px;
+    }
+    .fab-button {
+        width: 50px;
+        height: 50px;
+    }
+    .papelera-grid {
+        grid-template-columns: 1fr; /* Una sola columna en celulares */
+    }
+    .card-actions {
+        flex-direction: column; /* Botones uno sobre otro si el espacio es muy pequeño */
+    }
+    .papelera-footer {
+        font-size: 12px;
+        padding: 10px 20px;
+        text-align: center;
+    }
+}
