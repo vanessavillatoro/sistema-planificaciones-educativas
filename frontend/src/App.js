@@ -7,6 +7,9 @@ import Planificaciones from './pages/planificaciones/Planificaciones';
 import Recursos from './pages/recursos/Recursos'; // Importamos el nuevo módulo 2
 import Gestion from './pages/gestion/Gestion'; // NUEVO: Importamos el módulo de gestión
 
+// --- IMPORTACIÓN DE ACERCA DE NOSOTROS ---
+import AcercaDeNosotros from './pages/acerca de nosotros/acerca'; 
+
 // --- IMPORTACIÓN DE LA PAPELERA ---
 import PapeleraFlotante from './components/PapeleraFlotante';
 
@@ -38,6 +41,9 @@ function App() {
 
         {/* NUEVA RUTA: Ruta para el Módulo 3 (Gestión) */}
         <Route path="/gestion" element={<Gestion darkMode={darkMode} />} />
+
+        {/* NUEVA RUTA: Acerca de nosotros */}
+        <Route path="/acerca-de-nosotros" element={<AcercaDeNosotros darkMode={darkMode} />} />
         
         {/* Redirección por defecto: Si entras a la raíz, te lleva a planificaciones */}
         <Route path="/" element={<Navigate to="/planificaciones" />} />

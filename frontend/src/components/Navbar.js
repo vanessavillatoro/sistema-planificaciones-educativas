@@ -92,7 +92,8 @@ const Navbar = ({ darkMode, setDarkMode }) => {
 
       <div className="nav-menu">
         <NavDropdown />
-        <Link to="/nosotros">Acerca de nosotros</Link>
+        {/* RUTA ACTUALIZADA PARA COINCIDIR CON APP.JS */}
+        <Link to="/acerca-de-nosotros">Acerca de nosotros</Link>
         <Link to="/blog">Blog</Link>
         <Link to="/como-funciona">¿Cómo funciona?</Link>
       </div>

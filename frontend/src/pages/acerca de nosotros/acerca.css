@@ -1,0 +1,88 @@
+/* --- ESTILOS BASE --- */
+.acerca-container {
+    padding: 40px;
+    max-width: 1100px; 
+    margin: 0 auto;
+    font-family: Arial, sans-serif;
+    transition: color 0.3s ease;
+    font-size: 1.2rem; 
+}
+
+/* --- MODO CLARO (Letra Negra) --- */
+.acerca-container.light-mode {
+    color: #000000;
+}
+
+/* --- MODO OSCURO (Letra Blanca) --- */
+.acerca-container.dark-mode {
+    color: #ffffff;
+}
+
+.acerca-header {
+    text-align: center;
+    margin-bottom: 40px;
+    border-bottom: 2px solid #4a90e2;
+    padding-bottom: 15px;
+}
+
+.acerca-header h1 {
+    font-size: 2.8rem;
+    margin-bottom: 10px;
+}
+
+.acerca-header h3 {
+    font-size: 1.8rem;
+}
+
+.acerca-content p {
+    font-size: 1.3rem;
+    line-height: 1.6;
+    margin-bottom: 25px;
+}
+
+/* --- TABLA PROFESIONAL (Optimización Módulo 1 para PDF) --- */
+.tabla-institucional-pro {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 40px 0;
+    font-size: 1.15rem;
+    background-color: #ffffff;
+    color: #333333;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.tabla-institucional-pro thead tr {
+    background-color: #1a202c; /* Encabezado oscuro profesional */
+    color: #ffffff;
+}
+
+.tabla-institucional-pro th, 
+.tabla-institucional-pro td {
+    /* Borde negro forzado para visibilidad en PDF */
+    border: 1px solid #000000 !important; 
+    padding: 18px 25px;
+    text-align: left;
+}
+
+/* Filas alternas para mejor lectura en pantalla */
+.tabla-institucional-pro tbody tr:nth-of-type(even) {
+    background-color: #f8fafc;
+}
+
+.tabla-institucional-pro td strong {
+    color: #2b6cb0; /* Color de énfasis para categorías */
+    text-transform: uppercase;
+    font-size: 0.95rem;
+    letter-spacing: 0.5px;
+}
+
+/* --- BLOQUE INFERIOR --- */
+.acerca-footer-text {
+    padding: 30px;
+    border-radius: 8px;
+    font-style: italic;
+    font-size: 1.25rem;
+    background-color: rgba(128, 128, 128, 0.1); 
+    line-height: 1.5;
+    border-left: 5px solid #4a90e2; /* Detalle visual de cierre */
+}

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown'; 
 import remarkMath from 'remark-math';
+import remarkGfm from 'remark-gfm'; // <-- NUEVO: Importación del plugin de tablas
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 import './Recursos.css';
@@ -80,7 +81,7 @@ const Recursos = ({ darkMode }) => {
             if (data.contenido || data.datos?.contenido) {
               setResultado(data.contenido || data.datos?.contenido);
             }
-            ajustarAlturaTextareas(); // Ajustar altura al cargar edición
+            ajustarAlturaTextareas(); 
           }
         })
         .catch(err => console.error("Error al cargar datos de edición:", err));
@@ -125,7 +126,12 @@ const Recursos = ({ darkMode }) => {
           dificultad: formData.dificultad,
           objetivos: formData.objetivos,
           indicadores: formData.indicadores,
-          sugerencias: "IMPORTANTE: Presenta las operaciones matemáticas de forma clara. Usa SIEMPRE el formato $\\frac{numerador}{denominador}$ para las fracciones. No uses texto plano como '1/2'. Asegúrate de que cada ejercicio esté en una línea nueva."
+          sugerencias: `
+            IMPORTANTE: 
+            - Si presentas datos comparativos o listas organizadas, utiliza TABLAS de Markdown estándar (| celda |).
+            - Asegúrate de que las tablas tengan una fila de encabezado y una fila divisoria con guiones (---).
+            - Presenta las operaciones matemáticas usando SIEMPRE $\\frac{numerador}{denominador}$.
+            - Asegúrate de que cada ejercicio esté bien separado.`
         }),
       });
       if (!response.ok) throw new Error("Error en el servidor");
@@ -170,7 +176,7 @@ const Recursos = ({ darkMode }) => {
       });
 
       if (response.ok) {
-        alert(editId ? "✅ ¡Recurso actualizado con éxito!" : "✅ ¡Recurso enviado al Módulo de Gestión!");
+        alert(editId ? "¡Recurso actualizado con éxito!" : "¡Recurso enviado al Módulo de Gestión!");
         if (editId) navigate('/gestion'); 
       } else {
         throw new Error("Error en la operación");
@@ -186,23 +192,67 @@ const Recursos = ({ darkMode }) => {
   const copiarConFormato = async () => {
     const elemento = document.querySelector('.markdown-body');
     if (!elemento) return;
+
     try {
-      const estilosInyectados = `
-        <style>
-          .markdown-body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.8; color: #333; }
-          .katex { font-size: 1.2em !important; }
-          h1, h2, h3 { color: #2c5282 !important; }
-          p { margin-bottom: 1.2rem; display: flex; align-items: center; flex-wrap: wrap; gap: 4px; }
-        </style>
-      `;
-      const htmlFinal = estilosInyectados + elemento.innerHTML;
+      const clono = elemento.cloneNode(true);
+      const ruidos = clono.querySelectorAll('.katex-html, [aria-hidden="true"]');
+      ruidos.forEach(r => r.remove());
+
+      const todos = clono.querySelectorAll('*');
+      
+      todos.forEach(el => {
+        const tag = el.tagName;
+        const texto = el.innerText.trim();
+
+        el.removeAttribute('class');
+        el.removeAttribute('id');
+        el.style.fontFamily = "Arial, sans-serif";
+        
+        if (tag === 'H1') {
+          el.style.cssText = "color: #2c5282 !important; font-weight: bold !important; font-size: 18pt; text-align: center; margin-bottom: 12pt; display: block;";
+        } 
+        else if (['H2', 'H3'].includes(tag)) {
+          el.style.cssText = "color: #2c5282 !important; font-weight: bold !important; font-size: 14pt; margin-top: 14pt; margin-bottom: 7pt; display: block;";
+        }
+        else if (tag === 'P' && texto.includes(':') && texto.length < 60) {
+          el.style.cssText = "color: #2c5282 !important; font-weight: bold !important; font-size: 11pt; margin: 2pt 0; display: block;";
+        }
+        else if (tag === 'STRONG' || tag === 'B') {
+          el.style.cssText = "font-weight: bold !important; color: #000000 !important; display: inline;";
+        }
+        else if (['TD', 'TH'].includes(tag)) {
+          el.style.cssText = "border: 1px solid #ccc; padding: 6px; font-weight: normal;";
+          if (tag === 'TH') el.style.fontWeight = "bold";
+        }
+        else {
+          el.style.cssText = "font-weight: 400 !important; color: #333333 !important; font-size: 11pt; line-height: 1.5; margin-bottom: 8pt; display: block; text-align: left;";
+        }
+      });
+
+      const htmlFinal = `
+        <table border="0" cellpadding="0" cellspacing="0" style="width: 100%; font-weight: 400 !important;">
+          <tr>
+            <td style="font-weight: 400 !important;">
+              ${clono.innerHTML}
+            </td>
+          </tr>
+        </table>`;
+
       const blobHTML = new Blob([htmlFinal], { type: "text/html" });
       const blobText = new Blob([elemento.innerText], { type: "text/plain" });
-      const data = [new ClipboardItem({ "text/html": blobHTML, "text/plain": blobText })];
+
+      const data = [
+        new ClipboardItem({
+          "text/html": blobHTML,
+          "text/plain": blobText
+        })
+      ];
+
       await navigator.clipboard.write(data);
-      alert("✨ ¡Copiado con formato profesional!");
+      alert("Recurso copiado");
     } catch (err) {
-      navigator.clipboard.writeText(resultado);
+      console.error("Error al copiar:", err);
+      alert("Error al copiar formato.");
     }
   };
 
@@ -233,7 +283,7 @@ const Recursos = ({ darkMode }) => {
           objetivos: formatearTextoPorLineas(plan.objetivos),
           indicadores: formatearTextoPorLineas(plan.indicadores || plan.indicadoresLogro),
         });
-        ajustarAlturaTextareas(); // Adaptar campos automáticamente al seleccionar plan
+        ajustarAlturaTextareas(); 
         setOpenDropdown(null);
         return;
       }
@@ -244,7 +294,7 @@ const Recursos = ({ darkMode }) => {
         const lineasActuales = valorActual.split('\n').map(v => v.trim());
         if (lineasActuales.includes(valor.trim())) return prev;
         const nuevoValor = valorActual === '' ? valor : `${valorActual}\n${valor}`;
-        ajustarAlturaTextareas(); // Adaptar al añadir desde el dropdown
+        ajustarAlturaTextareas(); 
         return { ...prev, [campo]: nuevoValor };
       });
     } else {
@@ -356,9 +406,9 @@ const Recursos = ({ darkMode }) => {
         <div className="form-footer">
             <div className="footer-buttons-container">
                 <button onClick={limpiarTodo} className="btn-footer btn-clear">Limpiar</button>
-                <button onClick={cargarDatos} className="btn-footer btn-sync-white">🔄 Sincronizar</button>
+                <button onClick={cargarDatos} className="btn-footer btn-sync-white"> Sincronizar</button>
                 <button className="btn-footer btn-generate-main-small" onClick={manejarGenerar} disabled={loading || !formData.tipoRecurso}>
-                  {loading ? "✨ Procesando..." : "Generar recurso"}
+                  {loading ? "Procesando..." : "Generar recurso"}
                 </button>
             </div>
         </div>
@@ -368,7 +418,7 @@ const Recursos = ({ darkMode }) => {
             <h3 className="resultado-titulo">Contenido del Recurso:</h3>
             <div className="resultado-texto markdown-body styled-math">
               <ReactMarkdown 
-                remarkPlugins={[remarkMath]} 
+                remarkPlugins={[remarkMath, remarkGfm]} // <-- NUEVO: Plugin de tablas agregado aquí
                 rehypePlugins={[rehypeKatex]}
               >
                 {resultado}
@@ -376,7 +426,7 @@ const Recursos = ({ darkMode }) => {
             </div>
             <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px', gap: '15px', flexWrap: 'wrap' }}>
               <button className="btn-footer btn-sync-white" onClick={copiarConFormato} style={{ maxWidth: '320px' }}>
-                📋 Copiar para Word/Documentos
+                Copiar recurso
               </button>
               
               <button 
@@ -385,7 +435,7 @@ const Recursos = ({ darkMode }) => {
                 disabled={saving}
                 style={{ backgroundColor: '#6f42c1', color: 'white', maxWidth: '320px' }}
               >
-                {saving ? "⏳ Procesando..." : (new URLSearchParams(location.search).get('edit') ? "💾 Guardar Cambios" : "🚀 Exportar a Gestión")}
+                {saving ? " Procesando..." : (new URLSearchParams(location.search).get('edit') ? " Guardar Cambios" : " Exportar a Gestión")}
               </button>
             </div>
           </div>

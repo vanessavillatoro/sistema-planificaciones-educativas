@@ -408,3 +408,31 @@
         padding: 10px;
     }
 }
+/* Asegúrate de que estas reglas existan en tu Recursos.css */
+
+.markdown-body table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    background-color: transparent;
+    border: 1px solid #ccc; /* Borde exterior */
+}
+
+.markdown-body th, 
+.markdown-body td {
+    border: 1px solid #ccc !important; /* Borde de celdas */
+    padding: 10px;
+    text-align: left;
+}
+
+.markdown-body th {
+    background-color: rgba(0, 0, 0, 0.05); /* Fondo ligero para encabezados */
+    font-weight: bold;
+}
+
+/* Si usas modo oscuro, ajusta los colores */
+.recursos-page.dark .markdown-body table,
+.recursos-page.dark .markdown-body th,
+.recursos-page.dark .markdown-body td {
+    border-color: #444;
+}

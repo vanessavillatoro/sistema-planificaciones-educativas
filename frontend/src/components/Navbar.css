@@ -1,18 +1,30 @@
-/* --- TUS ESTILOS ORIGINALES (ESTRICTAMENTE INTACTOS) --- */
+/* --- BLOQUE CORREGIDO --- */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 .navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 5%;
+  /* Cambiado de 5% a 20px para que no se vea "despegado" de los bordes */
+  padding: 10px 20px; 
   background-color: var(--nav-bg);
   border-bottom: 1px solid rgba(0,0,0,0.1);
   height: 80px;
   position: relative;
-  z-index: 2000; 
+  z-index: 2000;
+  
+  /* Asegura que ocupe todo el ancho real */
+  width: 100%;
+  box-sizing: border-box; 
 }
 
+/* --- TUS ESTILOS ORIGINALES (ESTRICTAMENTE INTACTOS) --- */
 .navbar a, .nav-menu a, .nav-dropbtn {
-  font-size: 1.2rem !important;
+  font-size: 1.2rem ;
   text-decoration: none;
   color: inherit;
   font-weight: 500;
@@ -97,8 +109,8 @@
 .nav-dropdown-content a { 
   padding: 12px 20px; 
   display: block; 
-  font-size: 1rem !important; 
-  color: var(--nav-text) !important; 
+  font-size: 1rem ; 
+  color: var(--nav-text) ; 
 }
 
 .nav-dropdown-content a:hover {
@@ -210,29 +222,27 @@
   text-align: center;
 }
 
-/* --- ADAPTACIÓN RESPONSIVA (AGREGADO AL FINAL SIN TOCAR LO ANTERIOR) --- */
-
+/* --- ADAPTACIÓN RESPONSIVA --- */
 @media (max-width: 850px) {
     .brand-text {
-        display: none; /* Oculta texto del logo para dejar espacio arriba */
+        display: none; 
     }
 }
 
 @media (max-width: 600px) {
     .navbar {
-        padding: 10px 3%; /* Espacio lateral ajustado */
+        padding: 10px 15px; /* Ajuste sutil para móviles */
     }
     .nav-menu {
-        gap: 10px; /* Menos espacio entre ítems para que quepan arriba */
+        gap: 10px;
     }
     .navbar a, .nav-menu a, .nav-dropbtn {
-        font-size: 0.9rem !important; /* Fuente reducida para celular */
+        font-size: 0.9rem !important;
     }
     .logo-img, .avatar-img {
-        width: 40px; /* Imágenes escaladas */
+        width: 40px;
         height: 40px;
     }
-    /* Ajuste de seguridad para el menú de perfil en pantallas muy angostas */
     .perfil-dropdown {
         width: 260px;
         right: 0;
