@@ -1,0 +1,84 @@
+.inicio-wrapper {
+    min-height: calc(100vh - 80px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 5%;
+}
+
+.inicio-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 1200px;
+    gap: 50px;
+}
+
+.inicio-content {
+    flex: 1;
+}
+
+.inicio-title {
+    font-size: 3.8rem;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 15px;
+    color: black;
+}
+
+.nombre-resaltado {
+    color: #4a90e2; /* Azul brillante como tu imagen */
+}
+
+.inicio-subtitle {
+    font-size: 1.6rem;
+    color: #666;
+    margin-bottom: 45px;
+}
+
+/* Contenedor de botones */
+.botones-inicio-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.btn-inicio-outline, .btn-inicio-solid {
+    padding: 14px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.btn-inicio-outline {
+    background: #4a90e2; /* Ajustado al tono azul de los botones en tu captura */
+    color: white;
+}
+
+.btn-inicio-solid {
+    background: #001f3f; /* Azul muy oscuro para el botón de gestión */
+    color: white;
+}
+
+.btn-inicio-outline:hover, .btn-inicio-solid:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.1);
+}
+
+/* Imagen Hero */
+.inicio-visual {
+    flex: 1;
+}
+
+.img-inicio-hero {
+    width: 100%;
+    border-radius: 15px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+}
+
+/* Modo Oscuro */
+.dark .inicio-title { color: white; }
+.dark .inicio-subtitle { color: #cbd5e0; }

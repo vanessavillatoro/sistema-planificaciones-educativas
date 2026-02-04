@@ -10,6 +10,15 @@ import Gestion from './pages/gestion/Gestion'; // NUEVO: Importamos el módulo d
 // --- IMPORTACIÓN DE ACERCA DE NOSOTROS ---
 import AcercaDeNosotros from './pages/acerca de nosotros/acerca'; 
 
+// --- NUEVA IMPORTACIÓN: BLOG (Corregida en minúsculas para evitar errores) ---
+import Blog from './pages/blog/blog'; 
+
+// --- NUEVA IMPORTACIÓN: FUNCIONA ---
+import Funciona from './pages/funcionamiento/funciona'; 
+
+// --- NUEVA IMPORTACIÓN: INICIO (Pantalla de Bienvenida) ---
+import Inicio from './pages/inicio/inicio';
+
 // --- IMPORTACIÓN DE LA PAPELERA ---
 import PapeleraFlotante from './components/PapeleraFlotante';
 
@@ -18,6 +27,9 @@ function App() {
     const savedTheme = localStorage.getItem('theme');
     return savedTheme === 'dark';
   });
+
+  // NUEVO: Estado para el nombre del usuario dinámico
+  const [nombreUsuario, setNombreUsuario] = useState('Jorge');
 
   useEffect(() => {
     const lightBg = "#f1efef";
@@ -28,11 +40,17 @@ function App() {
 
   return (
     <div className={darkMode ? 'app dark' : 'app light'}>
-      {/* El Navbar se mantiene fuera de Routes para que siempre sea visible */}
-      <Navbar darkMode={darkMode} setDarkMode={setDarkMode} />
+      {/* Pasamos setNombreApp al Navbar para sincronizar el nombre desde la API */}
+      <Navbar 
+        darkMode={darkMode} 
+        setDarkMode={setDarkMode} 
+        setNombreApp={setNombreUsuario} 
+      />
       
-      {/* Usamos Routes para decidir qué componente mostrar según la URL */}
       <Routes>
+        {/* NUEVA RUTA PRINCIPAL: Pasamos el nombre dinámico al Inicio */}
+        <Route path="/" element={<Inicio darkMode={darkMode} nombre={nombreUsuario} />} />
+
         {/* Ruta para el Módulo 1 */}
         <Route path="/planificaciones" element={<Planificaciones darkMode={darkMode} />} />
         
@@ -44,9 +62,15 @@ function App() {
 
         {/* NUEVA RUTA: Acerca de nosotros */}
         <Route path="/acerca-de-nosotros" element={<AcercaDeNosotros darkMode={darkMode} />} />
+
+        {/* NUEVA RUTA: Blog de Novedades */}
+        <Route path="/blog" element={<Blog darkMode={darkMode} />} />
+
+        {/* NUEVA RUTA: ¿Cómo funciona? */}
+        <Route path="/funciona" element={<Funciona darkMode={darkMode} />} />
         
-        {/* Redirección por defecto: Si entras a la raíz, te lleva a planificaciones */}
-        <Route path="/" element={<Navigate to="/planificaciones" />} />
+        {/* Redirección de seguridad: Si la ruta no existe, vuelve al Inicio */}
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
 
       {/* --- COMPONENTE GLOBAL DE PAPELERA --- */}

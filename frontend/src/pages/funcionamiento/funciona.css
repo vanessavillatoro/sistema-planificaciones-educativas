@@ -1,0 +1,92 @@
+/* Contenedor General */
+.funciona-container {
+    padding: 50px 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    min-height: 80vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.funciona-header {
+    text-align: center;
+    margin-bottom: 60px;
+}
+
+.funciona-header h1 {
+    font-size: 2.5rem;
+    color: black;
+    margin-bottom: 10px;
+}
+
+/* Grid de Módulos */
+.modulos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 40px;
+}
+
+/* Tarjetas Individuales */
+.modulo-card {
+    background: #ffffff;
+    padding: 40px 30px;
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+    position: relative;
+    border: 1px solid #eef2f7;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.modulo-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 35px rgba(0,0,0,0.12);
+}
+
+.modulo-badge {
+    position: absolute;
+    top: -12px;
+    left: 25px;
+    background: #003366;
+    color: #fff;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+}
+
+.modulo-icon {
+    font-size: 3.5rem;
+    margin-bottom: 25px;
+    display: flex;
+    justify-content: center;
+}
+
+.modulo-card h3 {
+    font-size: 1.4rem;
+    color: #2d3748;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.modulo-card p {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #4a5568;
+    text-align: center;
+}
+
+.funciona-disclaimer {
+    margin-top: 50px;
+    text-align: center;
+    font-size: 0.9rem;
+    color: #718096;
+}
+
+/* Adaptación para Modo Oscuro */
+.dark-mode .modulo-card {
+    background: #1a202c;
+    border-color: #2d3748;
+}
+
+.dark-mode .modulo-card h3 { color: #f7fafc; }
+.dark-mode .modulo-card p { color: #cbd5e0; }
+.dark-mode .funciona-header h1 { color: #ffff; }

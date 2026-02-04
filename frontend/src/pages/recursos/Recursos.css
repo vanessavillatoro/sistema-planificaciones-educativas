@@ -35,7 +35,7 @@
 .light .btn-clear,
 .light .btn-generate-main-small,
 .light .btn-sync-white {
-    background: linear-gradient(90deg, #4299e1, #1a365d);
+    background: #003366;
     color: #ffffff;
     border: 1px solid #7a7a7a;
 }
@@ -280,7 +280,6 @@
     border-radius: 6px;
     transition: all 0.2s ease;
     opacity: 0; 
-    color: #c53030 !important;
 }
 
 .dropdown-option-item:hover .btn-delete-inline {
@@ -288,20 +287,18 @@
 }
 
 .btn-delete-inline:hover {
-    background-color: #feb2b2 !important;
-    color: #ffffff !important;
+    background-color: #feb2b2;
+    color: #ffffff;
     transform: scale(1.1);
 }
 
 .dark .btn-delete-inline {
-    background: #2d3748 !important;
-    border: 1px solid #f56565 !important;
-    color: #f56565 !important;
+    background: #2d3748 ;
 }
 
 .dark .btn-delete-inline:hover {
-    background-color: #f56565 !important;
-    color: white !important;
+    background-color: #f56565;
+    color: white ;
 }
 
 .dropdown-list {

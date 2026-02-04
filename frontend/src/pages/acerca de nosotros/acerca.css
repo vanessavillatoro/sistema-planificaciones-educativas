@@ -21,7 +21,7 @@
 .acerca-header {
     text-align: center;
     margin-bottom: 40px;
-    border-bottom: 2px solid #4a90e2;
+    border-bottom: 2px solid #003366;
     padding-bottom: 15px;
 }
 
@@ -52,7 +52,7 @@
 }
 
 .tabla-institucional-pro thead tr {
-    background-color: #1a202c; /* Encabezado oscuro profesional */
+    background-color:#003366; /* Encabezado oscuro profesional */
     color: #ffffff;
 }
 
@@ -70,7 +70,7 @@
 }
 
 .tabla-institucional-pro td strong {
-    color: #2b6cb0; /* Color de énfasis para categorías */
+    color: #003366; /* Color de énfasis para categorías */
     text-transform: uppercase;
     font-size: 0.95rem;
     letter-spacing: 0.5px;
@@ -84,5 +84,5 @@
     font-size: 1.25rem;
     background-color: rgba(128, 128, 128, 0.1); 
     line-height: 1.5;
-    border-left: 5px solid #4a90e2; /* Detalle visual de cierre */
+    border-left: 5px solid #003366; /* Detalle visual de cierre */
 }

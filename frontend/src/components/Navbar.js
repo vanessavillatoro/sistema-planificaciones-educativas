@@ -8,7 +8,8 @@ import './Navbar.css';
 
 import fotoPerfil from './perfil.png';
 
-const Navbar = ({ darkMode, setDarkMode }) => {
+// Agregamos setNombreApp a las props para comunicar el nombre a App.js
+const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
   const [menuAbierto, setMenuAbierto] = useState(false);
   const [modalAbierta, setModalAbierta] = useState(false);
   const [modalConfigAbierta, setModalConfigAbierta] = useState(false); 
@@ -29,8 +30,10 @@ const Navbar = ({ darkMode, setDarkMode }) => {
         const response = await fetch('http://localhost:5000/api/usuario/perfil');
         if (response.ok) {
           const data = await response.json();
+          const nombreReal = data.name || 'Jorge';
+          
           setUsuario({
-            nombre: data.name || 'Jorge',
+            nombre: nombreReal,
             correo: data.email || 'yourname@gmail.com',
             celular: data.celular || '',
             municipio: data.municipio || '',
@@ -38,13 +41,18 @@ const Navbar = ({ darkMode, setDarkMode }) => {
             direccion: data.direccion || '',
             fotoUrl: data.fotoUrl || ''
           });
+
+          // ENVIAR EL NOMBRE AL ESTADO GLOBAL DE APP.JS
+          if (setNombreApp) {
+            setNombreApp(nombreReal);
+          }
         }
       } catch (error) {
         console.log("No se pudo cargar el perfil del servidor.");
       }
     };
     cargarDatos();
-  }, []);
+  }, [setNombreApp]); // Dependencia agregada para evitar warnings
 
   const toggleMenu = () => {
     setMenuAbierto(!menuAbierto);
@@ -73,6 +81,12 @@ const Navbar = ({ darkMode, setDarkMode }) => {
           ...datosNuevos,
           fotoUrl: dataActualizada.fotoUrl || usuario.fotoUrl
         });
+        
+        // ACTUALIZAR TAMBIÉN EL NOMBRE GLOBAL SI SE CAMBIA EN EL MODAL
+        if (setNombreApp) {
+          setNombreApp(datosNuevos.nombre);
+        }
+
         alert("¡Perfil actualizado con éxito!");
       }
     } catch (error) {
@@ -92,10 +106,9 @@ const Navbar = ({ darkMode, setDarkMode }) => {
 
       <div className="nav-menu">
         <NavDropdown />
-        {/* RUTA ACTUALIZADA PARA COINCIDIR CON APP.JS */}
         <Link to="/acerca-de-nosotros">Acerca de nosotros</Link>
         <Link to="/blog">Blog</Link>
-        <Link to="/como-funciona">¿Cómo funciona?</Link>
+        <Link to="/funciona">¿Cómo funciona?</Link>
       </div>
 
       <div className="navbar-actions" style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
