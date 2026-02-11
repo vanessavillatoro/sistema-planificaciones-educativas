@@ -1,36 +1,81 @@
-/* --- TUS ESTILOS ORIGINALES (SIN TOCAR NADA) --- */
+/* --- ESTILOS DE GESTIÓN CORREGIDOS --- */
+
 .gestion-container {
-  padding: 40px;
-  text-align: center;
-  min-height: 100vh;
+    padding: 40px;
+    text-align: center;
+    min-height: 100vh;
 }
 
+/* CONTENEDOR DE BÚSQUEDA Y FILTROS */
+.search-filters-container {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 30px;
+    width: 100%;
+}
+
+/* ESTILO BASE PARA AMBOS (ALTURA Y BORDES) */
+.gestion-container select, 
+.gestion-container input[type="text"] {
+    height: 55px !important;
+    min-height: 55px !important;
+    box-sizing: border-box !important;
+    border-radius: 12px !important;
+    border: 1px solid #000000 !important;
+    padding: 0 15px !important;
+    font-size: 1rem !important;
+    background-color: #ffffff;
+    color: #000000;
+    margin: 0 !important;
+}
+
+/* SOLO PARA LOS SELECTORES: AGREGAR FLECHA Y QUITAR FONDO REPETIDO */
+.gestion-container select {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    padding-right: 40px !important; 
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 15px center !important;
+    background-size: 14px !important;
+    cursor: pointer;
+}
+
+/* SOLO PARA EL BUSCADOR: ASEGURAR QUE NO TENGA FONDO DE FLECHAS */
+.gestion-container input[type="text"] {
+    background-image: none !important; /* Limpia el patrón de flechas de la imagen */
+    flex: 2;
+}
+
+/* --- RESTO DE ESTILOS (Títulos, Cards, etc.) --- */
 .main-title { font-size: 3rem; margin-bottom: 0; }
 .section-subtitle { font-size: 1.5rem; margin-bottom: 20px; color: #555; text-transform: capitalize; }
 
 .cards-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 20px;
-  margin-bottom: 50px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
 }
 
 .card {
-  height: 200px;
-  border: 2px solid #ddd;
-  border-radius: 12px;
-  position: relative;
-  background: white;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 15px;
-  transition: transform 0.2s, box-shadow 0.2s;
+    height: 200px;
+    border: 2px solid #ddd;
+    border-radius: 12px;
+    position: relative;
+    background: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 15px;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
 }
 
 .plan-card { border-left: 6px solid #28a745; }
@@ -40,69 +85,65 @@
 .card-info p { font-size: 0.9rem; color: #666; }
 
 .card-options { 
-  position: absolute; 
-  top: 10px; 
-  right: 10px; 
-  z-index: 100;
+    position: absolute; 
+    top: 10px; 
+    right: 10px; 
+    z-index: 100;
 }
 
 .dots-btn { background: none; border: none; cursor: pointer; font-size: 1.5rem; color: #888; }
 
 .dropdown-menu {
-  position: absolute;
-  left: 0;
-  top: 30px;
-  background: white;
-  border: 1px solid #ddd;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-  z-index: 1000;
-  width: 180px;
-  border-radius: 8px;
-  overflow: visible; 
+    position: absolute;
+    left: 0;
+    top: 30px;
+    background: white;
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 1000;
+    width: 180px;
+    border-radius: 8px;
+    overflow: visible; 
 }
 
 .dropdown-menu button, .submenu-trigger {
-  width: 100%;
-  padding: 10px 15px;
-  border: none;
-  background: none;
-  text-align: left;
-  cursor: pointer;
-  font-size: 0.9rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  color: #333;
+    width: 100%;
+    padding: 10px 15px;
+    border: none;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+    font-size: 0.9rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #333;
 }
 
 .dropdown-menu button:hover, .submenu-trigger:hover {
-  background-color: #f5f5f5;
+    background-color: #f5f5f5;
 }
 
 .submenu-trigger { position: relative; }
 
 .submenu {
-  position: absolute;
-  left: 100%;
-  top: 0;
-  width: 180px;
-  background: white;
-  border: 1px solid #ddd;
-  box-shadow: 4px 4px 12px rgba(0,0,0,0.15);
-  display: none; 
-  border-radius: 8px;
-  margin-left: 2px;
+    position: absolute;
+    left: 100%;
+    top: 0;
+    width: 180px;
+    background: white;
+    border: 1px solid #ddd;
+    box-shadow: 4px 4px 12px rgba(0,0,0,0.15);
+    display: none; 
+    border-radius: 8px;
+    margin-left: 2px;
 }
 
 .submenu-trigger:hover .submenu {
-  display: block; 
+    display: block; 
 }
 
-.submenu button {
-  font-size: 0.8rem;
-  padding: 8px 12px;
-}
-
+/* --- MODO OSCURO (CORREGIDO PARA NO ENSUCIAR EL BUSCADOR) --- */
 .dark .card { background: #2d3748; border-color: #4a5568; }
 .dark .card-info h3 { color: #edf2f7; }
 .dark .card-info p { color: #a0aec0; }
@@ -111,57 +152,62 @@
 .dark .dropdown-menu button:hover, .dark .submenu-trigger:hover { background: #2d3748; }
 .dark .section-subtitle { color: #a0aec0; }
 
-.loading-msg, .empty-text {
-  color: #888;
-  font-style: italic;
-  grid-column: 1 / -1;
-  padding: 20px;
+/* AJUSTE DE FILTROS EN MODO OSCURO */
+.dark .gestion-container input[type="text"] {
+    background-color: #2d3748;
+    color: #ffffff;
+    border: 1px solid #ffffff !important;
+    background-image: none !important; /* SE ASEGURA DE QUITAR LAS FLECHAS */
 }
 
-/* --- LO NUEVO: AJUSTES RESPONSIVE --- */
+.dark .gestion-container select {
+    background-color: #2d3748;
+    color: #ffffff;
+    border: 1px solid #ffffff !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 15px center !important;
+}
 
+.loading-msg, .empty-text {
+    color: #888;
+    font-style: italic;
+    grid-column: 1 / -1;
+    padding: 20px;
+}
+
+/* --- AJUSTES RESPONSIVE --- */
 @media (max-width: 768px) {
-  .gestion-container {
-    padding: 20px; /* Reducimos el padding lateral */
-  }
-  .main-title {
-    font-size: 2rem; /* Título más pequeño en tablets */
-  }
-  .cards-grid {
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Tarjetas un poco más estrechas */
-    gap: 15px;
-  }
+    .gestion-container { padding: 20px; }
+    .main-title { font-size: 2rem; }
+    .cards-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 15px;
+    }
+    .search-filters-container {
+        flex-direction: column;
+    }
+    .gestion-container select, 
+    .gestion-container input[type="text"] {
+        width: 100%;
+    }
 }
 
 @media (max-width: 480px) {
-  .main-title {
-    font-size: 1.6rem;
-  }
-  .section-subtitle {
-    font-size: 1.1rem;
-  }
-  .cards-grid {
-    grid-template-columns: 1fr; /* Una sola tarjeta por fila en celulares */
-  }
-  
-  /* Ajuste crítico: En móvil el submenú se despliega hacia abajo, no a la derecha */
-  .submenu {
-    position: static; /* Cambia de absoluto a estático */
-    width: 100%;
-    left: 0;
-    margin-left: 0;
-    box-shadow: none;
-    border: none;
-    border-left: 2px solid #ddd;
-    background: rgba(0,0,0,0.02); /* Un tono ligero para diferenciarlo */
-  }
-  
-  .dropdown-menu {
-    left: auto;
-    right: 0; /* Lo alineamos a la derecha del botón para que no se salga */
-  }
-
-  .dark .submenu {
-    background: rgba(255,255,255,0.05);
-  }
+    .main-title { font-size: 1.6rem; }
+    .section-subtitle { font-size: 1.1rem; }
+    .cards-grid { grid-template-columns: 1fr; }
+    
+    .submenu {
+        position: static;
+        width: 100%;
+        left: 0;
+        margin-left: 0;
+        box-shadow: none;
+        border: none;
+        border-left: 2px solid #ddd;
+        background: rgba(0,0,0,0.02);
+    }
+    .dropdown-menu { left: auto; right: 0; }
+    .dark .submenu { background: rgba(255,255,255,0.05); }
 }

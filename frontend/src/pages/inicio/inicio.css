@@ -3,82 +3,126 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0 5%;
+    padding: 20px 5%;
 }
 
 .inicio-container {
     display: flex;
+    flex-direction: row;
     align-items: center;
     justify-content: space-between;
     width: 100%;
-    max-width: 1200px;
-    gap: 50px;
+    max-width: 1400px;
+    gap: 40px;
+    flex-wrap: wrap;
 }
 
+/* Texto a la izquierda */
 .inicio-content {
-    flex: 1;
+    flex: 1 1 500px;
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    min-width: 300px;
 }
 
 .inicio-title {
-    font-size: 3.8rem;
+    /* Aumentado: Mínimo 3rem, Máximo 5rem */
+    font-size: clamp(3rem, 6vw, 5rem); 
     font-weight: 800;
     line-height: 1.1;
     margin-bottom: 15px;
     color: black;
+    display: block;
+    width: 100%;
 }
 
 .nombre-resaltado {
-    color: #4a90e2; /* Azul brillante como tu imagen */
+    color: #4a90e2;
 }
 
 .inicio-subtitle {
-    font-size: 1.6rem;
+    /* Aumentado: Mínimo 1.4rem, Máximo 2.2rem */
+    font-size: clamp(1.4rem, 2.5vw, 2.2rem); 
     color: #666;
     margin-bottom: 45px;
+    display: block;
+    width: 100%;
 }
 
-/* Contenedor de botones */
+/* Botones en su propia línea */
 .botones-inicio-group {
     display: flex;
+    flex-direction: row;
+    gap: 12px;
     flex-wrap: wrap;
-    gap: 15px;
 }
 
 .btn-inicio-outline, .btn-inicio-solid {
-    padding: 14px 24px;
+    /* Ligeramente más grandes para acompañar el texto */
+    padding: 16px 28px;
+    font-size: 1.1rem;
     border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
     border: none;
+    white-space: nowrap;
 }
 
-.btn-inicio-outline {
-    background: #4a90e2; /* Ajustado al tono azul de los botones en tu captura */
-    color: white;
-}
+.btn-inicio-outline { background:  #003366; color: white; }
+.btn-inicio-solid { background:  #003366; color: white; }
 
-.btn-inicio-solid {
-    background: #001f3f; /* Azul muy oscuro para el botón de gestión */
-    color: white;
-}
-
-.btn-inicio-outline:hover, .btn-inicio-solid:hover {
-    transform: translateY(-2px);
-    filter: brightness(1.1);
-}
-
-/* Imagen Hero */
+/* Imagen a la derecha */
 .inicio-visual {
-    flex: 1;
+    flex: 1 1 500px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .img-inicio-hero {
     width: 100%;
-    border-radius: 15px;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    max-width: 700px;
+    height: auto;
+    max-height: 700px; /* Mantiene tu tamaño deseado */
+    border-radius: 20px;
+    object-fit: contain;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
 }
 
-/* Modo Oscuro */
+/* --- MEDIA QUERIES PARA RESPONSIVIDAD --- */
+
+@media (max-width: 992px) {
+    .inicio-container {
+        flex-direction: column;
+        text-align: center;
+        gap: 30px;
+    }
+
+    .inicio-content {
+        flex: 1 1 100%;
+        text-align: center;
+        align-items: center;
+    }
+
+    .botones-inicio-group {
+        justify-content: center;
+    }
+
+    .img-inicio-hero {
+        max-height: 450px;
+    }
+}
+
+@media (max-width: 480px) {
+    .inicio-title {
+        font-size: 2.5rem;
+    }
+    
+    .img-inicio-hero {
+        max-height: 350px;
+    }
+}
+
 .dark .inicio-title { color: white; }
 .dark .inicio-subtitle { color: #cbd5e0; }

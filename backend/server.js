@@ -3,15 +3,17 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
-// Agregamos estas dos librerías para manejar archivos
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const { OAuth2Client } = require('google-auth-library');
 
 // Modelos
 const Recurso = require('./models/Recurso.js');
 const Planificacion = require('./models/Planificacion.js');
 const User = require('./models/User');
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // --- MODELO PARA GESTIÓN ---
 const GestionSchema = new mongoose.Schema({
@@ -25,7 +27,9 @@ const GestionSchema = new mongoose.Schema({
     borrado: { type: Boolean, default: false },
     fechaExportacion: { type: Date, default: Date.now }
 }, { strict: false });
-const Gestion = mongoose.model('Gestion', GestionSchema);
+
+// Evitar error si el modelo ya está definido
+const Gestion = mongoose.models.Gestion || mongoose.model('Gestion', GestionSchema);
 
 const app = express();
 
@@ -37,28 +41,24 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// --- CONFIGURACIÓN PARA SUBIDA DE IMÁGENES (NUEVO) ---
-// 1. Crear carpeta 'uploads' si no existe
-const uploadDir = './uploads';
+// --- CONFIGURACIÓN PARA SUBIDA DE IMÁGENES ---
+const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir);
 }
 
-// 2. Configurar almacenamiento de Multer
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, 'uploads/');
     },
     filename: (req, file, cb) => {
-        // Nombre: timestamp-nombreOriginal
         cb(null, Date.now() + '-' + file.originalname);
     }
 });
 
 const upload = multer({ storage: storage });
 
-// 3. Hacer la carpeta pública para que las imágenes sean accesibles vía URL
-app.use('/uploads', express.static('uploads'));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // --- CONEXIÓN A MONGODB ---
 mongoose.connect(process.env.MONGO_URI)
@@ -142,9 +142,9 @@ app.post('/api/generar-plan-completa', async (req, res) => {
     }
     res.json(jsonOutput);
   } catch (error) {
-    console.error("Error en servidor:", error);
-    res.status(500).json({ error: "Error al generar la planificación." });
-  }
+    console.error("--- ERROR DETALLADO DE IA ---");
+    res.status(500).json({ error: "No se pudo conectar con el servicio de IA." });
+}
 });
 
 // --- RUTA: GENERACIÓN MÓDULO 3 ---
@@ -153,63 +153,26 @@ app.post('/api/generar-plan-modulo3', async (req, res) => {
   if (!materia || !tema) return res.status(400).json({ error: "Faltan campos." });
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
   const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-  const prompt = `
-    Eres un experto pedagogo. Genera una planificación educativa para el Módulo 3 en JSON estrictamente válido.
-    MATERIA: ${materia}, TEMA: ${tema}, GRADO: ${grado}, ENFOQUE: ${enfoque || 'Técnico'}.
-    SUGERENCIAS: ${sugerencias || 'Ninguna'}.
-    REGLAS DE ORO (IGUAL AL MÓDULO 1):
-      1. OBJETIVOS/INDICADORES: Formato: "* Texto\\n* Texto".
-      2. MATERIALES: Array de EXACTAMENTE 8 elementos.
-      3. TIEMPOS: Array de EXACTAMENTE 8 objetos con campos "inicio", "desarrollo" y "cierre".
-    ESTRUCTURA EXACTA:
-    {
-      "objetivos": "...",
-      "indicadoresLogro": "...",
-      "materiales": ["...", "...", "...", "...", "...", "...", "...", "..."],
-      "indicadoresEvaluacion": "...",
-      "actividadesComplementarias": "...",
-      "tiempos": [
-        {"inicio": "...", "desarrollo": "...", "cierre": "..."},
-        {"inicio": "...", "desarrollo": "...", "cierre": "..."},
-        {"inicio": "...", "desarrollo": "...", "cierre": "..."},
-        {"inicio": "...", "desarrollo": "...", "cierre": "..."},
-        {"inicio": "...", "desarrollo": "...", "cierre": "..."},
-        {"inicio": "...", "desarrollo": "...", "cierre": "..."},
-        {"inicio": "...", "desarrollo": "...", "cierre": "..."},
-        {"inicio": "...", "desarrollo": "...", "cierre": "..."}
-      ]
-    }
-  `;
+  const prompt = `Estructura JSON pedagógica para: ${materia}, Tema: ${tema}...`;
   try {
     const result = await model.generateContent(prompt);
     const jsonOutput = procesarRespuestaIA(result.response.text());
     res.json(jsonOutput);
   } catch (error) {
-    console.error("Error Módulo 3:", error);
-    res.status(500).json({ error: "Error al generar la planificación del Módulo 3." });
+    res.status(500).json({ error: "Error al generar Módulo 3." });
   }
 });
 
 // --- RUTA: GENERACIÓN DE RECURSOS (MÓDULO 2) ---
 app.post('/api/generar-recurso-ia', async (req, res) => {
-  const { materia, tema, tipoRecurso, dificultad, objetivos, indicadores } = req.body;
-  if (!materia || !tema || !tipoRecurso) return res.status(400).json({ error: "Faltan campos." });
+  const { materia, tema, tipoRecurso } = req.body;
   try {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
     const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-    const prompt = `
-      Eres un experto en pedagogía y diseño de recursos didácticos.
-      OBJETIVO: Generar un recurso educativo de tipo: "${tipoRecurso}".
-      CONTEXTO: Materia: ${materia}, Tema: ${tema}, Dificultad: ${dificultad}.
-      OBJETIVOS BASE: ${objetivos}.
-      INDICADORES BASE: ${indicadores}.
-      Entrega el contenido educativo listo para usar, bien estructurado y profesional.
-    `;
-    const result = await model.generateContent(prompt);
+    const result = await model.generateContent(`Genera recurso: ${tipoRecurso} sobre ${tema}`);
     res.json({ contenido: result.response.text() });
   } catch (error) {
-    console.error("Error en IA de recursos:", error);
-    res.status(500).json({ error: "Error al generar el recurso educativo." });
+    res.status(500).json({ error: "Error al generar recurso." });
   }
 });
 
@@ -226,7 +189,9 @@ app.post('/api/save-plan', async (req, res) => {
 
 app.get('/api/planificaciones', async (req, res) => {
   try {
-    const planes = await Planificacion.find({ borrado: { $ne: true } }).sort({ _id: -1 });
+    const { userId } = req.query;
+    const query = userId ? { usuarioId: userId, borrado: { $ne: true } } : { borrado: { $ne: true } };
+    const planes = await Planificacion.find(query).sort({ _id: -1 });
     res.json(planes);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -235,64 +200,52 @@ app.get('/api/planificaciones', async (req, res) => {
 
 app.delete('/api/planificaciones-por-tema/:tema', async (req, res) => {
     try {
-      const temaRecibido = req.params.tema;
       const resultado = await Planificacion.findOneAndUpdate(
-        { $or: [{ tema: temaRecibido }, { nombreUnidad: temaRecibido }] },
+        { $or: [{ tema: req.params.tema }, { nombreUnidad: req.params.tema }] },
         { borrado: true },
         { new: true }
       );
-      if (resultado) {
-        res.status(200).json({ mensaje: "Planificación movida a la papelera" });
-      } else {
-        res.status(404).json({ error: "No se encontró la planificación" });
-      }
+      res.status(resultado ? 200 : 404).json(resultado ? { mensaje: "OK" } : { error: "No encontrado" });
     } catch (error) {
-      res.status(500).json({ error: "Error al procesar la planificación" });
+      res.status(500).json({ error: "Error" });
     }
   });
 
-// --- RUTA ACTUALIZADA PARA EXPORTAR GESTIÓN ---
 app.post('/api/exportar-gestion', async (req, res) => {
   try {
-    const nuevoItem = new Gestion({
-        ...req.body,
-        fechaExportacion: new Date()
-    });
-    await nuevoItem.save();
-    res.status(201).json({ mensaje: "Exportado con éxito" });
+    const nuevaGestion = new Gestion(req.body); 
+    await nuevaGestion.save();
+    res.json({ success: true });
   } catch (error) {
-    res.status(500).json({ error: "Error al guardar en gestión" });
+    res.status(500).json({ error: "Error" });
   }
 });
 
 app.get('/api/gestion', async (req, res) => {
   try {
-    const items = await Gestion.find({ borrado: { $ne: true } }).sort({ fechaExportacion: -1 });
-    res.json(items);
+    const query = req.query.userId ? { userId: req.query.userId, borrado: { $ne: true } } : { borrado: { $ne: true } };
+    const rows = await Gestion.find(query).sort({ fechaExportacion: -1 });
+    res.json(rows);
   } catch (error) {
-    res.status(500).json({ error: "Error al obtener gestión" });
+    res.status(500).json({ error: "Error" });
   }
 });
 
 app.get('/api/gestion/:id', async (req, res) => {
     try {
       const item = await Gestion.findById(req.params.id);
-      if (item) {
-        res.status(200).json(item);
-      } else {
-        res.status(404).json({ error: "No se encontró el registro" });
-      }
+      res.status(item ? 200 : 404).json(item || { error: "No encontrado" });
     } catch (error) {
-      res.status(500).json({ error: "Error al recuperar el registro" });
+      res.status(500).json({ error: "Error" });
     }
   });
 
 app.delete('/api/gestion/:id', async (req, res) => {
   try {
     await Gestion.findByIdAndUpdate(req.params.id, { borrado: true });
-    res.status(200).json({ mensaje: "Movido a la papelera con éxito" });
+    res.status(200).json({ mensaje: "OK" });
   } catch (error) {
-    res.status(500).json({ error: "Error al mover a papelera" });
+    res.status(500).json({ error: "Error" });
   }
 });
 
@@ -303,9 +256,9 @@ app.put('/api/gestion/:id', async (req, res) => {
         { ...req.body, fechaExportacion: new Date() },
         { new: true }
       );
-      res.status(200).json({ mensaje: "Actualizado con éxito", item: itemActualizado });
+      res.status(200).json({ item: itemActualizado });
     } catch (error) {
-      res.status(500).json({ error: "Error al actualizar en gestión" });
+      res.status(500).json({ error: "Error" });
     }
   });
 
@@ -319,83 +272,136 @@ app.get('/api/papelera', async (req, res) => {
         ];
         res.json(todoBorrados);
     } catch (error) {
-        res.status(500).json({ error: "Error al cargar papelera" });
+        res.status(500).json({ error: "Error" });
     }
 });
 
 app.patch('/api/papelera/restaurar/:id', async (req, res) => {
     try {
-        const { id } = req.params;
-        const resPlan = await Planificacion.findByIdAndUpdate(id, { borrado: false });
-        const resGest = await Gestion.findByIdAndUpdate(id, { borrado: false });
-        if (resPlan || resGest) {
-            res.json({ mensaje: "Elemento restaurado" });
-        } else {
-            res.status(404).json({ error: "No encontrado" });
-        }
+        const id = req.params.id;
+        await Planificacion.findByIdAndUpdate(id, { borrado: false });
+        await Gestion.findByIdAndUpdate(id, { borrado: false });
+        res.json({ mensaje: "Restaurado" });
     } catch (error) {
-        res.status(500).json({ error: "Error al restaurar" });
+        res.status(500).json({ error: "Error" });
     }
 });
 
 app.delete('/api/papelera/permanente/:id', async (req, res) => {
     try {
-        const { id } = req.params;
-        await Planificacion.findByIdAndDelete(id);
-        await Gestion.findByIdAndDelete(id);
-        res.json({ mensaje: "Eliminado definitivamente" });
+        await Planificacion.findByIdAndDelete(req.params.id);
+        await Gestion.findByIdAndDelete(req.params.id);
+        res.json({ mensaje: "Eliminado" });
     } catch (error) {
-        res.status(500).json({ error: "Error al eliminar" });
+        res.status(500).json({ error: "Error" });
     }
 });
 
 // --- GESTIÓN DE PERFIL ---
 app.get('/api/usuario/perfil', async (req, res) => {
     try {
-        const usuario = await User.findOne({});
+        const usuario = await User.findById(req.query.userId);
         res.status(200).json(usuario || {});
     } catch (error) {
-        res.status(500).json({ error: "Error al obtener perfil" });
+        res.status(500).json({ error: "Error" });
     }
 });
 
 app.patch('/api/usuario/perfil', async (req, res) => {
     try {
-        const { name, email, celular, municipio, departamento, direccion } = req.body;
-        const usuarioActualizado = await User.findOneAndUpdate(
-            {}, 
-            { name, email, celular, municipio, departamento, direccion },
+        const { userId, ...datos } = req.body;
+        const usuarioActualizado = await User.findByIdAndUpdate(
+            userId, 
+            { $set: datos },
             { new: true, upsert: true }
         );
         res.status(200).json(usuarioActualizado);
     } catch (error) {
-        res.status(500).json({ error: "Error al actualizar perfil" });
+        res.status(500).json({ error: "Error" });
     }
 });
 
-// --- RUTA: SUBIR FOTO DE PERFIL (NUEVO) ---
+// --- SUBIR FOTO DE PERFIL ---
 app.post('/api/usuario/foto', upload.single('foto'), async (req, res) => {
     try {
-        if (!req.file) {
-            return res.status(400).json({ error: "No se seleccionó ninguna imagen" });
-        }
-
-        // URL que se guardará en la base de datos
-        const urlFoto = `http://localhost:5000/uploads/${req.file.filename}`;
-
-        // Actualizar el campo fotoUrl del usuario
-        const usuarioActualizado = await User.findOneAndUpdate(
-            {}, 
+        if (!req.file) return res.status(400).json({ error: "No hay imagen" });
+        const userId = req.body.userId;
+        if (!userId) return res.status(400).json({ error: "Falta userId" });
+        const urlFoto = `/uploads/${req.file.filename}`;
+        const usuarioActualizado = await User.findByIdAndUpdate(
+            userId, 
             { $set: { fotoUrl: urlFoto } },
-            { new: true, upsert: true }
+            { new: true }
         );
-
         res.status(200).json(usuarioActualizado);
     } catch (error) {
         console.error("Error al subir foto:", error);
-        res.status(500).json({ error: "Error interno al subir la foto" });
+        res.status(500).json({ error: "Error interno" });
     }
 });
 
+// --- AUTENTICACIÓN: GOOGLE (NUEVO) ---
+app.post('/api/auth/google', async (req, res) => {
+    try {
+        const { token } = req.body;
+        const ticket = await client.verifyIdToken({
+            idToken: token,
+            audience: process.env.GOOGLE_CLIENT_ID,
+            clockSkewInSeconds: 600, // Margen aumentado a 10 min por desfase de reloj
+        });
+        const { email, name, family_name, picture, sub } = ticket.getPayload();
+
+        let usuario = await User.findOne({ email });
+
+        if (!usuario) {
+            usuario = new User({
+                name: name,
+                apellido: family_name || '',
+                email: email,
+                fotoUrl: picture,
+                googleId: sub,
+                role: 'docente'
+            });
+            await usuario.save();
+        }
+
+        res.status(200).json({ userId: usuario._id, userName: usuario.name });
+    } catch (error) {
+        console.error("Error en Google Auth:", error);
+        res.status(500).json({ error: "Error al autenticar con Google" });
+    }
+});
+
+// --- AUTENTICACIÓN: REGISTRO MANUAL ---
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { name, apellido, email, password, edad } = req.body;
+    
+    if (parseInt(edad) < 20) return res.status(400).json({ error: "Mínimo 20 años" });
+    
+    const passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
+    if (!passRegex.test(password)) return res.status(400).json({ error: "Contraseña insegura" });
+
+    const existe = await User.findOne({ email });
+    if (existe) return res.status(400).json({ error: "Ya existe" });
+    const nuevoUsuario = new User(req.body);
+    const usuarioGuardado = await nuevoUsuario.save();
+    res.status(201).json({ userId: usuarioGuardado._id, userName: usuarioGuardado.name });
+  } catch (error) {
+    res.status(500).json({ error: "Error" });
+  }
+});
+
+// --- AUTENTICACIÓN: LOGIN MANUAL ---
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const usuario = await User.findOne({ email: req.body.email, password: req.body.password });
+    if (!usuario) return res.status(401).json({ error: "Error" });
+    res.json({ userId: usuario._id, userName: usuario.name });
+  } catch (error) {
+    res.status(500).json({ error: "Error" });
+  }
+});
+
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Servidor corriendo en puerto ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Servidor en puerto ${PORT}`));

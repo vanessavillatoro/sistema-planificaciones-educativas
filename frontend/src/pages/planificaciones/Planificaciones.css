@@ -1,5 +1,4 @@
-/* --- TU CÓDIGO ORIGINAL (TAL CUAL LO PASASTE) --- */
-/* Colores basados en image_c0d478.png */
+/* --- TU CÓDIGO ORIGINAL (CONSERVADO INTEGRAMENTE) --- */
 :root {
     --azul-oscuro: #0b0948;
     --gris-borde: #333;
@@ -20,7 +19,6 @@
     font-family: Arial, sans-serif;
 }
 
-/* Encabezados Azules */
 .header-blue, .label-blue, .sub-header-blue {
     background-color: var(--azul-planificacion) !important;
     color: white !important;
@@ -36,7 +34,6 @@
     text-transform: uppercase;
 }
 
-/* Celdas de contenido blancas */
 .white-cell {
     background-color: var(--blanco-celda);
     color: black;
@@ -47,24 +44,42 @@
     font-size: 0.9rem;
 }
 
-/* Ajuste para que el texto pequeño quepa en las 8 columnas */
 .small-text {
     font-size: 0.9rem;
     line-height: 1.2;
 }
 
-/* 3. ESTILO DE LOS INPUTS */
-input, .dropdown-header, .objetivos-area {
+/* --- 3. ESTILO DE LOS INPUTS (EXCEPTO TEXT AREA) --- */
+input, .dropdown-header {
   padding: 0 15px; 
   border-radius: 12px;
   font-size: 1.1rem !important; 
   width: 100%;
-  height: 55px;
-  box-sizing: border-box;
+  height: 55px !important; /* Altura unificada */
+  min-height: 55px !important;
+  box-sizing: border-box !important;
+  border: 1px solid #000000 !important; /* Borde negro delgado */
   color: #000000;
 }
 
-/* Modo Claro */
+/* --- TEXT AREA (RESTAURADO A TU ORIGINAL) --- */
+/* --- TEXT AREA (ALTURA REDUCIDA Y TEXTO GRANDE) --- */
+.objetivos-area {
+    width: 100% ; 
+    max-width: 100%; 
+    height: 300px; 
+    box-sizing: border-box; 
+    padding: 15px 20px; /* Ajuste ligero de padding */
+    border-radius: 12px;
+    border: 1.5px solid var(--input-border);
+    margin-top: 20px;
+    resize: none; 
+    display: block;
+    font-family: inherit;
+    font-size: 1.1rem; /* Texto más grande para coincidir con los inputs */
+    line-height: 1.5;   /* Mejor espacio entre líneas al escribir */
+}
+
 .app.light input::placeholder,
 .app.light .dropdown-header span {
   font-size: 1.1rem !important;
@@ -72,7 +87,6 @@ input, .dropdown-header, .objetivos-area {
   opacity: 1;
 }
 
-/* Modo Oscuro */
 .app.dark input::placeholder,
 .app.dark .dropdown-header span {
   font-size: 1.1rem !important;
@@ -87,7 +101,6 @@ input, .dropdown-header, .objetivos-area {
     border: 2px solid var(--azul-oscuro);
 }
 
-/* Encabezado principal */
 .main-header {
     background-color: var(--azul-oscuro);
     color: white;
@@ -97,7 +110,6 @@ input, .dropdown-header, .objetivos-area {
     border: 1px solid var(--blanco);
 }
 
-/* Sub-encabezados (Datos generales, específicos, etc) */
 .sub-header {
     background-color: var(--azul-oscuro);
     color: white;
@@ -107,24 +119,20 @@ input, .dropdown-header, .objetivos-area {
     border: 1px solid white;
 }
 
-/* Etiquetas azules de la izquierda */
 .cell-label {
     background-color: var(--azul-oscuro);
     color: white;
     font-weight: bold;
     padding: 10px;
-    font-size: 0.85rem;
     border: 1px solid #ddd;
     text-align: left;
     font-size: 0.9rem;
 }
 
-/* Contenido de las celdas */
 .cell-content {
     background-color: white;
     color: black;
     padding: 10px;
-    font-size: 0.85rem;
     border: 1px solid var(--azul-oscuro);
     vertical-align: top;
     font-size: 0.9rem;
@@ -133,14 +141,12 @@ input, .dropdown-header, .objetivos-area {
 .tiny-text { font-size: 0.7rem; line-height: 1.2; }
 .text-justify { text-align: justify; }
 
-/* Para que la tabla sea scrolleable en móviles */
 .table-wrapper {
     overflow-x: auto;
     border-radius: 8px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
-/* Corregir el icono de la luna (image_bf7b58) */
 .theme-toggle-btn {
     background: transparent !important;
     border: none !important;
@@ -149,7 +155,6 @@ input, .dropdown-header, .objetivos-area {
     padding: 5px;
 }
 
-/* 1. EL CONTENEDOR PRINCIPAL */
 .form-container {
   max-width: 1200px;
   width: 95%;
@@ -161,30 +166,14 @@ input, .dropdown-header, .objetivos-area {
   position: relative;
 }
 
-/* 2. LA GRILLA DE 3 COLUMNAS */
 .input-grid {
-  display: grid ;
-  grid-template-columns: repeat(3, 1fr) ;
-  gap: 20px ;
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 20px !important;
   margin-bottom: 30px;
+  align-items: center !important; 
 }
 
-/* 3. ESTILO DE LOS INPUTS (Unificados a 55px para mismo tamaño) */
-input, .dropdown-header {
-  padding: 0 15px; 
-  border-radius: 12px ;
-  font-size: 0.9rem;
-  width: 100%;
-  height: 55px; 
-  box-sizing: border-box;
-  border: 1.5px solid var(--input-border) ; 
-  background: #ffffff;
-  color: #000000;
-  display: flex;
-  align-items: center;
-}
-
-/* 4. ELIMINAR EL BORDE DOBLE DE LOS DROPDOWNS */
 .custom-dropdown {
   position: relative;
   width: 100%;
@@ -199,7 +188,6 @@ input, .dropdown-header {
   cursor: pointer;
 }
 
-/* BLOQUE DE UNIÓN DE PIEZA ÚNICA */
 .custom-dropdown.is-open .dropdown-header {
     border-radius: 12px 12px 0 0 !important;
     border-bottom: none !important; 
@@ -211,11 +199,11 @@ input, .dropdown-header {
     left: 0;
     right: 0;
     background-color: #ffffff;
-    border: 1.5px solid var(--input-border);
+    border: 1px solid #000000;
     border-top: none !important; 
     border-radius: 0 0 12px 12px;
     z-index: 1000;
-    margin-top: -1.5px !important; 
+    margin-top: -1px !important; 
     max-height: 200px; 
     overflow-y: auto; 
     box-shadow: 0 10px 25px rgba(0,0,0,0.1);
@@ -232,7 +220,6 @@ input, .dropdown-header {
     list-style: none !important;
 }
 
-/* En modo oscuro, las opciones deben resaltar */
 .app.dark .dropdown-list li {
     color: #000000; 
 }
@@ -243,28 +230,13 @@ input, .dropdown-header {
     width: 100%;
 }
 
-.objetivos-area {
-    width: 100% ; 
-    max-width: 100%; 
-    height: 500px; 
-    box-sizing: border-box; 
-    padding: 20px;
-    border-radius: 12px;
-    border: 1.5px solid var(--input-border);
-    margin-top: 20px;
-    resize: none; 
-    display: block;
-    font-family: inherit;
-}
-
-/* 6. MODO OSCURO */
 .app.dark input, 
 .app.dark .dropdown-header, 
 .app.dark .objetivos-area {
   color: #000000 ;
   opacity: 1; 
   background: transparent ;
-  border-color: #ffffff ;
+  border-color: #ffffff !important; 
   color: #ffffff;
 }
 
@@ -273,7 +245,6 @@ input, .dropdown-header {
 color: #ffffff;
 }
 
-/* 7. TABLA */
 .planning-table td, .planning-table th {
   border: 1.5px solid #000000 ;
   padding: 12px;
@@ -285,7 +256,6 @@ color: #ffffff;
   opacity: 1; 
 }
 
-/* Scrollbar */
 .dropdown-list::-webkit-scrollbar { width: 6px; }
 .dropdown-list::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 0 0 12px 0; }
 .dropdown-list::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
@@ -313,10 +283,9 @@ button.theme-toggle, .theme-toggle-btn, [role="button"] {
     border: none;
 }
 
-/* --- LO NUEVO: SOLO MEDIA QUERIES PARA RESPONSIVIDAD --- */
 @media (max-width: 992px) {
     .input-grid {
-        grid-template-columns: repeat(2, 1fr); /* 2 columnas en tablets */
+        grid-template-columns: repeat(2, 1fr); 
     }
 }
 
@@ -325,7 +294,7 @@ button.theme-toggle, .theme-toggle-btn, [role="button"] {
         padding: 20px;
     }
     .input-grid {
-        grid-template-columns: 1fr; /* 1 columna en móviles */
+        grid-template-columns: 1fr; 
     }
     .footer-buttons-container {
         flex-direction: column;

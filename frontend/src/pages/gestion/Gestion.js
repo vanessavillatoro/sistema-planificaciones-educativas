@@ -13,6 +13,8 @@ const Gestion = ({ darkMode }) => {
   const [materiaSeleccionada, setMateriaSeleccionada] = useState("");
   const [gradoSeleccionado, setGradoSeleccionado] = useState(""); 
   const [previewItem, setPreviewItem] = useState(null); 
+  // Busca donde terminan tus useState y pega esto:
+const userId = localStorage.getItem('userId');
 
   // --- FUNCIONES DE RENDERIZADO (MANTENIDAS INTACTAS) ---
   const getColorPorTema = (texto) => {
@@ -222,7 +224,6 @@ const exportarWord = (item) => {
         </table>
       `;
     } else {
-      // --- RECURSOS (SIN MODIFICAR LÓGICA EXISTENTE) ---
       const contenidoBruto = typeof item.datos === 'string' ? item.datos : (item.datos?.contenido || item.contenido || "");
       contenidoFinal = renderizarEstiloIA(contenidoBruto);
     }
@@ -676,20 +677,20 @@ const exportarPDF = (item) => {
   printWindow.document.close();
 };
   const cargarDatosGestion = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch(`http://localhost:5000/api/gestion?t=${new Date().getTime()}`);
-      const data = await response.json();
-      setItems(Array.isArray(data) ? data : []);
-    } catch (e) { 
-      console.error(e); 
-      setItems([]); 
-    } finally { 
-      setLoading(false); 
-    }
-  };
+  setLoading(true); // <--- Úsalo al empezar
+  try {
+    const userId = localStorage.getItem('userId');
+    const response = await fetch(`http://localhost:5000/api/gestion?userId=${userId}&t=${new Date().getTime()}`);
+    const data = await response.json();
+    setItems(data);
+  } catch (error) {
+    console.error("Error al cargar datos:", error);
+  } finally {
+    setLoading(false); // <--- Úsalo al terminar
+  }
+};
 
-  useEffect(() => { cargarDatosGestion(); }, []);
+  useEffect(() => { cargarDatosGestion(); }, [userId]);
 
   const enviarAPapelera = (id) => {
     if (!window.confirm("¿Mover a la papelera?")) return;

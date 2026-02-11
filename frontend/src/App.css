@@ -4,7 +4,7 @@
   --nav-bg: #ffffff;
   --text-color: #000000; 
   --input-border: #4a5568;
-  --btn-grad: linear-gradient(90deg, #4299e1, #1a365d); 
+  --btn-grad: #003366; 
   --nav-text: #4a5568;
 }
 .app.dark {
@@ -20,46 +20,58 @@
 .app { min-height: 100vh; width: 100%; background-color: var(--bg-color); 
 color: var(--text-color); font-family: sans-serif; display: flex; flex-direction: column; }
 
+/* --- CORRECCIÓN DEFINITIVA DE NIVELACIÓN --- */
+
 .button-group {
     display: flex !important;
-    justify-content: center !important; /* Esto los empuja al centro horizontal */
-    align-items: center !important;     /* Los alinea verticalmente entre sí */
-    gap: 20px !important;               /* Deja espacio entre los dos botones */
-    margin: 30px auto !important;       /* Les da espacio arriba y abajo */
-    width: 100% !important;             /* Asegura que el contenedor ocupe todo el ancho */
+    justify-content: center !important; 
+    /* Esta es la clave: alinea los centros de los contenedores */
+    align-items: stretch !important;    
+    gap: 15px !important; 
+    margin: 30px auto !important;      
+    width: 100% !important;            
 }
 
 .btn-primary, .btn-secondary {
-    padding: 12px 28px;
+    /* Dimensiones idénticas */
+    width: 200px !important; 
+    height: 50px !important;
+    
+    /* Forzar alineación interna */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    
+    /* Eliminar cualquier margen que los empuje */
+    margin: 0 !important;
+    padding: 0 10px !important;
+    
     border-radius: 10px;
-    font-size: 1rem;
+    font-size: 0.95rem;
     border: none;
     font-weight: 700;
     cursor: pointer;
     background: var(--btn-grad);
     color: white;
+    box-sizing: border-box !important;
 }
 
 .app.dark .btn-primary, 
 .app.dark .btn-secondary {
-    background: #ffffff !important; /* Fondo blanco sólido */
-    color: #000000 !important;      /* Letras negras */
-        /* Opcional: un borde negro para definirlo bien */
+    background: #ffffff !important; 
+    color: #000000 !important;      
 }
-
-/* --- LO NUEVO: AJUSTES GLOBALES RESPONSIVE --- */
-
 @media (max-width: 600px) {
     .button-group {
-        flex-direction: column !important; /* En móviles, botones uno sobre otro */
+        flex-direction: column !important; 
         gap: 15px !important;
         padding: 0 20px;
         box-sizing: border-box;
     }
 
     .btn-primary, .btn-secondary {
-        width: 100%; /* Botones a lo ancho completo en celular */
-        padding: 15px; /* Un poco más de área táctil */
+        width: 100% !important; 
+        padding: 15px; 
         font-size: 1.1rem;
     }
 }

@@ -12,10 +12,12 @@
     margin-bottom: 60px;
 }
 
+/* El título principal sí puede cambiar a blanco en modo oscuro para ser legible */
 .funciona-header h1 {
     font-size: 2.5rem;
     color: black;
     margin-bottom: 10px;
+    transition: color 0.3s ease;
 }
 
 /* Grid de Módulos */
@@ -25,9 +27,9 @@
     gap: 40px;
 }
 
-/* Tarjetas Individuales */
+/* Tarjetas Individuales: Forzamos fondo blanco */
 .modulo-card {
-    background: #ffffff;
+    background: #ffffff !important; /* Forzado a blanco */
     padding: 40px 30px;
     border-radius: 15px;
     box-shadow: 0 8px 25px rgba(0,0,0,0.08);
@@ -60,17 +62,19 @@
     justify-content: center;
 }
 
+/* Forzamos títulos negros */
 .modulo-card h3 {
     font-size: 1.4rem;
-    color: #2d3748;
+    color: #2d3748 !important; /* Gris muy oscuro/negro */
     margin-bottom: 15px;
     text-align: center;
 }
 
+/* Forzamos descripción oscura */
 .modulo-card p {
     font-size: 1rem;
     line-height: 1.6;
-    color: #4a5568;
+    color: #4a5568 !important; /* Gris oscuro para lectura */
     text-align: center;
 }
 
@@ -81,12 +85,23 @@
     color: #718096;
 }
 
-/* Adaptación para Modo Oscuro */
-.dark-mode .modulo-card {
-    background: #1a202c;
-    border-color: #2d3748;
+/* Adaptación para Modo Oscuro (Solo elementos externos a las tarjetas) */
+
+/* El título fuera de la tarjeta cambia a blanco para no perderse en el fondo oscuro de la página */
+.dark .funciona-header h1 { 
+    color: #ffffff; 
 }
 
-.dark-mode .modulo-card h3 { color: #f7fafc; }
-.dark-mode .modulo-card p { color: #cbd5e0; }
-.dark-mode .funciona-header h1 { color: #ffff; }
+/* Las tarjetas mantienen su estilo original incluso en .dark */
+.dark .modulo-card {
+    background: #ffffff !important;
+    border-color: #eef2f7;
+}
+
+.dark .modulo-card h3 { color: #2d3748 !important; }
+.dark .modulo-card p { color: #4a5568 !important; }
+
+/* El texto aclaratorio inferior también cambia a gris claro para ser legible */
+.dark .funciona-disclaimer {
+    color: #cbd5e0;
+}

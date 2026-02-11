@@ -2,20 +2,19 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import './inicio.css';
 
-// Asegúrate de que la imagen esté en src/assets/ o usa una URL directa
-const imagenDocentes = "https://img.freepik.com/foto-gratis/profesores-trabajando-juntos-escuela_23-2148668105.jpg";
+// Importamos el logo/imagen de Villatoro's Solutions
+import imagenVillatoro from './planificar.jpg'; 
 
-// Recibimos "nombre" como prop para que sea dinámico
 const Inicio = ({ darkMode, nombre }) => {
   const navigate = useNavigate();
 
   return (
     <div className={`inicio-wrapper ${darkMode ? 'dark' : 'light'}`}>
       <div className="inicio-container">
-        {/* Lado Izquierdo: Bienvenida y Botones */}
+        
+        {/* Lado Izquierdo: Bienvenida y Botones (flex: 1 1 500px) */}
         <div className="inicio-content">
           <h1 className="inicio-title">
-            {/* Ahora muestra el nombre del perfil en lugar de "Jorge" fijo */}
             Bienvenido Docente <span className="nombre-resaltado">{nombre}</span>
           </h1>
           <p className="inicio-subtitle">¿Como podemos ayudarte hoy?</p>
@@ -33,10 +32,15 @@ const Inicio = ({ darkMode, nombre }) => {
           </div>
         </div>
 
-        {/* Lado Derecho: Imagen */}
+        {/* Lado Derecho: Imagen (Respeta .img-inicio-hero en inicio.css) */}
         <div className="inicio-visual">
-          <img src={imagenDocentes} alt="Docentes trabajando" className="img-inicio-hero" />
+          <img 
+            src={imagenVillatoro} 
+            alt="Villatoro's Solutions" 
+            className="img-inicio-hero" 
+          />
         </div>
+
       </div>
     </div>
   );

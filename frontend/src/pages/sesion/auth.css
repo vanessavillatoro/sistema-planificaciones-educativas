@@ -1,0 +1,185 @@
+/* --- ENCAPSULAMIENTO PARA EL MÓDULO DE AUTENTICACIÓN --- */
+
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f0f2f5; 
+  padding: 20px;
+  transition: background-color 0.3s ease;
+}
+
+.auth-container .auth-card {
+  display: flex;
+  background: white;
+  width: 100%;
+  max-width: 1000px;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); 
+}
+
+.auth-container .auth-form-side {
+  flex: 1;
+  padding: 50px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  animation: fadeInSide 0.7s ease-out;
+}
+
+.auth-container .auth-form-side h1 {
+  margin-bottom: 25px;
+  font-size: 2rem;
+  color: #333;
+}
+
+/* --- SECCIÓN VISUAL --- */
+.auth-container .auth-image-side {
+  flex: 1.2;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.auth-container .auth-bg-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 1;
+}
+
+.auth-container .overlay {
+  position: relative;
+  z-index: 2;
+  background: rgba(0, 0, 0, 0.4);
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  animation: fadeInSide 0.9s ease-out;
+}
+
+.auth-container .quote {
+  color: white;
+  font-size: 1.5rem;
+  font-style: italic;
+  text-align: center;
+  line-height: 1.4;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+@keyframes fadeInSide {
+  from { opacity: 0; transform: translateX(25px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* --- ELEMENTOS DEL FORMULARIO (ESTILO MAESTRO UNIFICADO) --- */
+/* Forzamos que tanto input como select compartan CADA propiedad visual */
+.auth-container input,
+.auth-container select {
+  width: 100%;
+  height: 50px; /* Altura fija para todos */
+  padding: 0 15px; /* Padding lateral */
+  margin: 10px 0;
+  
+  /* Borde idéntico para todos */
+  border: 1px solid #000000 !important; 
+  border-radius: 8px !important;
+  
+  /* Tipografía unificada */
+  font-size: 1rem !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+  
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  
+  box-sizing: border-box;
+  display: block;
+  transition: border-color 0.2s;
+}
+
+/* Reset de apariencia para SELECT (Elimina el estilo grisáceo del navegador) */
+.auth-container select {
+  cursor: pointer;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  
+  /* Flecha personalizada para que no use la del sistema */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23000' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: calc(100% - 15px) center !important;
+  background-size: 12px !important;
+}
+
+.auth-container input:focus,
+.auth-container select:focus {
+  outline: none;
+  border-color: #003366 !important;
+  border-width: 2px;
+}
+
+/* BOTÓN */
+.auth-container .btn-primary {
+  width: 100%;
+  height: 50px;
+  background: #003366 !important;
+  color: white !important;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1rem;
+  margin-top: 15px;
+  transition: background 0.3s;
+}
+
+.auth-container .switch-text {
+  margin-top: 25px;
+  text-align: center;
+  color: #666;
+}
+
+.auth-container .switch-text span {
+  color: #003366 !important;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.auth-container .flex-reverse { flex-direction: row-reverse; }
+
+/* --- MODO OSCURO --- */
+
+.dark .auth-container {
+  background-color: #262626 !important; 
+}
+
+.dark .auth-container .auth-card {
+  background-color: #1a1a1a !important; 
+}
+
+.dark .auth-container .auth-form-side h1 {
+  color: #ffffff !important;
+}
+
+/* En dark mode, el fondo del input es el negro más oscuro */
+.dark .auth-container input,
+.dark .auth-container select {
+  background-color: #1a1a1a !important; 
+  color: #ffffff !important;
+  border: 1px solid #ffffff !important; /* Borde blanco para resaltar en el fondo oscuro */
+}
+
+.dark .auth-container select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23fff' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E") !important;
+}

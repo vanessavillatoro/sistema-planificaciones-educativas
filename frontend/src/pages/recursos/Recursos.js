@@ -88,17 +88,50 @@ const Recursos = ({ darkMode }) => {
     }
   }, [location]);
 
-  const cargarDatos = async () => {
+const cargarDatos = async () => {
     try {
+      setLoading(true);
       const baseUrl = 'http://localhost:5000'; 
-      const response = await fetch(`${baseUrl}/api/planificaciones?t=${new Date().getTime()}`);
+      const userId = localStorage.getItem('userId'); 
+
+      if (!userId) {
+        setPlanificaciones([]);
+        return;
+      }
+
+      // CAMBIO AQUÍ: Usamos /api/gestion en lugar de /api/planificaciones
+      // ya que 'El ciclo del agua' vive en tu tabla de Gestión.
+      const response = await fetch(`${baseUrl}/api/gestion?userId=${userId}&t=${new Date().getTime()}`);
+      
       if (!response.ok) throw new Error("Error en la respuesta del servidor");
+      
       const data = await response.json();
-      if (Array.isArray(data)) setPlanificaciones(data);
+      
+      if (Array.isArray(data)) {
+        // Filtramos para que solo aparezcan planificaciones (por si tienes otros tipos de archivos)
+        const soloPlanes = data.filter(item => item.tipo !== 'recurso');
+        setPlanificaciones(soloPlanes);
+        console.log("✅ Datos de gestión cargados:", soloPlanes.length);
+      } else {
+        setPlanificaciones([]);
+      }
     } catch (error) {
-      console.error("❌ Error al conectar con el backend:", error);
+      console.error("❌ Error al conectar:", error);
+      setPlanificaciones([]);
+    } finally {
+      setLoading(false);
     }
   };
+
+  // Reemplaza el useEffect de una sola línea por este más robusto
+  useEffect(() => {
+    // Pequeño retraso para asegurar que el localStorage esté disponible
+    const timer = setTimeout(() => {
+      cargarDatos();
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   const formatearContenidoIA = (texto) => {
     if (!texto) return '';
@@ -156,9 +189,13 @@ const Recursos = ({ darkMode }) => {
       const baseUrl = 'http://localhost:5000';
       const queryParams = new URLSearchParams(location.search);
       const editId = queryParams.get('edit');
+      
+      // AGREGAMOS ESTA LÍNEA PARA OBTENER TU ID
+      const userId = localStorage.getItem('userId');
 
       const datosGestion = {
         ...formData,
+        userId: userId, 
         tipo: 'recurso',
         tema: formData.nombreUnidad,
         contenido: resultado,
@@ -188,7 +225,6 @@ const Recursos = ({ darkMode }) => {
       setSaving(false);
     }
   };
-
   const copiarConFormato = async () => {
     const elemento = document.querySelector('.markdown-body');
     if (!elemento) return;
@@ -433,7 +469,7 @@ const Recursos = ({ darkMode }) => {
                 className="btn-footer" 
                 onClick={exportarAGestion} 
                 disabled={saving}
-                style={{ backgroundColor: '#6f42c1', color: 'white', maxWidth: '320px' }}
+                style={{ backgroundColor: ' #003366', color: 'white', maxWidth: '320px' }}
               >
                 {saving ? " Procesando..." : (new URLSearchParams(location.search).get('edit') ? " Guardar Cambios" : " Exportar a Gestión")}
               </button>

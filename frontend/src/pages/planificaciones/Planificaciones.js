@@ -17,84 +17,76 @@ const Planificaciones = ({ darkMode }) => {
   const [openDropdown, setOpenDropdown] = useState(null);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const dropdownRef = useRef(null);
-  const [planId, setPlanId] = useState(null); // Para saber si estamos editando una existente
+  const [planId, setPlanId] = useState(null); 
 
-  // 1. Este efecto se ejecuta apenas entras a la pantalla de Planificaciones
+  // --- OBTENER EL ID DEL USUARIO ---
+  const userId = localStorage.getItem('userId');
+
   useEffect(() => {
-  // 1. Intentamos obtener los datos que Gestión guardó en la "caja"
-  const datosParaEditar = localStorage.getItem('datosEdicion');
-  
-  if (datosParaEditar) {
-    try {
-      const item = JSON.parse(datosParaEditar);
-      console.log("Datos recuperados con éxito:", item);
+    const datosParaEditar = localStorage.getItem('datosEdicion');
+    if (datosParaEditar) {
+      try {
+        const item = JSON.parse(datosParaEditar);
+        console.log("Datos recuperados con éxito:", item);
+        
+        // Guardamos el ID del plan que se está editando
+        if (item._id) {
+          setPlanId(item._id);
+        }
 
-      // --- NUEVO: Guardamos el ID para evitar duplicados al exportar ---
-      if (item._id) {
-        setPlanId(item._id);
+        setFormData(prev => ({
+          ...prev,
+          nombre: item.nombre || '',
+          apellido: item.apellido || '',
+          edad: item.edad || '',
+          seccion: item.seccion || '',
+          municipio: item.municipio || '',
+          departamento: item.departamento || '',
+          celular: item.celular || '',
+          duracion: item.duracion || '',
+          nivel: item.nivel || '',
+          materia: item.materia || '',
+          nombreUnidad: item.nombreUnidad || '',
+          numUnidad: item.numUnidad || '',
+          tema: item.tema || '',
+          grado: item.grado || '',
+          dificultad: item.dificultad || '',
+          centroEscolar: item.centroEscolar || '',
+          fecha: item.fecha || '',
+          sugerencias: item.sugerencias || ''
+        }));
+
+        setResultado({
+          objetivos: item.objetivos || '',
+          indicadoresLogro: item.indicadoresLogro || '',
+          indicadoresEvaluacion: item.indicadoresEvaluacion || '',
+          materiales: item.materiales || item.listaMateriales || [],
+          tiempos: item.tiempos || item.actividades || [],
+          actividadesComplementarias: item.actividadesComplementarias || ''
+        });
+
+        localStorage.removeItem('datosEdicion');
+      } catch (error) {
+        console.error("Error al procesar los datos de edición:", error);
       }
-
-      // 2. Llenamos los campos de texto de arriba
-      setFormData(prev => ({
-        ...prev,
-        nombre: item.nombre || '',
-        apellido: item.apellido || '',
-        edad: item.edad || '',
-        seccion: item.seccion || '',
-        municipio: item.municipio || '',
-        departamento: item.departamento || '',
-        celular: item.celular || '',
-        duracion: item.duracion || '',
-        nivel: item.nivel || '',
-        materia: item.materia || '',
-        nombreUnidad: item.nombreUnidad || '',
-        numUnidad: item.numUnidad || '',
-        tema: item.tema || '',
-        grado: item.grado || '',
-        dificultad: item.dificultad || '',
-        centroEscolar: item.centroEscolar || '',
-        fecha: item.fecha || '',
-        sugerencias: item.sugerencias || ''
-      }));
-
-      // 3. Llenamos la tabla de planificación (el resultado)
-      setResultado({
-        objetivos: item.objetivos || '',
-        indicadoresLogro: item.indicadoresLogro || '',
-        indicadoresEvaluacion: item.indicadoresEvaluacion || '',
-        materiales: item.materiales || item.listaMateriales || [],
-        tiempos: item.tiempos || item.actividades || [],
-        actividadesComplementarias: item.actividadesComplementarias || ''
-      });
-
-      // 4. IMPORTANTE: Borramos la caja para que no se quede pegado el dato
-      localStorage.removeItem('datosEdicion');
-
-    } catch (error) {
-      console.error("Error al procesar los datos de edición:", error);
     }
-  }
-}, []); // El corchete vacío asegura que esto solo pase al cargar la página
+  }, []);
 
-
-  // --- NUEVA LÓGICA: MOVER A PAPELERA ---
   const moverAPapelera = async () => {
     if (!formData.tema && !formData.nombreUnidad) {
       limpiarFormulario();
       return;
     }
-
     const confirmar = window.confirm(`¿Desea mover "${formData.tema || formData.nombreUnidad}" a la papelera?`);
     if (!confirmar) {
       limpiarFormulario();
       return;
     }
-
     try {
       const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
       const identificador = formData.tema || formData.nombreUnidad;
       
-      const response = await fetch(`${baseUrl}/api/planificaciones-por-tema/${encodeURIComponent(identificador)}`, {
+      const response = await fetch(`${baseUrl}/api/planificaciones-por-tema/${encodeURIComponent(identificador)}?userId=${userId}`, {
         method: 'DELETE',
       });
 
@@ -110,7 +102,6 @@ const Planificaciones = ({ darkMode }) => {
     }
   };
 
-  // --- LÓGICA DE INTEGRACIÓN MÓDULO 3: EDICIÓN ---
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const editId = params.get('edit');
@@ -119,7 +110,6 @@ const Planificaciones = ({ darkMode }) => {
     }
   }, []);
 
-  // --- LISTAS DE DATOS ---
   const listaEdades = ['Edad', ...Array.from({ length: 51 }, (_, i) => `${i + 20} años`)];
   const listaSecciones = ['Seccion', 'Sección A', 'Sección B', 'Sección C'];
   const listaDeptos = ['Departamento', 'Ahuachapán', 'Cabañas', 'Chalatenango', 'Cuscatlán', 'La Libertad', 'La Paz', 'La Unión', 'Morazán', 'San Miguel', 'San Salvador', 'San Vicente', 'Santa Ana', 'Sonsonate', 'Usulután'];
@@ -147,7 +137,6 @@ const Planificaciones = ({ darkMode }) => {
   const listaDificultad = ['Nivel de dificultad', 'Repaso', 'Estudio', 'Refuerzo'];
   const listaDuracion = ['Duracion semanal', ...Array.from({ length: 30 }, (_, i) => `${i + 1} ${i === 0 ? 'hora' : 'horas'}`)];
 
-  // --- NUEVA FUNCIÓN: COPIAR CON FORMATO ---
   const copiarPlanificacion = async () => {
     const tablaOriginal = document.querySelector('.planning-table');
     if (!tablaOriginal) {
@@ -210,7 +199,6 @@ const Planificaciones = ({ darkMode }) => {
     }
   };
 
-  // --- FUNCIONES DE ACCIÓN ---
   const generarConAPI = async () => {
     const camposObligatorios = [
       'nombre', 'apellido', 'edad', 'seccion', 'municipio', 'departamento',
@@ -230,7 +218,7 @@ const Planificaciones = ({ darkMode }) => {
       const response = await fetch(`${baseUrl}/api/generar-plan-completa`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, planActual: resultado }),
+        body: JSON.stringify({ ...formData, userId, planActual: resultado }),
       });
 
       if (!response.ok) throw new Error('Error en la respuesta del servidor');
@@ -254,6 +242,7 @@ const Planificaciones = ({ darkMode }) => {
       const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
       const datosParaGuardar = {
         ...formData,
+        userId, 
         tema: (formData.tema || formData.nombreUnidad || "Sin Título").trim(),
         nombreUnidad: (formData.nombreUnidad || formData.tema || "Sin Unidad").trim(),
         objetivos: resultado.objetivos,
@@ -284,7 +273,6 @@ const Planificaciones = ({ darkMode }) => {
     }
   };
 
-  // --- LÓGICA DE INTEGRACIÓN MÓDULO 3: EXPORTAR (MODIFICADA PARA COMPATIBILIDAD) ---
 const exportarAGestion = async () => {
   if (!resultado) {
     alert("Primero debes generar una planificación.");
@@ -295,7 +283,6 @@ const exportarAGestion = async () => {
   try {
     const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
     
-    // Estructuramos actividades para los cuadros
     const actividadesEstructuradas = (resultado.tiempos || []).slice(0, 8).map(t => ({
       inicio: t.inicio || '',
       desarrollo: t.desarrollo || '',
@@ -304,7 +291,7 @@ const exportarAGestion = async () => {
 
     const datosGestion = {
       ...formData,
-      // Si planId existe (estamos editando), lo enviamos para que el servidor lo reconozca
+      userId, 
       idActualizar: planId || null, 
       tipo: 'Planificación',
       objetivos: resultado.objetivos,
@@ -321,7 +308,6 @@ const exportarAGestion = async () => {
       fechaExportacion: new Date()
     };
 
-    // Usamos el POST original que ya sabemos que funciona en tu servidor
     const response = await fetch(`${baseUrl}/api/exportar-gestion`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -330,11 +316,8 @@ const exportarAGestion = async () => {
 
     if (response.ok) {
       alert("✅ ¡Guardado con éxito! Los cambios ya están en Gestión.");
-      // Opcional: limpiar el planId después de guardar
       setPlanId(null);
     } else {
-      const errorTexto = await response.text();
-      console.error("Error del servidor:", errorTexto);
       throw new Error("Respuesta no exitosa");
     }
   } catch (error) {
@@ -344,11 +327,13 @@ const exportarAGestion = async () => {
     setSaving(false);
   }
 };
+
   const limpiarFormulario = () => {
     setFormData(estadoInicial);
     setResultado(null);
     setOpenDropdown(null);
     setHighlightedIndex(-1);
+    setPlanId(null);
   };
 
   const getMunisDisponibles = () => {
@@ -505,7 +490,7 @@ const exportarAGestion = async () => {
                 className="btn-primary" 
                 onClick={guardarPlanificacion} 
                 disabled={saving}
-                style={{ backgroundColor: '#28a745', marginLeft: '10px' }}
+                style={{ backgroundColor: ' #003366', marginLeft: '10px' }}
               >
                 {saving ? "Guardando..." : "Exportar a recursos"}
               </button>
@@ -514,7 +499,7 @@ const exportarAGestion = async () => {
                 className="btn-primary" 
                 onClick={exportarAGestion} 
                 disabled={saving}
-                style={{ backgroundColor: '#6f42c1', marginLeft: '10px' }}
+                style={{ backgroundColor: ' #003366', marginLeft: '10px' }}
               >
                 {saving ? "Exportando..." : "Exportar a gestión"}
               </button>
@@ -522,7 +507,7 @@ const exportarAGestion = async () => {
               <button 
                 className="btn-primary" 
                 onClick={copiarPlanificacion}
-                style={{ backgroundColor: '#007bff', marginLeft: '10px' }}
+                style={{ backgroundColor: ' #003366', marginLeft: '10px' }}
               >
                 Copiar planificación
               </button>
