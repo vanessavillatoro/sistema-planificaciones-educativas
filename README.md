@@ -93,7 +93,7 @@ Sigue estos pasos para usar el sistema. Todo es intuitivo y guiado por formulari
 - **¿Puedo editar una planificación generada?** Sí, en Módulo 1 o 3, escribe sugerencias específicas (e.g., "cambiar indicadores") y regenera.
 - **¿Funciona sin internet?** No, requiere conexión para IA y DB.
 - **¿Cuánto cuesta?** Gratuito; desplegado en Vercel con dominio gratuito.
-- **¿Dónde reportar bugs?** En GitHub Issues o email: soporte@tuapp.com.
+- **¿Dónde reportar bugs?** En GitHub Issues o email: vane.villatoro010306@gmail.com
 
 ### Soporte
 - **GitHub:** Reporta issues en https://github.com/vanessavillatoro/sistema-planificaciones-educativas/issues
