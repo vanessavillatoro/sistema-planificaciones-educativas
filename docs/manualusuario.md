@@ -50,7 +50,7 @@ Sigue estos pasos para usar el sistema. Todo es intuitivo y guiado por formulari
 - Si quieres editar: Escribe nuevas sugerencias (e.g., "cambiar materiales") y genera de nuevo (la IA preserva el resto).
 - Guarda automáticamente o ve al Módulo 3 para gestionar.
 
-![Módulo 1: Formulario](docs/screenshots/formulario.png)  
+![Módulo 1: Formulario](docs/formulario.png)  
 *Captura: Formulario de generación con campos y botón "Generar".*
 
 ![Módulo 1: Resultado](docs/screenshots/planificacion.png)  
