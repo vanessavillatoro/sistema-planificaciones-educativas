@@ -99,6 +99,6 @@ Sigue estos pasos para usar el sistema. Todo es intuitivo y guiado por formulari
 - **¿Cuánto cuesta?** Gratuito; desplegado en Vercel con dominio gratuito.
 
 ### Soporte
-- **Email:** soporte@tuapp.com
+- **Email:** vane.villatoro010306@gmail.com
 - **GitHub:** Reporta issues en https://github.com/vanessavillatoro/sistema-planificaciones-educativas/issues
 - **Actualizaciones:** El sistema se actualiza automáticamente; revisa el blog para nuevas features.
