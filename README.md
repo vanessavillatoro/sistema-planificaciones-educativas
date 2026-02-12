@@ -49,7 +49,7 @@ Sigue estos pasos para usar el sistema. Todo es intuitivo y guiado por formulari
 ![Módulo 1: Formulario](docs/screenshots/formulario.png)  
 *Captura: Formulario de generación con campos y botón "Generar".*
 
-![Módulo 1: Resultado](docs/screenshots/modulo1_resultado.png)  
+![Módulo 1: Resultado](docs/screenshots/planificacion.png)  
 *Captura: Tabla con planificación generada, incluyendo momentos de clase.*
 
 #### 3. Módulo 2: Generador de Recursos
