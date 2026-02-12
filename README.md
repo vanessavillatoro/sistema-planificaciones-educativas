@@ -67,7 +67,7 @@ Sigue estos pasos para usar el sistema. Todo es intuitivo y guiado por formulari
 - Opciones: Editar (abre formulario con datos previos), Exportar (PDF o DOCX, descarga directa), Eliminar.
 - Usa para revisar o compartir.
 
-![Módulo 3: Lista](docs/screenshots/modulo3_lista.png)  
+![Módulo 3: Lista](docs/screenshots/lista.png)  
 *Captura: Lista de planificaciones con botones de editar y exportar.*
 
 #### 5. Otras Secciones
