@@ -76,7 +76,7 @@ Sigue estos pasos para usar el sistema. Todo es intuitivo y guiado por formulari
 - **Cómo Funciona:** Tutorial interactivo con diagramas de IA y módulos.
 - **Navbar:** Haz clic en tu foto para menú desplegable (perfil, configuración, cerrar sesión).
 
-![Navbar con Menú](docs/screenshots/navbar.png)  
+![Navbar con Menú](docs/screenshots/menu.png)  
 *Captura: Navbar con menú desplegable para navegación.*
 
 ### Troubleshooting (Solución de Problemas)
