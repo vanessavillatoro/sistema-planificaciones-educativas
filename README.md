@@ -46,7 +46,7 @@ Sigue estos pasos para usar el sistema. Todo es intuitivo y guiado por formulari
 - Si quieres editar: Escribe nuevas sugerencias (e.g., "cambiar materiales") y genera de nuevo (la IA preserva el resto).
 - Guarda automáticamente o ve al Módulo 3 para gestionar.
 
-![Módulo 1: Formulario](docs/screenshots/modulo1_formulario.png)  
+![Módulo 1: Formulario](docs/screenshots/formulario.png)  
 *Captura: Formulario de generación con campos y botón "Generar".*
 
 ![Módulo 1: Resultado](docs/screenshots/modulo1_resultado.png)  
@@ -58,7 +58,7 @@ Sigue estos pasos para usar el sistema. Todo es intuitivo y guiado por formulari
 - Haz clic en "Generar Recurso". La IA crea fichas, cuestionarios o lecturas con claves de respuestas.
 - Guarda o ve al Módulo 3.
 
-![Módulo 2: Generación](docs/screenshots/modulo2.png)  
+![Módulo 2: Generación](docs/screenshots/generador.png)  
 *Captura: Pantalla de generación de recursos con descripción y dificultad.*
 
 #### 4. Módulo 3: Gestión de Planificaciones y Recursos
@@ -67,7 +67,7 @@ Sigue estos pasos para usar el sistema. Todo es intuitivo y guiado por formulari
 - Opciones: Editar (abre formulario con datos previos), Exportar (PDF o DOCX, descarga directa), Eliminar.
 - Usa para revisar o compartir.
 
-![Módulo 3: Lista](docs/screenshots/modulo3_lista.png)  
+![Módulo 3: Lista](docs/screenshots/lista.png)  
 *Captura: Lista de planificaciones con botones de editar y exportar.*
 
 #### 5. Otras Secciones
