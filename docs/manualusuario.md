@@ -37,7 +37,7 @@ Sigue estos pasos para usar el sistema. Todo es intuitivo y guiado por formulari
 - Ingresa tu usuario y contraseña (si no tienes cuenta, regístrate con email y factor de seguridad opcional).
 - Una vez dentro, verás el navbar con opciones: Módulos, Blog, Acerca de, etc.
 
-![Página de Login](docs/screenshots/login.png)  
+![Página de Login](./screenshots/login.png)  
 *Captura: Pantalla de inicio de sesión con campos de usuario y contraseña.*
 
 #### 2. Módulo 1: Generador de Planificaciones
@@ -50,10 +50,10 @@ Sigue estos pasos para usar el sistema. Todo es intuitivo y guiado por formulari
 - Si quieres editar: Escribe nuevas sugerencias (e.g., "cambiar materiales") y genera de nuevo (la IA preserva el resto).
 - Guarda automáticamente o ve al Módulo 3 para gestionar.
 
-![Módulo 1: Formulario](docs/screenshots/formulario.png)  
+![Módulo 1: Formulario](./screenshots/formulario.png)  
 *Captura: Formulario de generación con campos y botón "Generar".*
 
-![Módulo 1: Resultado](docs/screenshots/planificacion.png)  
+![Módulo 1: Resultado](./screenshots/planificacion.png)  
 *Captura: Tabla con planificación generada, incluyendo momentos de clase.*
 
 #### 3. Módulo 2: Generador de Recursos
@@ -62,7 +62,7 @@ Sigue estos pasos para usar el sistema. Todo es intuitivo y guiado por formulari
 - Haz clic en "Generar Recurso". La IA crea fichas, cuestionarios o lecturas con claves de respuestas.
 - Guarda o ve al Módulo 3.
 
-![Módulo 2: Generación](docs/screenshots/generador.png)  
+![Módulo 2: Generación](./screenshots/generador.png)  
 *Captura: Pantalla de generación de recursos con descripción y dificultad.*
 
 #### 4. Módulo 3: Gestión de Planificaciones y Recursos
@@ -71,7 +71,7 @@ Sigue estos pasos para usar el sistema. Todo es intuitivo y guiado por formulari
 - Opciones: Editar (abre formulario con datos previos), Exportar (PDF o DOCX, descarga directa), Eliminar.
 - Usa para revisar o compartir.
 
-![Módulo 3: Lista](docs/screenshots/lista.png)  
+![Módulo 3: Lista](./screenshots/lista.png)  
 *Captura: Lista de planificaciones con botones de editar y exportar.*
 
 #### 5. Otras Secciones
@@ -80,7 +80,7 @@ Sigue estos pasos para usar el sistema. Todo es intuitivo y guiado por formulari
 - **Cómo Funciona:** Tutorial interactivo con diagramas de IA y módulos.
 - **Navbar:** Haz clic en tu foto para menú desplegable (perfil, configuración, cerrar sesión).
 
-![Navbar con Menú](docs/screenshots/menu.png)  
+![Navbar con Menú](./screenshots/menu.png)  
 *Captura: Navbar con menú desplegable para navegación.*
 
 ### Troubleshooting (Solución de Problemas)
@@ -99,6 +99,6 @@ Sigue estos pasos para usar el sistema. Todo es intuitivo y guiado por formulari
 - **¿Cuánto cuesta?** Gratuito; desplegado en Vercel con dominio gratuito.
 
 ### Soporte
-- **Email:** soporte@tuapp.com
+- **Email:** vane.villatoro010306@gmail.com
 - **GitHub:** Reporta issues en https://github.com/vanessavillatoro/sistema-planificaciones-educativas/issues
 - **Actualizaciones:** El sistema se actualiza automáticamente; revisa el blog para nuevas features.

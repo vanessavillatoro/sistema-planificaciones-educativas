@@ -1,108 +1,68 @@
-# Sistema Pedagógico Generador de Planificaciones
+Configuración de Red
+URL de Producción: https://sistema-planificaciones-educativas.vercel.app
 
-## APIs del Backend
+URL de Desarrollo: http://localhost:5000
 
-### Endpoints Disponibles
-1. **GET /api/test**  
-   Descripción: Verifica que el servidor esté funcionando.  
-   Respuesta: `{"message": "API funcionando"}`
+Seguridad: Los endpoints protegidos requieren el Header: Authorization: Bearer <TU_TOKEN_JWT>.
 
-2. **POST /api/generar-plan-completa**  
-   Descripción: Genera planificación completa usando IA Gemini, con soporte para ediciones parciales.  
-   Request Body: `{"materia": "Matemáticas", "tema": "Suma", "sugerencias": "Cambiar objetivos", "planificacionPrevia": {...}}`  
-   Respuesta: `{"objetivos": "...", "indicadoresLogro": "...", "materiales": [...], "indicadoresEvaluacion": "...", "actividadesComplementarias": "...", "tiempos": [...]}`
+🚀 APIs del Backend - Endpoints Disponibles
+GET /api/test
 
-3. **POST /api/generate-resource**  
-   Descripción: Genera recursos (cuestionarios) con ajuste de dificultad.  
-   Request Body: `{"descripcion": "Cuestionario sobre fotosíntesis", "dificultad": "refuerzo"}`  
-   Respuesta: `{"output": "Texto generado"}`
+Descripción: Verifica que el servidor esté activo.
 
-4. **POST /api/save-resource**  
-   Descripción: Guarda un recurso en DB.  
-   Request Body: `{"descripcion": "Cuestionario", "dificultad": "refuerzo", "output": "Texto"}`  
-   Respuesta: `{"message": "Recurso guardado", "id": "ID_DEL_DOCUMENTO"}`
+Respuesta: {"message": "API funcionando"}
 
-5. **POST /api/save-plan**  
-   Descripción: Guarda una planificación en DB con validación.  
-   Request Body: `{"materia": "Ciencias", "grado": "1º", "output": "Texto"}`  
-   Respuesta: `{"message": "Planificación guardada exitosamente", "id": "ID", "data": {...}}`
+POST /api/generar-plan-completa
 
-6. **GET /api/planificaciones**  
-   Descripción: Lista todas las planificaciones.  
-   Respuesta: Array de objetos `[{"_id": "...", "materia": "...", ...}]`
+Descripción: Genera una planificación pedagógica con IA Gemini.
 
-7. **PUT /api/planificaciones/:id**  
-   Descripción: Edita una planificación por ID.  
-   Request Body: `{"materia": "Nueva Materia"}`  
-   Respuesta: `{"message": "Planificación actualizada", "planificacion": {...}}`
+Body: {"materia": "...", "tema": "...", "sugerencias": "...", "planificacionPrevia": {...}}
 
-8. **DELETE /api/planificaciones/:id**  
-   Descripción: Elimina una planificación por ID.  
-   Respuesta: `{"message": "Planificación eliminada"}`
+POST /api/generate-resource
 
-9. **GET /api/export-plan/:id**  
-   Descripción: Exporta planificación a PDF.  
-   Respuesta: Archivo PDF descargable.
+Descripción: Crea recursos didácticos (como cuestionarios) según dificultad.
 
-10. **GET /api/export-plan/:id/docx**  
-    Descripción: Exporta planificación a DOCX.  
-    Respuesta: Archivo DOCX descargable.
+Body: {"descripcion": "...", "dificultad": "refuerzo"}
 
-### Notas
-- Todos los endpoints POST requieren `Content-Type: application/json`.
-- Errores comunes: 400 (campos faltantes), 404 (no encontrado), 500 (error servidor/IA).
-- Pruebas realizadas: Tiempos <10s, DB guarda correctamente, autenticación JWT implementada.
-# Sistema Pedagógico Generador de Planificaciones
+POST /api/save-resource
 
-## APIs del Backend
+Descripción: Almacena un recurso generado en la base de datos.
 
-### Endpoints Disponibles
-1. **GET /api/test**  
-   Descripción: Verifica que el servidor esté funcionando.  
-   Respuesta: `{"message": "API funcionando"}`
+Body: {"descripcion": "...", "dificultad": "...", "output": "..."}
 
-2. **POST /api/generar-plan-completa**  
-   Descripción: Genera planificación completa usando IA Gemini, con soporte para ediciones parciales.  
-   Request Body: `{"materia": "Matemáticas", "tema": "Suma", "sugerencias": "Cambiar objetivos", "planificacionPrevia": {...}}`  
-   Respuesta: `{"objetivos": "...", "indicadoresLogro": "...", "materiales": [...], "indicadoresEvaluacion": "...", "actividadesComplementarias": "...", "tiempos": [...]}`
+POST /api/save-plan
 
-3. **POST /api/generate-resource**  
-   Descripción: Genera recursos (cuestionarios) con ajuste de dificultad.  
-   Request Body: `{"descripcion": "Cuestionario sobre fotosíntesis", "dificultad": "refuerzo"}`  
-   Respuesta: `{"output": "Texto generado"}`
+Descripción: Guarda una planificación completa en la DB.
 
-4. **POST /api/save-resource**  
-   Descripción: Guarda un recurso en DB.  
-   Request Body: `{"descripcion": "Cuestionario", "dificultad": "refuerzo", "output": "Texto"}`  
-   Respuesta: `{"message": "Recurso guardado", "id": "ID_DEL_DOCUMENTO"}`
+Body: {"materia": "...", "grado": "...", "output": "..."}
 
-5. **POST /api/save-plan**  
-   Descripción: Guarda una planificación en DB con validación.  
-   Request Body: `{"materia": "Ciencias", "grado": "1º", "output": "Texto"}`  
-   Respuesta: `{"message": "Planificación guardada exitosamente", "id": "ID", "data": {...}}`
+GET /api/planificaciones
 
-6. **GET /api/planificaciones**  
-   Descripción: Lista todas las planificaciones.  
-   Respuesta: Array de objetos `[{"_id": "...", "materia": "...", ...}]`
+Descripción: Obtiene el listado de todas las planificaciones guardadas.
 
-7. **PUT /api/planificaciones/:id**  
-   Descripción: Edita una planificación por ID.  
-   Request Body: `{"materia": "Nueva Materia"}`  
-   Respuesta: `{"message": "Planificación actualizada", "planificacion": {...}}`
+Respuesta: Array de objetos [{"_id": "...", "materia": "...", ...}]
 
-8. **DELETE /api/planificaciones/:id**  
-   Descripción: Elimina una planificación por ID.  
-   Respuesta: `{"message": "Planificación eliminada"}`
+PUT /api/planificaciones/:id
 
-9. **GET /api/export-plan/:id**  
-   Descripción: Exporta planificación a PDF.  
-   Respuesta: Archivo PDF descargable.
+Descripción: Edita los datos de una planificación existente por su ID.
 
-10. **GET /api/export-plan/:id/docx**  
-    Descripción: Exporta planificación a DOCX.  
-    Respuesta: Archivo DOCX descargable.
+Body: {"materia": "Nuevo Nombre"}
 
-### Notas
-- Todos los endpoints POST requieren `Content-Type: application/json`.
-- Errores comunes: 400 (campos faltantes), 404 (no encontrado), 500 (error servidor/IA).
-- Pruebas realizadas: Tiempos <10s, DB guarda correctamente, autenticación JWT implementada.
+DELETE /api/planificaciones/:id
+
+Descripción: Elimina una planificación de la base de datos.
+
+GET /api/export-plan/:id
+
+Respuesta: Descarga la planificación en formato PDF.
+
+GET /api/export-plan/:id/docx
+
+Respuesta: Descarga la planificación en formato DOCX.
+
+📝 Notas de Implementación
+Formato de datos: Todos los endpoints de escritura requieren Content-Type: application/json.
+
+Manejo de Errores: 400 (Faltan campos), 404 (No encontrado), 500 (Error de servidor/IA).
+
+Diseño UI: Para el modo oscuro del login, se ha definido un fondo negro ligeramente más claro que los cuadros de texto para garantizar el contraste visual [cite: 2026-02-05].
