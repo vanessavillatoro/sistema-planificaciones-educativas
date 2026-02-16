@@ -26,7 +26,8 @@ const AuthContent = () => {
 
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
-      const response = await fetch('http://localhost:5000/api/auth/google', {
+      // Cambio: De localhost a la URL de tu backend en Vercel
+      const response = await fetch('https://sistema-planificaciones-educativas.vercel.app/api/auth/google', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token: credentialResponse.credential })
@@ -69,7 +70,8 @@ const AuthContent = () => {
 
     const ruta = esLogin ? '/api/auth/login' : '/api/auth/register';
     try {
-      const response = await fetch(`http://localhost:5000${ruta}`, {
+      // Cambio: De localhost a la URL de tu backend en Vercel
+      const response = await fetch(`https://sistema-planificaciones-educativas.vercel.app${ruta}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -91,7 +93,6 @@ const AuthContent = () => {
     <div className="auth-container">
       <div className={`auth-card ${!esLogin ? 'flex-reverse' : ''}`}>
         <div className="auth-form-side">
-          {/* Títulos simples en el formulario */}
           <h1>{esLogin ? 'Iniciar sesión' : 'Regístrate'}</h1>
           
           <div className="google-btn-container">
@@ -149,7 +150,6 @@ const AuthContent = () => {
         <div className="auth-image-side">
           <img src={imagenAuth} alt="Auth Visual" className="auth-bg-img" />
           <div className="overlay">
-            {/* Las frases aparecen aquí, sobre la imagen lateral */}
             <p className="quote">
               {esLogin ? (
                 <>
