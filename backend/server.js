@@ -40,7 +40,14 @@ app.use(cors({
     allowedHeaders: ['Content-Type']
 }));
 app.use(express.json());
+app.get('/api/test', (req, res) => {
+    res.json({ message: "API funcionando perfectamente" });
+});
 
+// Ruta para la raíz (esto quitará cualquier error al entrar al link directo)
+app.get('/', (req, res) => {
+    res.send('🚀 Servidor del Sistema de Planificaciones funcionando.');
+});
 // --- CONFIGURACIÓN PARA SUBIDA DE IMÁGENES ---
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) {
