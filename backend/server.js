@@ -35,7 +35,7 @@ const app = express();
 
 // --- CONFIGURACIÓN DE MIDDLEWARE ---
 app.use(cors({
-    origin: '*',
+    origin: 'https://sistema-planificaciones-educativas-ten.vercel.app', // Tu URL real
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     allowedHeaders: ['Content-Type']
 }));
@@ -220,21 +220,30 @@ app.delete('/api/planificaciones-por-tema/:tema', async (req, res) => {
 
 app.post('/api/exportar-gestion', async (req, res) => {
   try {
-    const nuevaGestion = new Gestion(req.body); 
+    // Si el frontend manda userId, lo renombramos a usuarioId antes de guardar
+    const datosAGuardar = { ...req.body };
+    if (datosAGuardar.userId) {
+        datosAGuardar.usuarioId = datosAGuardar.userId;
+    }
+    
+    const nuevaGestion = new Gestion(datosAGuardar); 
     await nuevaGestion.save();
     res.json({ success: true });
   } catch (error) {
-    res.status(500).json({ error: "Error" });
+    res.status(500).json({ error: "Error al exportar" });
   }
 });
 
 app.get('/api/gestion', async (req, res) => {
   try {
-    const query = req.query.userId ? { userId: req.query.userId, borrado: { $ne: true } } : { borrado: { $ne: true } };
+    // CAMBIO: Usar usuarioId para que coincida con el resto del sistema
+    const { userId } = req.query; 
+    const query = userId ? { usuarioId: userId, borrado: { $ne: true } } : { borrado: { $ne: true } };
+    
     const rows = await Gestion.find(query).sort({ fechaExportacion: -1 });
     res.json(rows);
   } catch (error) {
-    res.status(500).json({ error: "Error" });
+    res.status(500).json({ error: "Error al obtener gestión" });
   }
 });
 
