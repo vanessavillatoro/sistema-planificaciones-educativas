@@ -40,9 +40,11 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
-// Middleware manual para manejar preflights sin usar rutas complejas que rompan Vercel
+// Middleware para manejar Preflight Requests (OPTIONS) de forma global y segura para evitar errores de path-to-regexp
 app.use((req, res, next) => {
   if (req.method === 'OPTIONS') {
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, PUT');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     return res.sendStatus(200);
   }
   next();
@@ -61,15 +63,6 @@ app.get('/', (req, res) => {
 });
 
 // --- CONFIGURACIÓN PARA SUBIDA DE IMÁGENES (Ajustado para Vercel) ---
-// Nota: Vercel no permite persistencia de archivos locales. 
-// Comentamos la creación de carpeta para evitar errores de permisos.
-/*
-const uploadDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir);
-}
-*/
-
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, '/tmp'); // Usamos /tmp que es la única carpeta donde Vercel permite escribir temporalmente
