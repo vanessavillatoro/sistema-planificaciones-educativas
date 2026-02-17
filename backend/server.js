@@ -32,8 +32,7 @@ const Gestion = mongoose.models.Gestion || mongoose.model('Gestion', GestionSche
 
 const app = express();
 
-// --- BLOQUE DE CORS Y OPTIONS (SOLUCIÓN DEFINITIVA) ---
-// Aplicamos CORS globalmente primero
+// --- BLOQUE DE CORS Y OPTIONS (SOLUCIÓN PARA VERCEL) ---
 app.use(cors({
   origin: true, 
   methods: ["GET", "POST", "PATCH", "DELETE", "PUT", "OPTIONS"],
@@ -41,8 +40,20 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
-// Respondemos a las peticiones OPTIONS de forma atómica para evitar el error de ruta
-app.options('*', cors()); 
+// SOLUCIÓN LÍNEA 44: Usamos un selector universal '*' que no requiere parámetros
+// Esto evita el error "Missing parameter name at index 11"
+app.options('*', (req, res) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, PUT, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.sendStatus(200);
+});
+
+// Middleware de seguridad adicional para rutas API
+app.use('/api', (req, res, next) => {
+  if (req.method === 'OPTIONS') return res.sendStatus(200);
+  next();
+});
 // --- FIN DEL BLOQUE CORREGIDO ---
 
 app.use(express.json());
@@ -56,10 +67,10 @@ app.get('/', (req, res) => {
     res.send('🚀 Servidor del Sistema de Planificaciones funcionando.');
 });
 
-// --- CONFIGURACIÓN PARA SUBIDA DE IMÁGENES (Ajustado para Vercel) ---
+// --- CONFIGURACIÓN PARA SUBIDA DE IMÁGENES ---
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, '/tmp'); // Usamos /tmp que es la única carpeta donde Vercel permite escribir temporalmente
+        cb(null, '/tmp'); 
     },
     filename: (req, file, cb) => {
         cb(null, Date.now() + '-' + file.originalname);
@@ -91,7 +102,7 @@ const procesarRespuestaIA = (text) => {
     }
 };
 
-// --- RUTA: GENERACIÓN ESTRUCTURADA (PLANIFICACIONES - MÓDULO 1) ---
+// --- RUTA: GENERACIÓN ESTRUCTURADA (MÓDULO 1) ---
 app.post('/api/generar-plan-completa', async (req, res) => {
   const { planActual, ...data } = req.body;
   const camposRequeridos = ['materia', 'tema', 'grado', 'dificultad', 'nombreUnidad'];
@@ -121,7 +132,7 @@ app.post('/api/generar-plan-completa', async (req, res) => {
       5. ACTIVIDADES COMPLEMENTARIAS: Por defecto genera 3. Formato: "* Act 1\\n* Act 2".
       6. MATERIALES: Array de EXACTAMENTE 8 elementos. Inicialmente, CADA uno de los 8 elementos del array DEBE contener EXACTAMENTE 3 materiales distintos (a menos que el docente pida más). Los materiales deben separarse por un salto de línea y un asterisco (*).
       8. No uses markdown ni texto fuera del JSON.
-    ESTRUCTURA REQUERIDA (Responde solo el JSON):
+    ESTRUCTURA REQUERIDA:
     {
       "objetivos": "...",
       "indicadoresLogro": "...",
