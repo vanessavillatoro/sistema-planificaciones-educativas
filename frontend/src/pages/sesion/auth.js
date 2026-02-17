@@ -63,7 +63,7 @@ const AuthContent = () => {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
     if (!esLogin) {
       const allValid = Object.values(passwordValidations).every(val => val);
@@ -72,16 +72,17 @@ const AuthContent = () => {
 
     const ruta = esLogin ? '/api/auth/login' : '/api/auth/register';
     try {
-      const response = await fetch(`https://sistema-planificaciones-educativas.app${ruta}`, {
+      // CORRECCIÓN: Agregado ".vercel" a la URL para que coincida con tu backend real
+      const response = await fetch(`https://sistema-planificaciones-educativas.vercel.app${ruta}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
+      
       const data = await response.json();
       if (response.ok) {
         localStorage.setItem('userId', data.userId);
         localStorage.setItem('userName', data.userName);
-        // Si el login manual devuelve foto, la guardamos
         if (data.fotoUrl) localStorage.setItem('userFoto', data.fotoUrl);
 
         window.location.href = '/dashboard'; 
@@ -89,7 +90,7 @@ const AuthContent = () => {
         alert(data.error);
       }
     } catch (error) {
-      alert("Error de conexión");
+      alert("Error de conexión al servidor");
     }
   };
 
