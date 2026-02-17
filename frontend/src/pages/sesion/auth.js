@@ -26,7 +26,6 @@ const AuthContent = () => {
 
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
-      // Cambio: De localhost a la URL de tu backend en Vercel
       const response = await fetch('https://sistema-planificaciones-educativas.vercel.app/api/auth/google', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -34,8 +33,11 @@ const AuthContent = () => {
       });
       const data = await response.json();
       if (response.ok) {
+        // Guardamos userId, nombre y la URL de la foto para sincronización total
         localStorage.setItem('userId', data.userId);
         localStorage.setItem('userName', data.userName);
+        if (data.fotoUrl) localStorage.setItem('userFoto', data.fotoUrl);
+        
         window.location.href = '/dashboard';
       } else {
         alert(data.error);
@@ -70,8 +72,7 @@ const AuthContent = () => {
 
     const ruta = esLogin ? '/api/auth/login' : '/api/auth/register';
     try {
-      // Cambio: De localhost a la URL de tu backend en Vercel
-      const response = await fetch(`https://sistema-planificaciones-educativas.vercel.app${ruta}`, {
+      const response = await fetch(`https://sistema-planificaciones-educativas.app${ruta}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -80,6 +81,9 @@ const AuthContent = () => {
       if (response.ok) {
         localStorage.setItem('userId', data.userId);
         localStorage.setItem('userName', data.userName);
+        // Si el login manual devuelve foto, la guardamos
+        if (data.fotoUrl) localStorage.setItem('userFoto', data.fotoUrl);
+
         window.location.href = '/dashboard'; 
       } else {
         alert(data.error);
