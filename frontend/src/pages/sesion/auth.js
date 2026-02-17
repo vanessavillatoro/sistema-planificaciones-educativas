@@ -4,10 +4,12 @@ import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 
 const imagenAuth = "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070";
 
-// URL base con detección automática de entorno
+// --- PASO 1: CORREGIR LA URL DEL BACKEND ---
+// Asegúrate de que la segunda URL sea la de tu BACKEND (donde está server.js)
 const API_BASE_URL = window.location.hostname === "localhost" 
   ? "http://localhost:5000" 
-  : "https://sistema-planificaciones-educativas-ten.vercel.app";
+  : "https://sistema-planificaciones-educativas-ten.vercel.app"; 
+  // NOTA: Si tu API está en otra URL (ej: ...-api.vercel.app), pon esa aquí.
 
 const AuthContent = () => {
   const [esLogin, setEsLogin] = useState(true);
@@ -29,9 +31,11 @@ const AuthContent = () => {
     });
   };
 
-  // MANEJO DE LOGIN CON GOOGLE
+  // --- PASO 2: AJUSTAR EL MANEJO DE GOOGLE ---
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
+      console.log("Enviando token a:", `${API_BASE_URL}/api/auth/google`);
+      
       const response = await fetch(`${API_BASE_URL}/api/auth/google`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -41,21 +45,21 @@ const AuthContent = () => {
       const data = await response.json();
       
       if (response.ok) {
-        // --- GUARDADO DE SESIÓN ---
-        localStorage.setItem('userId', data.userId || data.user?._id);
-        localStorage.setItem('userName', data.userName || data.user?.name);
-        if (data.fotoUrl || data.user?.fotoUrl) {
-          localStorage.setItem('userFoto', data.fotoUrl || data.user?.fotoUrl);
+        // Guardamos los datos tal cual los manda tu server.js
+        localStorage.setItem('userId', data.userId);
+        localStorage.setItem('userName', data.userName);
+        if (data.fotoUrl) {
+          localStorage.setItem('userFoto', data.fotoUrl);
         }
         
-        // Redirección forzada para limpiar estados previos
+        // Redirección limpia
         window.location.href = '/';
       } else {
-        alert(data.error || "Error al validar con el servidor");
+        alert(data.error || "Error en el servidor");
       }
     } catch (error) {
       console.error("Error Auth:", error);
-      alert("Error de conexión con el servidor");
+      alert("No se pudo conectar con el servidor. Revisa el CORS.");
     }
   };
 
@@ -75,7 +79,6 @@ const AuthContent = () => {
     setFormData({ ...formData, [name]: value });
   };
 
-  // MANEJO DE LOGIN/REGISTRO MANUAL
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!esLogin) {
@@ -96,10 +99,9 @@ const AuthContent = () => {
         localStorage.setItem('userId', data.userId);
         localStorage.setItem('userName', data.userName);
         if (data.fotoUrl) localStorage.setItem('userFoto', data.fotoUrl);
-
         window.location.href = '/'; 
       } else {
-        alert(data.error);
+        alert(data.error || "Error al iniciar sesión");
       }
     } catch (error) {
       alert("Error de conexión al servidor");
@@ -115,6 +117,7 @@ const AuthContent = () => {
           <div className="google-btn-container">
             <GoogleLogin
               onSuccess={handleGoogleSuccess}
+              onError={() => alert("Error en el componente de Google")}
               theme="filled_black"
               text={esLogin ? "signin_with" : "signup_with"}
               shape="pill"
@@ -142,14 +145,6 @@ const AuthContent = () => {
             <input type="text" name="email" placeholder="Correo electrónico" value={formData.email} onChange={handleChange} required />
             <input type="password" name="password" placeholder="Contraseña" value={formData.password} onChange={handleChange} required />
 
-            {!esLogin && (
-              <div className="password-hints">
-                <p style={{ color: passwordValidations.special ? '#2ecc71' : '#e74c3c' }}>
-                  {passwordValidations.special ? '✔' : '✖'} Carácter especial (@$!%*?&#)
-                </p>
-              </div>
-            )}
-            
             <button type="submit" className="btn-primary">
               {esLogin ? 'Entrar' : 'Registrarse'}
             </button>
@@ -168,15 +163,9 @@ const AuthContent = () => {
           <div className="overlay">
             <p className="quote">
               {esLogin ? (
-                <>
-                  "El futuro pertenece a quienes creen en la belleza de sus sueños"<br/>
-                  — Eleanor Roosevelt
-                </>
+                <> "El futuro pertenece a quienes creen en la belleza de sus sueños" — Eleanor Roosevelt </>
               ) : (
-                <>
-                  "La única forma de hacer un gran trabajo es amar lo que haces"<br/>
-                  — Steve Jobs
-                </>
+                <> "La única forma de hacer un gran trabajo es amar lo que haces" — Steve Jobs </>
               )}
             </p>
           </div>
