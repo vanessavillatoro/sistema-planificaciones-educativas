@@ -33,6 +33,7 @@ const Gestion = mongoose.models.Gestion || mongoose.model('Gestion', GestionSche
 const app = express();
 
 // --- BLOQUE DE CORS Y OPTIONS (CORREGIDO PARA VERCEL) ---
+// --- BLOQUE DE CORS (LIMPIO PARA VERCEL) ---
 app.use(cors({
   origin: true, 
   methods: ["GET", "POST", "PATCH", "DELETE", "PUT", "OPTIONS"],
@@ -40,11 +41,9 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
-// Middleware para manejar Preflight Requests (OPTIONS) de forma global y segura para evitar errores de path-to-regexp
+// Middleware simplificado: NO uses rutas como '/api/:path*' aquí
 app.use((req, res, next) => {
   if (req.method === 'OPTIONS') {
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, PUT');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     return res.sendStatus(200);
   }
   next();
