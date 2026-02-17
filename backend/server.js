@@ -41,7 +41,7 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
-app.options('/api/(.*)', cors());
+app.options('/api/:path*', cors());
 // --- FIN DEL CAMBIO ---
 
 app.use(express.json());
