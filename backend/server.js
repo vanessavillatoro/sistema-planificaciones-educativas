@@ -33,7 +33,7 @@ const Gestion = mongoose.models.Gestion || mongoose.model('Gestion', GestionSche
 
 const app = express();
 
-// --- CONFIGURACIÓN DE CORS (AJUSTADA PARA CELULAR Y VERCEL) ---
+// --- CONFIGURACIÓN DE CORS CORREGIDA ---
 const allowedOrigins = [
   "http://localhost:3000",
   "https://sistema-planificaciones-educativas-ten.vercel.app"
@@ -41,28 +41,35 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: function (origin, callback) {
+    // Permitir peticiones sin origen (como las de aplicaciones móviles o curls)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) === -1) {
-      return callback(new Error('CORS no permitido'), false);
+    
+    // Verificar si el origen está en la lista o es un subdominio de vercel
+    const isAllowed = allowedOrigins.indexOf(origin) !== -1 || origin.includes("vercel.app");
+    
+    if (isAllowed) {
+      return callback(null, true);
+    } else {
+      return callback(new Error('CORS no permitido por seguridad'), false);
     }
-    return callback(null, true);
   },
   methods: ["GET", "POST", "PATCH", "DELETE", "PUT", "OPTIONS"],
   credentials: true,
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
-// ESTA LÍNEA ES VITAL PARA EL CELULAR
+// VITAL PARA SOLUCIONAR EL ERROR DE "CONECTAR CON GOOGLE"
 app.options('*', cors()); 
 
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// ... (TODO EL RESTO DE TU CÓDIGO SE MANTIENE EXACTAMENTE IGUAL)
+
 app.get('/api/test', (req, res) => {
     res.json({ message: "API funcionando perfectamente" });
 });
 
-// Ruta para la raíz
 app.get('/', (req, res) => {
     res.send('🚀 Servidor del Sistema de Planificaciones funcionando.');
 });
@@ -107,7 +114,7 @@ const procesarRespuestaIA = (text) => {
     }
 };
 
-// --- RUTA: GENERACIÓN ESTRUCTURADA (PLANIFICACIONES - MÓDULO 1) ---
+// --- RUTA: GENERACIÓN ESTRUCTURADA ---
 app.post('/api/generar-plan-completa', async (req, res) => {
   const { planActual, ...data } = req.body;
   const camposRequeridos = ['materia', 'tema', 'grado', 'dificultad', 'nombreUnidad'];
@@ -186,7 +193,7 @@ app.post('/api/generar-plan-modulo3', async (req, res) => {
   }
 });
 
-// --- RUTA: GENERACIÓN DE RECURSOS (MÓDULO 2) ---
+// --- RUTA: GENERACIÓN DE RECURSOS ---
 app.post('/api/generar-recurso-ia', async (req, res) => {
   const { materia, tema, tipoRecurso } = req.body;
   try {
@@ -232,7 +239,7 @@ app.delete('/api/planificaciones-por-tema/:tema', async (req, res) => {
     } catch (error) {
       res.status(500).json({ error: "Error" });
     }
-  });
+});
 
 app.post('/api/exportar-gestion', async (req, res) => {
   try {
@@ -266,7 +273,7 @@ app.get('/api/gestion/:id', async (req, res) => {
     } catch (error) {
       res.status(500).json({ error: "Error" });
     }
-  });
+});
 
 app.delete('/api/gestion/:id', async (req, res) => {
   try {
@@ -288,7 +295,7 @@ app.put('/api/gestion/:id', async (req, res) => {
     } catch (error) {
       res.status(500).json({ error: "Error" });
     }
-  });
+});
 
 app.get('/api/papelera', async (req, res) => {
     try {
@@ -368,7 +375,7 @@ app.post('/api/usuario/foto', upload.single('foto'), async (req, res) => {
     }
 });
 
-// --- AUTENTICACIÓN: GOOGLE (BLOQUE ORIGINAL RESTAURADO) ---
+// --- AUTENTICACIÓN: GOOGLE ---
 app.post('/api/auth/google', async (req, res) => {
     try {
         const { token } = req.body;
