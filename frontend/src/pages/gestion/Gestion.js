@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Gestion.css'; 
 
+const API_BASE_URL = window.location.hostname === "localhost" 
+  ? "http://localhost:5000" 
+  : "https://sistema-planificaciones-educativas-ten.vercel.app";
 const Gestion = ({ darkMode }) => {
   const navigate = useNavigate();
   const [activeMenu, setActiveMenu] = useState(null);
@@ -681,8 +684,7 @@ const exportarPDF = (item) => {
   setLoading(true); // <--- Úsalo al empezar
   try {
     const userId = localStorage.getItem('userId');
-    const response = await fetch(`http://localhost:5000/api/gestion?userId=${userId}&t=${new Date().getTime()}`);
-    const data = await response.json();
+const response = await fetch(`${API_BASE_URL}/api/gestion?userId=${userId}`);    const data = await response.json();
     setItems(data);
   } catch (error) {
     console.error("Error al cargar datos:", error);
