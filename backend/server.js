@@ -33,15 +33,13 @@ const Gestion = mongoose.models.Gestion || mongoose.model('Gestion', GestionSche
 
 const app = express();
 app.use(cors({
-  origin: ["http://localhost:3000", "https://sistema-planificaciones-educativas-ten.vercel.app"],
-  methods: ["GET", "POST", "PATCH", "DELETE", "PUT"],
-  credentials: true
-}));
-// --- CONFIGURACIÓN DE MIDDLEWARE (EDITADO SOLO ORIGIN) ---
-app.use(cors({
-  origin: ["http://localhost:3000", "https://sistema-planificaciones-educativas-ten.vercel.app"],
-  methods: ["GET", "POST", "PATCH", "DELETE"],
-  credentials: true
+  origin: [
+    "http://localhost:3000", 
+    "https://sistema-planificaciones-educativas-ten.vercel.app"
+  ],
+  methods: ["GET", "POST", "PATCH", "DELETE", "PUT"], // 'PATCH' y 'PUT' son para EDITAR
+  credentials: true,
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
