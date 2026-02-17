@@ -35,9 +35,9 @@ const app = express();
 
 // --- CONFIGURACIÓN DE MIDDLEWARE (EDITADO SOLO ORIGIN) ---
 app.use(cors({
-    origin: true, // CAMBIO: Para que el celular pueda conectar
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+  origin: ["http://localhost:3000", "https://sistema-planificaciones-educativas-ten.vercel.app"],
+  methods: ["GET", "POST", "PATCH", "DELETE"],
+  credentials: true
 }));
 app.use(express.json());
 app.get('/api/test', (req, res) => {
