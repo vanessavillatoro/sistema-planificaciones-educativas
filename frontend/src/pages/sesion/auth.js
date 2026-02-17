@@ -4,11 +4,11 @@ import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 
 const imagenAuth = "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070";
 
-// URL base del servidor en la nube para que funcione en móviles y cualquier dispositivo
-// Detecta automáticamente si estás en tu PC (localhost) o en internet (Vercel)
+// URL base con detección automática de entorno
 const API_BASE_URL = window.location.hostname === "localhost" 
   ? "http://localhost:5000" 
   : "https://sistema-planificaciones-educativas-ten.vercel.app";
+
 const AuthContent = () => {
   const [esLogin, setEsLogin] = useState(true);
   const [formData, setFormData] = useState({
@@ -29,6 +29,7 @@ const AuthContent = () => {
     });
   };
 
+  // MANEJO DE LOGIN CON GOOGLE
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/auth/google`, {
@@ -36,18 +37,25 @@ const AuthContent = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token: credentialResponse.credential })
       });
+      
       const data = await response.json();
+      
       if (response.ok) {
-        localStorage.setItem('userId', data.userId);
-        localStorage.setItem('userName', data.userName);
-        if (data.fotoUrl) localStorage.setItem('userFoto', data.fotoUrl);
+        // --- GUARDADO DE SESIÓN ---
+        localStorage.setItem('userId', data.userId || data.user?._id);
+        localStorage.setItem('userName', data.userName || data.user?.name);
+        if (data.fotoUrl || data.user?.fotoUrl) {
+          localStorage.setItem('userFoto', data.fotoUrl || data.user?.fotoUrl);
+        }
         
+        // Redirección forzada para limpiar estados previos
         window.location.href = '/';
       } else {
-        alert(data.error);
+        alert(data.error || "Error al validar con el servidor");
       }
     } catch (error) {
-      alert("Error al conectar con Google");
+      console.error("Error Auth:", error);
+      alert("Error de conexión con el servidor");
     }
   };
 
@@ -67,6 +75,7 @@ const AuthContent = () => {
     setFormData({ ...formData, [name]: value });
   };
 
+  // MANEJO DE LOGIN/REGISTRO MANUAL
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!esLogin) {

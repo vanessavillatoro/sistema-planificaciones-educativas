@@ -20,30 +20,22 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
     fotoUrl: ''
   });
 
-  // --- LÍNEA AGREGADA: Para que el Navbar reaccione al usuario actual ---
   const userId = localStorage.getItem('userId');
 
-  const API_BASE_URL = "https://sistema-planificaciones-educativas.vercel.app";
+  // SOLUCIÓN CORRECTA: Detección automática de URL para evitar errores en celular
+  const API_BASE_URL = window.location.hostname === "localhost" 
+    ? "http://localhost:5000" 
+    : "https://sistema-planificaciones-educativas-ten.vercel.app";
 
+  // FUNCIÓN PARA IMÁGENES: Fuerza la actualización en celular con el timestamp (?t=)
   const obtenerUrlImagen = (url) => {
+    if (!url) return fotoPerfil;
+    const base = url.startsWith('http') 
+      ? url 
+      : `${API_BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
 
-  if (!url) return fotoPerfil;
-
-  const base = url.startsWith('http') 
-
-    ? url 
-
-    : `https://sistema-planificaciones-educativas-ten.vercel.app${url.startsWith('/') ? '' : '/'}${url}`;
-
-  
-
-  // El "t=" al final genera un código único basado en la hora para que el celular
-
-  // se de cuenta de que la foto cambió y no use la vieja.
-
-  return `${base}${base.includes('?') ? '&' : '?'}t=${new Date().getTime()}`;
-
-};
+    return `${base}${base.includes('?') ? '&' : '?'}t=${new Date().getTime()}`;
+  };
 
   const toggleMenu = () => {
     setMenuAbierto(!menuAbierto);
@@ -51,12 +43,12 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
 
   const cargarDatos = useCallback(async () => {
     try {
-      // Usamos el userId que detectamos arriba
       if (!userId) {
         setUsuario({ nombre: 'Invitado', correo: '', fotoUrl: '' });
         return;
       }
 
+      // Agregamos timestamp también a la petición de datos para evitar caché vieja
       const response = await fetch(`${API_BASE_URL}/api/usuario/perfil?userId=${userId}&t=${new Date().getTime()}`);
       if (response.ok) {
         const data = await response.json();
@@ -75,7 +67,7 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
     } catch (error) {
       console.log("Error de conexión perfil.");
     }
-  }, [setNombreApp, API_BASE_URL, userId]); // Agregamos userId a las dependencias
+  }, [setNombreApp, API_BASE_URL, userId]);
 
   useEffect(() => {
     cargarDatos();
@@ -129,7 +121,7 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
   const handleLogout = () => {
     localStorage.clear();
     setUsuario({ nombre: 'Invitado', correo: '', fotoUrl: '' });
-    window.location.href = '/login';
+    window.location.href = '/auth'; // Ajustado a tu ruta de App.js
   };
 
   return (
@@ -190,7 +182,7 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
                     </li>
                   </>
                 ) : (
-                  <li onClick={() => window.location.href = '/login'}>
+                  <li onClick={() => window.location.href = '/auth'}>
                     <i className="icon-login"></i> Iniciar Sesión
                   </li>
                 )}
