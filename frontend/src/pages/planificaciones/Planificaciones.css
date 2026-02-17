@@ -289,7 +289,7 @@ button.theme-toggle, .theme-toggle-btn, [role="button"] {
     }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1000px) {
     .form-container {
         padding: 20px;
     }
