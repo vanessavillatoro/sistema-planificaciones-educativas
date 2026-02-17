@@ -13,6 +13,7 @@ const Gestion = ({ darkMode }) => {
   const [materiaSeleccionada, setMateriaSeleccionada] = useState("");
   const [gradoSeleccionado, setGradoSeleccionado] = useState(""); 
   const [previewItem, setPreviewItem] = useState(null); 
+  
   // Busca donde terminan tus useState y pega esto:
 const userId = localStorage.getItem('userId');
 
@@ -690,8 +691,11 @@ const exportarPDF = (item) => {
   }
 };
 
-  useEffect(() => { cargarDatosGestion(); }, [userId]);
-
+useEffect(() => {
+    if (userId) {
+      cargarDatosGestion();
+    }
+  }, [userId]);
   const enviarAPapelera = (id) => {
     if (!window.confirm("¿Mover a la papelera?")) return;
     fetch(`http://localhost:5000/api/gestion/${id}`, { method: 'DELETE' })

@@ -20,7 +20,9 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
     fotoUrl: ''
   });
 
-  // URL de Vercel centralizada
+  // --- LÍNEA AGREGADA: Para que el Navbar reaccione al usuario actual ---
+  const userId = localStorage.getItem('userId');
+
   const API_BASE_URL = "https://sistema-planificaciones-educativas.vercel.app";
 
   const obtenerUrlImagen = (url) => {
@@ -37,7 +39,7 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
 
   const cargarDatos = useCallback(async () => {
     try {
-      const userId = localStorage.getItem('userId');
+      // Usamos el userId que detectamos arriba
       if (!userId) {
         setUsuario({ nombre: 'Invitado', correo: '', fotoUrl: '' });
         return;
@@ -61,7 +63,7 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
     } catch (error) {
       console.log("Error de conexión perfil.");
     }
-  }, [setNombreApp, API_BASE_URL]);
+  }, [setNombreApp, API_BASE_URL, userId]); // Agregamos userId a las dependencias
 
   useEffect(() => {
     cargarDatos();
@@ -69,7 +71,6 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
 
   const handleSave = async (datosNuevos) => {
     try {
-      const userId = localStorage.getItem('userId');
       if (!userId) {
         alert("Sesión expirada. Por favor, inicia sesión de nuevo.");
         return;
@@ -80,12 +81,11 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
 
       if (datosNuevos instanceof FormData) {
         cuerpoPeticion = datosNuevos;
-        // Nos aseguramos de que el FormData lleve el userId actual
         cuerpoPeticion.set('userId', userId);
       } else {
         cuerpoPeticion = JSON.stringify({ 
           ...datosNuevos,
-          userId: userId, // Forzamos el ID desde localStorage para evitar errores de sincronización
+          userId: userId, 
           name: datosNuevos.nombre, 
           email: datosNuevos.correo,
           celular: datosNuevos.celular,
@@ -165,7 +165,7 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
               <hr />
 
               <ul className="perfil-menu-list">
-                {localStorage.getItem('userId') ? (
+                {userId ? (
                   <>
                     <li onClick={() => { setModalAbierta(true); setMenuAbierto(false); }}>
                       <i className="icon-user"></i> Mi perfil

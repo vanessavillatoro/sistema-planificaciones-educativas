@@ -4,6 +4,9 @@ import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 
 const imagenAuth = "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070";
 
+// URL base del servidor en la nube para que funcione en móviles y cualquier dispositivo
+const API_BASE_URL = "https://sistema-planificaciones-educativas-ten.vercel.app";
+
 const AuthContent = () => {
   const [esLogin, setEsLogin] = useState(true);
   const [formData, setFormData] = useState({
@@ -26,19 +29,18 @@ const AuthContent = () => {
 
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
-      const response = await fetch('https://sistema-planificaciones-educativas.vercel.app/api/auth/google', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/google`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token: credentialResponse.credential })
       });
       const data = await response.json();
       if (response.ok) {
-        // Guardamos userId, nombre y la URL de la foto para sincronización total
         localStorage.setItem('userId', data.userId);
         localStorage.setItem('userName', data.userName);
         if (data.fotoUrl) localStorage.setItem('userFoto', data.fotoUrl);
         
-        window.location.href = '/dashboard';
+        window.location.href = '/';
       } else {
         alert(data.error);
       }
@@ -63,7 +65,7 @@ const AuthContent = () => {
     setFormData({ ...formData, [name]: value });
   };
 
-const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!esLogin) {
       const allValid = Object.values(passwordValidations).every(val => val);
@@ -72,8 +74,7 @@ const handleSubmit = async (e) => {
 
     const ruta = esLogin ? '/api/auth/login' : '/api/auth/register';
     try {
-      // CORRECCIÓN: Agregado ".vercel" a la URL para que coincida con tu backend real
-      const response = await fetch(`https://sistema-planificaciones-educativas.vercel.app${ruta}`, {
+      const response = await fetch(`${API_BASE_URL}${ruta}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -85,7 +86,7 @@ const handleSubmit = async (e) => {
         localStorage.setItem('userName', data.userName);
         if (data.fotoUrl) localStorage.setItem('userFoto', data.fotoUrl);
 
-        window.location.href = '/dashboard'; 
+        window.location.href = '/'; 
       } else {
         alert(data.error);
       }
@@ -103,7 +104,6 @@ const handleSubmit = async (e) => {
           <div className="google-btn-container">
             <GoogleLogin
               onSuccess={handleGoogleSuccess}
-              onError={() => alert('Error en el login con Google')}
               theme="filled_black"
               text={esLogin ? "signin_with" : "signup_with"}
               shape="pill"

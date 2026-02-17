@@ -13,22 +13,26 @@ import PapeleraFlotante from './components/PapeleraFlotante';
 
 import Auth from './pages/sesion/auth'; 
 
+// URL de producción para que el celular conecte con el servidor real
+const API_BASE_URL = "https://sistema-planificaciones-educativas-ten.vercel.app";
+
 function App() {
   const [darkMode, setDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem('theme');
     return savedTheme === 'dark';
   });
 
-  const [nombreUsuario, setNombreUsuario] = useState(localStorage.getItem('userName') || 'Jorge');
+  const [nombreUsuario, setNombreUsuario] = useState(localStorage.getItem('userName') || 'Docente');
 
   useEffect(() => {
+    // Configuración de colores de fondo según tus instrucciones guardadas
     const lightBg = "#f1efef";
-    const darkBg = "#2d3748";
+    const darkBg = "#2d3748"; 
     document.body.style.backgroundColor = darkMode ? darkBg : lightBg;
     localStorage.setItem('theme', darkMode ? 'dark' : 'light');
   }, [darkMode]);
 
-  // Función auxiliar para verificar si hay sesión (Opcional, para limpiar el código)
+  // Verificación de sesión: si existe el ID, el usuario está logueado
   const isAuth = !!localStorage.getItem('userId');
 
   return (
@@ -40,36 +44,42 @@ function App() {
       />
       
       <Routes>
-        <Route path="/auth" element={<Auth />} />
+        {/* Si ya está logueado y trata de ir a auth, lo mandamos al inicio */}
+        <Route 
+          path="/auth" 
+          element={isAuth ? <Navigate to="/" /> : <Auth API_BASE_URL={API_BASE_URL} />} 
+        />
 
+        {/* Ruta principal: Inicio si hay sesión, sino a Auth */}
         <Route 
           path="/" 
           element={isAuth ? <Inicio darkMode={darkMode} nombre={nombreUsuario} /> : <Navigate to="/auth" />} 
         />
 
-        {/* --- RUTAS PROTEGIDAS: Ahora verifican el userId antes de cargar --- */}
+        {/* --- RUTAS PROTEGIDAS --- */}
         <Route 
           path="/planificaciones" 
-          element={isAuth ? <Planificaciones darkMode={darkMode} /> : <Navigate to="/auth" />} 
+          element={isAuth ? <Planificaciones darkMode={darkMode} API_BASE_URL={API_BASE_URL} /> : <Navigate to="/auth" />} 
         />
         <Route 
           path="/recursos" 
-          element={isAuth ? <Recursos darkMode={darkMode} /> : <Navigate to="/auth" />} 
+          element={isAuth ? <Recursos darkMode={darkMode} API_BASE_URL={API_BASE_URL} /> : <Navigate to="/auth" />} 
         />
         <Route 
           path="/gestion" 
-          element={isAuth ? <Gestion darkMode={darkMode} /> : <Navigate to="/auth" />} 
+          element={isAuth ? <Gestion darkMode={darkMode} API_BASE_URL={API_BASE_URL} /> : <Navigate to="/auth" />} 
         />
 
-        {/* --- RUTAS PÚBLICAS: Siempre visibles --- */}
+        {/* --- RUTAS PÚBLICAS --- */}
         <Route path="/acerca-de-nosotros" element={<AcercaDeNosotros darkMode={darkMode} />} />
         <Route path="/blog" element={<Blog darkMode={darkMode} />} />
         <Route path="/funciona" element={<Funciona darkMode={darkMode} />} />
         
-        <Route path="*" element={<Navigate to="/" />} />
+        {/* Redirección por defecto */}
+        <Route path="*" element={<Navigate to={isAuth ? "/" : "/auth"} />} />
       </Routes>
 
-      <PapeleraFlotante />
+      <PapeleraFlotante API_BASE_URL={API_BASE_URL} />
     </div>
   );
 }

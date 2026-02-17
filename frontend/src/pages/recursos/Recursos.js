@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown'; 
 import remarkMath from 'remark-math';
-import remarkGfm from 'remark-gfm'; // <-- NUEVO: Importación del plugin de tablas
+import remarkGfm from 'remark-gfm'; 
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 import './Recursos.css';
@@ -22,7 +22,9 @@ const Recursos = ({ darkMode }) => {
   const [openDropdown, setOpenDropdown] = useState(null);
   const dropdownRef = useRef(null);
 
-  // --- FUNCIÓN PARA AJUSTAR ALTURA DE TEXTAREAS AUTOMÁTICAMENTE ---
+  // --- URL FIJA PARA EVITAR ERRORES DE ENTORNO ---
+  const API_BASE_URL = 'https://sistema-planificaciones-back.vercel.app';
+
   const ajustarAlturaTextareas = () => {
     setTimeout(() => {
       const textareas = document.querySelectorAll('.dropdown-textarea-header');
@@ -39,7 +41,7 @@ const Recursos = ({ darkMode }) => {
     
     if (confirmar) {
       try {
-        const response = await fetch(`http://localhost:5000/api/planificaciones-por-tema/${encodeURIComponent(tema)}`, {
+        const response = await fetch(`${API_BASE_URL}/api/planificaciones-por-tema/${encodeURIComponent(tema)}`, {
           method: 'DELETE',
         });
 
@@ -64,7 +66,7 @@ const Recursos = ({ darkMode }) => {
     const editId = queryParams.get('edit');
 
     if (editId) {
-      fetch(`http://localhost:5000/api/gestion/${editId}`)
+      fetch(`${API_BASE_URL}/api/gestion/${editId}`)
         .then(res => res.json())
         .then(data => {
           if (data) {
@@ -91,7 +93,6 @@ const Recursos = ({ darkMode }) => {
 const cargarDatos = async () => {
     try {
       setLoading(true);
-      const baseUrl = 'http://localhost:5000'; 
       const userId = localStorage.getItem('userId'); 
 
       if (!userId) {
@@ -99,16 +100,13 @@ const cargarDatos = async () => {
         return;
       }
 
-      // CAMBIO AQUÍ: Usamos /api/gestion en lugar de /api/planificaciones
-      // ya que 'El ciclo del agua' vive en tu tabla de Gestión.
-      const response = await fetch(`${baseUrl}/api/gestion?userId=${userId}&t=${new Date().getTime()}`);
+      const response = await fetch(`${API_BASE_URL}/api/gestion?userId=${userId}&t=${new Date().getTime()}`);
       
       if (!response.ok) throw new Error("Error en la respuesta del servidor");
       
       const data = await response.json();
       
       if (Array.isArray(data)) {
-        // Filtramos para que solo aparezcan planificaciones (por si tienes otros tipos de archivos)
         const soloPlanes = data.filter(item => item.tipo !== 'recurso');
         setPlanificaciones(soloPlanes);
         console.log("✅ Datos de gestión cargados:", soloPlanes.length);
@@ -123,9 +121,7 @@ const cargarDatos = async () => {
     }
   };
 
-  // Reemplaza el useEffect de una sola línea por este más robusto
   useEffect(() => {
-    // Pequeño retraso para asegurar que el localStorage esté disponible
     const timer = setTimeout(() => {
       cargarDatos();
     }, 100);
@@ -149,7 +145,7 @@ const cargarDatos = async () => {
     setLoading(true);
     setResultado(''); 
     try {
-      const response = await fetch('http://localhost:5000/api/generar-recurso-ia', {
+      const response = await fetch(`${API_BASE_URL}/api/generar-recurso-ia`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -186,11 +182,8 @@ const cargarDatos = async () => {
     }
     setSaving(true);
     try {
-      const baseUrl = 'http://localhost:5000';
       const queryParams = new URLSearchParams(location.search);
       const editId = queryParams.get('edit');
-      
-      // AGREGAMOS ESTA LÍNEA PARA OBTENER TU ID
       const userId = localStorage.getItem('userId');
 
       const datosGestion = {
@@ -203,7 +196,7 @@ const cargarDatos = async () => {
         fechaExportacion: new Date()
       };
 
-      const url = editId ? `${baseUrl}/api/gestion/${editId}` : `${baseUrl}/api/exportar-gestion`;
+      const url = editId ? `${API_BASE_URL}/api/gestion/${editId}` : `${API_BASE_URL}/api/exportar-gestion`;
       const metodo = editId ? 'PUT' : 'POST';
 
       const response = await fetch(url, {
@@ -225,6 +218,7 @@ const cargarDatos = async () => {
       setSaving(false);
     }
   };
+
   const copiarConFormato = async () => {
     const elemento = document.querySelector('.markdown-body');
     if (!elemento) return;
@@ -291,8 +285,6 @@ const cargarDatos = async () => {
       alert("Error al copiar formato.");
     }
   };
-
-  useEffect(() => { cargarDatos(); }, []);
 
   const limpiarTodo = () => {
     setFormData({ nombreUnidad: '', numUnidad: '', materia: '', dificultad: '', tipoRecurso: '', objetivos: '', indicadores: '' });
@@ -454,7 +446,7 @@ const cargarDatos = async () => {
             <h3 className="resultado-titulo">Contenido del Recurso:</h3>
             <div className="resultado-texto markdown-body styled-math">
               <ReactMarkdown 
-                remarkPlugins={[remarkMath, remarkGfm]} // <-- NUEVO: Plugin de tablas agregado aquí
+                remarkPlugins={[remarkMath, remarkGfm]} 
                 rehypePlugins={[rehypeKatex]}
               >
                 {resultado}

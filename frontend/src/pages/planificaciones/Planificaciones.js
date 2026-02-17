@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './Planificaciones.css';
 
-const Planificaciones = ({ darkMode }) => {
+// Agregamos API_BASE_URL a las props para que el celular sepa dónde está el servidor
+const Planificaciones = ({ darkMode, API_BASE_URL }) => {
   const estadoInicial = {
     nombre: '', apellido: '', edad: '', seccion: '', municipio: '', departamento: '',
     celular: '', duracion: '', nivel: '', materia: '', nombreUnidad: '',
@@ -19,7 +20,6 @@ const Planificaciones = ({ darkMode }) => {
   const dropdownRef = useRef(null);
   const [planId, setPlanId] = useState(null); 
 
-  // --- OBTENER EL ID DEL USUARIO ---
   const userId = localStorage.getItem('userId');
 
   useEffect(() => {
@@ -27,12 +27,7 @@ const Planificaciones = ({ darkMode }) => {
     if (datosParaEditar) {
       try {
         const item = JSON.parse(datosParaEditar);
-        console.log("Datos recuperados con éxito:", item);
-        
-        // Guardamos el ID del plan que se está editando
-        if (item._id) {
-          setPlanId(item._id);
-        }
+        if (item._id) setPlanId(item._id);
 
         setFormData(prev => ({
           ...prev,
@@ -83,10 +78,8 @@ const Planificaciones = ({ darkMode }) => {
       return;
     }
     try {
-      const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
       const identificador = formData.tema || formData.nombreUnidad;
-      
-      const response = await fetch(`${baseUrl}/api/planificaciones-por-tema/${encodeURIComponent(identificador)}?userId=${userId}`, {
+      const response = await fetch(`${API_BASE_URL}/api/planificaciones-por-tema/${encodeURIComponent(identificador)}?userId=${userId}`, {
         method: 'DELETE',
       });
 
@@ -105,9 +98,7 @@ const Planificaciones = ({ darkMode }) => {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const editId = params.get('edit');
-    if (editId) {
-      console.log("Modo edición activado para ID:", editId);
-    }
+    if (editId) console.log("Modo edición activado para ID:", editId);
   }, []);
 
   const listaEdades = ['Edad', ...Array.from({ length: 51 }, (_, i) => `${i + 20} años`)];
@@ -183,9 +174,7 @@ const Planificaciones = ({ darkMode }) => {
             tr { mso-shading: windowtext; } 
           </style>
         </head>
-        <body>
-          ${clon.outerHTML}
-        </body>
+        <body>${clon.outerHTML}</body>
         </html>
       `;
 
@@ -200,12 +189,7 @@ const Planificaciones = ({ darkMode }) => {
   };
 
   const generarConAPI = async () => {
-    const camposObligatorios = [
-      'nombre', 'apellido', 'edad', 'seccion', 'municipio', 'departamento',
-      'duracion', 'nivel', 'materia', 'nombreUnidad', 'numUnidad', 'tema', 'grado', 
-      'dificultad', 'centroEscolar', 'fecha'
-    ];
-
+    const camposObligatorios = ['nombre', 'apellido', 'edad', 'seccion', 'municipio', 'departamento', 'duracion', 'nivel', 'materia', 'nombreUnidad', 'numUnidad', 'tema', 'grado', 'dificultad', 'centroEscolar', 'fecha'];
     const vacios = camposObligatorios.filter(campo => !formData[campo] || formData[campo].trim() === '');
     if (vacios.length > 0) {
       alert(`Por favor, completa todos los campos`);
@@ -214,13 +198,11 @@ const Planificaciones = ({ darkMode }) => {
 
     setLoading(true);
     try {
-      const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-      const response = await fetch(`${baseUrl}/api/generar-plan-completa`, {
+      const response = await fetch(`${API_BASE_URL}/api/generar-plan-completa`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...formData, userId, planActual: resultado }),
       });
-
       if (!response.ok) throw new Error('Error en la respuesta del servidor');
       const data = await response.json();
       setResultado(data);
@@ -233,13 +215,9 @@ const Planificaciones = ({ darkMode }) => {
   };
 
   const guardarPlanificacion = async () => {
-    if (!resultado) {
-      alert("Primero debes generar una planificación.");
-      return;
-    }
+    if (!resultado) { alert("Primero debes generar una planificación."); return; }
     setSaving(true);
     try {
-      const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
       const datosParaGuardar = {
         ...formData,
         userId, 
@@ -254,7 +232,7 @@ const Planificaciones = ({ darkMode }) => {
         actividadesComplementarias: resultado.actividadesComplementarias
       };
 
-      const response = await fetch(`${baseUrl}/api/save-plan`, {
+      const response = await fetch(`${API_BASE_URL}/api/save-plan`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(datosParaGuardar),
@@ -273,60 +251,54 @@ const Planificaciones = ({ darkMode }) => {
     }
   };
 
-const exportarAGestion = async () => {
-  if (!resultado) {
-    alert("Primero debes generar una planificación.");
-    return;
-  }
-  setSaving(true);
+  const exportarAGestion = async () => {
+    if (!resultado) { alert("Primero debes generar una planificación."); return; }
+    setSaving(true);
+    try {
+      const actividadesEstructuradas = (resultado.tiempos || []).slice(0, 8).map(t => ({
+        inicio: t.inicio || '',
+        desarrollo: t.desarrollo || '',
+        cierre: t.cierre || ''
+      }));
 
-  try {
-    const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-    
-    const actividadesEstructuradas = (resultado.tiempos || []).slice(0, 8).map(t => ({
-      inicio: t.inicio || '',
-      desarrollo: t.desarrollo || '',
-      cierre: t.cierre || ''
-    }));
+      const datosGestion = {
+        ...formData,
+        userId, 
+        idActualizar: planId || null, 
+        tipo: 'Planificación',
+        objetivos: resultado.objetivos,
+        indicadoresLogro: resultado.indicadoresLogro,
+        indicadoresEvaluacion: resultado.indicadoresEvaluacion,
+        actividadesComplementarias: resultado.actividadesComplementarias,
+        tiempos: actividadesEstructuradas, 
+        actividades: actividadesEstructuradas, 
+        materiales: (resultado.materiales || []).slice(0, 8),
+        listaMateriales: (resultado.materiales || []).slice(0, 8),
+        inicios: actividadesEstructuradas.map(a => a.inicio),
+        desarrollos: actividadesEstructuradas.map(a => a.desarrollo),
+        cierres: actividadesEstructuradas.map(a => a.cierre),
+        fechaExportacion: new Date()
+      };
 
-    const datosGestion = {
-      ...formData,
-      userId, 
-      idActualizar: planId || null, 
-      tipo: 'Planificación',
-      objetivos: resultado.objetivos,
-      indicadoresLogro: resultado.indicadoresLogro,
-      indicadoresEvaluacion: resultado.indicadoresEvaluacion,
-      actividadesComplementarias: resultado.actividadesComplementarias,
-      tiempos: actividadesEstructuradas, 
-      actividades: actividadesEstructuradas, 
-      materiales: (resultado.materiales || []).slice(0, 8),
-      listaMateriales: (resultado.materiales || []).slice(0, 8),
-      inicios: actividadesEstructuradas.map(a => a.inicio),
-      desarrollos: actividadesEstructuradas.map(a => a.desarrollo),
-      cierres: actividadesEstructuradas.map(a => a.cierre),
-      fechaExportacion: new Date()
-    };
+      const response = await fetch(`${API_BASE_URL}/api/exportar-gestion`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(datosGestion),
+      });
 
-    const response = await fetch(`${baseUrl}/api/exportar-gestion`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(datosGestion),
-    });
-
-    if (response.ok) {
-      alert("✅ ¡Guardado con éxito! Los cambios ya están en Gestión.");
-      setPlanId(null);
-    } else {
-      throw new Error("Respuesta no exitosa");
+      if (response.ok) {
+        alert("✅ ¡Guardado con éxito! Los cambios ya están en Gestión.");
+        setPlanId(null);
+      } else {
+        throw new Error("Respuesta no exitosa");
+      }
+    } catch (error) {
+      console.error("Error detallado:", error);
+      alert("❌ No se pudo guardar. Revisa la conexión.");
+    } finally {
+      setSaving(false);
     }
-  } catch (error) {
-    console.error("Error detallado:", error);
-    alert("❌ No se pudo guardar. Revisa que el servidor esté encendido.");
-  } finally {
-    setSaving(false);
-  }
-};
+  };
 
   const limpiarFormulario = () => {
     setFormData(estadoInicial);
@@ -347,17 +319,12 @@ const exportarAGestion = async () => {
     const valorLimpio = valor.includes('años') ? valor.replace(' años', '') : valor;
     const esPlaceholder = ['Edad', 'Seccion', 'Departamento', 'Nivel educativo', 'n° unidad', 'Grado', 'Nivel de dificultad', 'Duracion semanal', 'Municipio'].some(p => valor === p) || valor.includes('Municipio (Selecciona');
     const finalValue = esPlaceholder ? '' : valorLimpio;
-    
     setFormData(prev => {
       const nuevoEstado = { ...prev, [campo]: finalValue };
       if (campo === 'departamento') nuevoEstado.municipio = '';
       return nuevoEstado;
     });
-    
-    if (cerrar) {
-      setOpenDropdown(null);
-      setHighlightedIndex(-1);
-    }
+    if (cerrar) { setOpenDropdown(null); setHighlightedIndex(-1); }
   };
 
   const manejarTeclado = (e, campo, lista) => {
@@ -372,12 +339,10 @@ const exportarAGestion = async () => {
     if (openDropdown !== campo) {
       if (e.key === 'ArrowDown') {
         e.preventDefault();
-        const next = Math.min(currentIndex + 1, lista.length - 1);
-        seleccionarOpcion(campo, lista[next], false);
+        seleccionarOpcion(campo, lista[Math.min(currentIndex + 1, lista.length - 1)], false);
       } else if (e.key === 'ArrowUp') {
         e.preventDefault();
-        const prev = Math.max(currentIndex - 1, 0);
-        seleccionarOpcion(campo, lista[prev], false);
+        seleccionarOpcion(campo, lista[Math.max(currentIndex - 1, 0)], false);
       } else if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
         setOpenDropdown(campo);
@@ -385,7 +350,6 @@ const exportarAGestion = async () => {
       }
       return;
     }
-
     if (e.key === 'ArrowDown') {
       e.preventDefault();
       setHighlightedIndex(prev => Math.min(prev + 1, lista.length - 1));
@@ -474,7 +438,7 @@ const exportarAGestion = async () => {
 
         <textarea
           className="objetivos-area"
-          placeholder="Escriba los cambios que desea realizar a su planificacion, (por ejemplo, agregar 4 indicadores de logro en lugar de 3)"
+          placeholder="Escriba los cambios que desea realizar..."
           value={formData.sugerencias}
           onChange={(e) => setFormData({...formData, sugerencias: e.target.value})}
         ></textarea>
@@ -486,34 +450,17 @@ const exportarAGestion = async () => {
           
           {resultado && (
             <>
-              <button 
-                className="btn-primary" 
-                onClick={guardarPlanificacion} 
-                disabled={saving}
-                style={{ backgroundColor: ' #003366', marginLeft: '10px' }}
-              >
+              <button className="btn-primary" onClick={guardarPlanificacion} disabled={saving} style={{ backgroundColor: ' #003366', marginLeft: '10px' }}>
                 {saving ? "Guardando..." : "Exportar a recursos"}
               </button>
-
-              <button 
-                className="btn-primary" 
-                onClick={exportarAGestion} 
-                disabled={saving}
-                style={{ backgroundColor: ' #003366', marginLeft: '10px' }}
-              >
+              <button className="btn-primary" onClick={exportarAGestion} disabled={saving} style={{ backgroundColor: ' #003366', marginLeft: '10px' }}>
                 {saving ? "Exportando..." : "Exportar a gestión"}
               </button>
-
-              <button 
-                className="btn-primary" 
-                onClick={copiarPlanificacion}
-                style={{ backgroundColor: ' #003366', marginLeft: '10px' }}
-              >
+              <button className="btn-primary" onClick={copiarPlanificacion} style={{ backgroundColor: ' #003366', marginLeft: '10px' }}>
                 Copiar planificación
               </button>
             </>
           )}
-
           <button className="btn-secondary" onClick={moverAPapelera}>Limpiar campos</button>
         </div>
 
@@ -532,6 +479,7 @@ const exportarAGestion = async () => {
                    <td className="label-blue">Seccion:</td>
                   <td colSpan="1" className="white-cell">{formData.seccion}</td>
                 </tr>
+                {/* ... Resto de la tabla intacto ... */}
                 <tr>
                   <td colSpan="2" className="label-blue">municipio:</td>
                   <td colSpan="2" className="white-cell">{formData.municipio}</td>
