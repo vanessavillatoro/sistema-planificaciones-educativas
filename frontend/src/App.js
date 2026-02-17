@@ -66,8 +66,8 @@ function App() {
           element={isAuth ? <Recursos darkMode={darkMode} API_BASE_URL={API_BASE_URL} /> : <Navigate to="/auth" />} 
         />
         <Route 
-          path="/gestion" 
-          element={isAuth ? <Gestion darkMode={darkMode} API_BASE_URL={API_BASE_URL} /> : <Navigate to="/auth" />} 
+        path="/gestion" 
+        element={isAuth ? <Gestion darkMode={darkMode} API_BASE_URL={API_BASE_URL} /> : <Navigate to="/auth" />} 
         />
 
         {/* --- RUTAS PÚBLICAS --- */}

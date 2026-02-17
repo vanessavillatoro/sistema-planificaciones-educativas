@@ -32,7 +32,11 @@ const GestionSchema = new mongoose.Schema({
 const Gestion = mongoose.models.Gestion || mongoose.model('Gestion', GestionSchema);
 
 const app = express();
-
+app.use(cors({
+  origin: ["http://localhost:3000", "https://sistema-planificaciones-educativas-ten.vercel.app"],
+  methods: ["GET", "POST", "PATCH", "DELETE", "PUT"],
+  credentials: true
+}));
 // --- CONFIGURACIÓN DE MIDDLEWARE (EDITADO SOLO ORIGIN) ---
 app.use(cors({
   origin: ["http://localhost:3000", "https://sistema-planificaciones-educativas-ten.vercel.app"],

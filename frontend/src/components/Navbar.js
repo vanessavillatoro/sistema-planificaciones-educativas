@@ -26,12 +26,24 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
   const API_BASE_URL = "https://sistema-planificaciones-educativas.vercel.app";
 
   const obtenerUrlImagen = (url) => {
-    if (!url) return fotoPerfil;
-    const base = url.startsWith('http') 
-      ? url 
-      : `${API_BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
-    return `${base}${base.includes('?') ? '&' : '?'}t=${new Date().getTime()}`;
-  };
+
+  if (!url) return fotoPerfil;
+
+  const base = url.startsWith('http') 
+
+    ? url 
+
+    : `https://sistema-planificaciones-educativas-ten.vercel.app${url.startsWith('/') ? '' : '/'}${url}`;
+
+  
+
+  // El "t=" al final genera un código único basado en la hora para que el celular
+
+  // se de cuenta de que la foto cambió y no use la vieja.
+
+  return `${base}${base.includes('?') ? '&' : '?'}t=${new Date().getTime()}`;
+
+};
 
   const toggleMenu = () => {
     setMenuAbierto(!menuAbierto);
