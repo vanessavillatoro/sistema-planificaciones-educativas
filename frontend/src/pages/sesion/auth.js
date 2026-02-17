@@ -5,8 +5,10 @@ import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 const imagenAuth = "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070";
 
 // URL base del servidor en la nube para que funcione en móviles y cualquier dispositivo
-const API_BASE_URL = "https://sistema-planificaciones-educativas-ten.vercel.app";
-
+// Detecta automáticamente si estás en tu PC (localhost) o en internet (Vercel)
+const API_BASE_URL = window.location.hostname === "localhost" 
+  ? "http://localhost:5000" 
+  : "https://sistema-planificaciones-educativas-ten.vercel.app";
 const AuthContent = () => {
   const [esLogin, setEsLogin] = useState(true);
   const [formData, setFormData] = useState({
