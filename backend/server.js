@@ -32,17 +32,32 @@ const GestionSchema = new mongoose.Schema({
 const Gestion = mongoose.models.Gestion || mongoose.model('Gestion', GestionSchema);
 
 const app = express();
+
+// --- CONFIGURACIÓN DE CORS (CORREGIDA PARA CELULAR) ---
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://sistema-planificaciones-educativas-ten.vercel.app"
+];
+
 app.use(cors({
-  origin: [
-    "http://localhost:3000", 
-    "https://sistema-planificaciones-educativas-ten.vercel.app"
-  ],
-  methods: ["GET", "POST", "PATCH", "DELETE", "PUT"], // 'PATCH' y 'PUT' son para EDITAR
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      return callback(new Error('CORS no permitido'), false);
+    }
+    return callback(null, true);
+  },
+  methods: ["GET", "POST", "PATCH", "DELETE", "PUT", "OPTIONS"],
   credentials: true,
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
+
+// HABILITA PRE-FLIGHT (Para que el celular pueda guardar/editar)
+app.options('*', cors()); 
+
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 app.get('/api/test', (req, res) => {
     res.json({ message: "API funcionando perfectamente" });
 });
@@ -68,8 +83,6 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage: storage });
-
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // --- CONEXIÓN A MONGODB ---
 mongoose.connect(process.env.MONGO_URI)
@@ -107,7 +120,6 @@ app.post('/api/generar-plan-completa', async (req, res) => {
     return res.status(500).json({ error: "Falta la clave GEMINI_KEY en el servidor" });
   }
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
-  // CAMBIO: Usamos 1.5-flash por ser el más compatible
   const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
   const peticionDocente = data.sugerencias ? `PETICIÓN ESPECÍFICA DEL DOCENTE: "${data.sugerencias}".` : "";
   const contextoEdicion = planActual
@@ -123,9 +135,9 @@ app.post('/api/generar-plan-completa', async (req, res) => {
       3. INDICADORES DE LOGRO: Por defecto genera 3. Formato: "* Ind 1\\n* Ind 2".
       4. INDICADORES DE EVALUACIÓN: Por defecto genera 3. Formato: "* Eval 1\\n* Eval 2".
       5. ACTIVIDADES COMPLEMENTARIAS: Por defecto genera 3. Formato: "* Act 1\\n* Act 2".
-      6. MATERIALES: Array de EXACTAMENTE 8 elementos. Inicialmente, CADA uno de los 8 elementos del array DEBE contener EXACTAMENTE 3 materiales distintos (a menos que el docente pida más). Los materiales deben separarse por un salto de línea y un asterisco (*).
+      6. MATERIALES: Array de EXACTAMENTE 8 elementos. Inicialmente, CADA uno de los 8 elementos del array DEBE contener EXACTAMENTE 3 materiales distintos.
       8. No uses markdown ni texto fuera del JSON.
-    ESTRUCTURA REQUERIDA (Responde solo el JSON):
+    ESTRUCTURA REQUERIDA:
     {
       "objetivos": "...",
       "indicadoresLogro": "...",
@@ -149,20 +161,18 @@ app.post('/api/generar-plan-completa', async (req, res) => {
     const result = await model.generateContent(prompt);
     const jsonOutput = procesarRespuestaIA(result.response.text());
     if (jsonOutput.materiales && jsonOutput.materiales.length !== 8) {
-        while (jsonOutput.materiales.length < 8) jsonOutput.materiales.push("* Material 1\\n* Material 2\\n* Material 3");
+        while (jsonOutput.materiales.length < 8) jsonOutput.materiales.push("* Material 1\\n* Material 2");
         jsonOutput.materiales = jsonOutput.materiales.slice(0, 8);
     }
     res.json(jsonOutput);
   } catch (error) {
-    console.error("--- ERROR DETALLADO DE IA ---");
-    res.status(500).json({ error: "No se pudo conectar con el servicio de IA." });
-}
+    res.status(500).json({ error: "Error de IA." });
+  }
 });
 
 // --- RUTA: GENERACIÓN MÓDULO 3 ---
 app.post('/api/generar-plan-modulo3', async (req, res) => {
-  const { materia, tema, grado, dificultad, sugerencias, enfoque } = req.body;
-  if (!materia || !tema) return res.status(400).json({ error: "Faltan campos." });
+  const { materia, tema } = req.body;
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
   const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
   const prompt = `Estructura JSON pedagógica para: ${materia}, Tema: ${tema}...`;
@@ -177,7 +187,7 @@ app.post('/api/generar-plan-modulo3', async (req, res) => {
 
 // --- RUTA: GENERACIÓN DE RECURSOS (MÓDULO 2) ---
 app.post('/api/generar-recurso-ia', async (req, res) => {
-  const { materia, tema, tipoRecurso } = req.body;
+  const { tema, tipoRecurso } = req.body;
   try {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
@@ -221,14 +231,12 @@ app.delete('/api/planificaciones-por-tema/:tema', async (req, res) => {
     } catch (error) {
       res.status(500).json({ error: "Error" });
     }
-  });
+});
 
 app.post('/api/exportar-gestion', async (req, res) => {
   try {
     const datosAGuardar = { ...req.body };
-    if (datosAGuardar.userId) {
-        datosAGuardar.usuarioId = datosAGuardar.userId;
-    }
+    if (datosAGuardar.userId) { datosAGuardar.usuarioId = datosAGuardar.userId; }
     const nuevaGestion = new Gestion(datosAGuardar);
     await nuevaGestion.save();
     res.json({ success: true });
@@ -255,7 +263,7 @@ app.get('/api/gestion/:id', async (req, res) => {
     } catch (error) {
       res.status(500).json({ error: "Error" });
     }
-  });
+});
 
 app.delete('/api/gestion/:id', async (req, res) => {
   try {
@@ -277,7 +285,7 @@ app.put('/api/gestion/:id', async (req, res) => {
     } catch (error) {
       res.status(500).json({ error: "Error" });
     }
-  });
+});
 
 app.get('/api/papelera', async (req, res) => {
     try {
@@ -338,12 +346,10 @@ app.patch('/api/usuario/perfil', async (req, res) => {
     }
 });
 
-// --- SUBIR FOTO DE PERFIL ---
 app.post('/api/usuario/foto', upload.single('foto'), async (req, res) => {
     try {
         if (!req.file) return res.status(400).json({ error: "No hay imagen" });
         const userId = req.body.userId;
-        if (!userId) return res.status(400).json({ error: "Falta userId" });
         const urlFoto = `/uploads/${req.file.filename}`;
         const usuarioActualizado = await User.findByIdAndUpdate(
             userId,
@@ -352,49 +358,34 @@ app.post('/api/usuario/foto', upload.single('foto'), async (req, res) => {
         );
         res.status(200).json(usuarioActualizado);
     } catch (error) {
-        console.error("Error al subir foto:", error);
         res.status(500).json({ error: "Error interno" });
     }
 });
 
-// --- AUTENTICACIÓN: GOOGLE (ACTUALIZADO: ENVÍA FOTO) ---
+// --- AUTENTICACIÓN ---
 app.post('/api/auth/google', async (req, res) => {
     try {
         const { token } = req.body;
         const ticket = await client.verifyIdToken({
             idToken: token,
             audience: process.env.GOOGLE_CLIENT_ID,
-            clockSkewInSeconds: 600,
         });
         const { email, name, family_name, picture, sub } = ticket.getPayload();
         let usuario = await User.findOne({ email });
         if (!usuario) {
             usuario = new User({
-                name: name,
-                apellido: family_name || '',
-                email: email,
-                fotoUrl: picture,
-                googleId: sub,
-                role: 'docente'
+                name, apellido: family_name || '', email, fotoUrl: picture, googleId: sub, role: 'docente'
             });
             await usuario.save();
         }
         res.status(200).json({ userId: usuario._id, userName: usuario.name, fotoUrl: usuario.fotoUrl });
     } catch (error) {
-        console.error("Error en Google Auth:", error);
-        res.status(500).json({ error: "Error al autenticar con Google" });
+        res.status(500).json({ error: "Error Google Auth" });
     }
 });
 
-// --- AUTENTICACIÓN: REGISTRO MANUAL ---
 app.post('/api/auth/register', async (req, res) => {
   try {
-    const { name, apellido, email, password, edad } = req.body;
-    if (parseInt(edad) < 20) return res.status(400).json({ error: "Mínimo 20 años" });
-    const passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
-    if (!passRegex.test(password)) return res.status(400).json({ error: "Contraseña insegura" });
-    const existe = await User.findOne({ email });
-    if (existe) return res.status(400).json({ error: "Ya existe" });
     const nuevoUsuario = new User(req.body);
     const usuarioGuardado = await nuevoUsuario.save();
     res.status(201).json({ userId: usuarioGuardado._id, userName: usuarioGuardado.name, fotoUrl: usuarioGuardado.fotoUrl });
@@ -403,12 +394,10 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
-// --- AUTENTICACIÓN: LOGIN MANUAL (ACTUALIZADO: ENVÍA FOTO) ---
 app.post('/api/auth/login', async (req, res) => {
   try {
     const usuario = await User.findOne({ email: req.body.email, password: req.body.password });
     if (!usuario) return res.status(401).json({ error: "Error" });
-    // CAMBIO: Enviamos fotoUrl para que el celular la vea
     res.json({ userId: usuario._id, userName: usuario.name, fotoUrl: usuario.fotoUrl });
   } catch (error) {
     res.status(500).json({ error: "Error" });
