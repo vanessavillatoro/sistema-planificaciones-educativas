@@ -34,6 +34,7 @@ const Gestion = mongoose.models.Gestion || mongoose.model('Gestion', GestionSche
 const app = express();
 
 // --- ESTE ES EL ÚNICO BLOQUE QUE SE CAMBIÓ PARA QUE FUNCIONE EN VERCEL/CELULAR ---
+// --- BLOQUE DE CORS CORREGIDO ---
 app.use(cors({
   origin: true, 
   methods: ["GET", "POST", "PATCH", "DELETE", "PUT", "OPTIONS"],
@@ -41,7 +42,9 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
-app.options('/api/:path*', cors());
+// REEMPLAZA TU LÍNEA 44 (app.options) POR ESTA:
+app.options('*', cors()); 
+// --- FIN DEL CAMBIO ---
 // --- FIN DEL CAMBIO ---
 
 app.use(express.json());
