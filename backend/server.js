@@ -33,21 +33,23 @@ const Gestion = mongoose.models.Gestion || mongoose.model('Gestion', GestionSche
 
 const app = express();
 
-// --- CONFIGURACIÓN DE MIDDLEWARE ---
+// --- CONFIGURACIÓN DE MIDDLEWARE (ACTUALIZADO PARA CELULAR Y LAPTOP) ---
 app.use(cors({
-    origin: 'https://sistema-planificaciones-educativas-ten.vercel.app', // Tu URL real
+    origin: true, // Permite cualquier origen para evitar bloqueos en distintos dispositivos
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    allowedHeaders: ['Content-Type']
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
 }));
 app.use(express.json());
 app.get('/api/test', (req, res) => {
     res.json({ message: "API funcionando perfectamente" });
 });
 
-// Ruta para la raíz (esto quitará cualquier error al entrar al link directo)
+// Ruta para la raíz
 app.get('/', (req, res) => {
     res.send('🚀 Servidor del Sistema de Planificaciones funcionando.');
 });
+
 // --- CONFIGURACIÓN PARA SUBIDA DE IMÁGENES ---
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) {
@@ -103,7 +105,7 @@ app.post('/api/generar-plan-completa', async (req, res) => {
     return res.status(500).json({ error: "Falta la clave GEMINI_KEY en el servidor" });
   }
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
   const peticionDocente = data.sugerencias ? `PETICIÓN ESPECÍFICA DEL DOCENTE: "${data.sugerencias}".` : "";
   const contextoEdicion = planActual
     ? `MODO EDICIÓN: JSON previo: ${JSON.stringify(planActual)}. Modifica según: "${data.sugerencias}".`
@@ -159,7 +161,7 @@ app.post('/api/generar-plan-modulo3', async (req, res) => {
   const { materia, tema, grado, dificultad, sugerencias, enfoque } = req.body;
   if (!materia || !tema) return res.status(400).json({ error: "Faltan campos." });
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
   const prompt = `Estructura JSON pedagógica para: ${materia}, Tema: ${tema}...`;
   try {
     const result = await model.generateContent(prompt);
@@ -175,7 +177,7 @@ app.post('/api/generar-recurso-ia', async (req, res) => {
   const { materia, tema, tipoRecurso } = req.body;
   try {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     const result = await model.generateContent(`Genera recurso: ${tipoRecurso} sobre ${tema}`);
     res.json({ contenido: result.response.text() });
   } catch (error) {
@@ -220,7 +222,6 @@ app.delete('/api/planificaciones-por-tema/:tema', async (req, res) => {
 
 app.post('/api/exportar-gestion', async (req, res) => {
   try {
-    // Si el frontend manda userId, lo renombramos a usuarioId antes de guardar
     const datosAGuardar = { ...req.body };
     if (datosAGuardar.userId) {
         datosAGuardar.usuarioId = datosAGuardar.userId;
@@ -236,7 +237,6 @@ app.post('/api/exportar-gestion', async (req, res) => {
 
 app.get('/api/gestion', async (req, res) => {
   try {
-    // CAMBIO: Usar usuarioId para que coincida con el resto del sistema
     const { userId } = req.query; 
     const query = userId ? { usuarioId: userId, borrado: { $ne: true } } : { borrado: { $ne: true } };
     
@@ -356,14 +356,14 @@ app.post('/api/usuario/foto', upload.single('foto'), async (req, res) => {
     }
 });
 
-// --- AUTENTICACIÓN: GOOGLE (NUEVO) ---
+// --- AUTENTICACIÓN: GOOGLE (ACTUALIZADO: ENVÍA FOTO) ---
 app.post('/api/auth/google', async (req, res) => {
     try {
         const { token } = req.body;
         const ticket = await client.verifyIdToken({
             idToken: token,
             audience: process.env.GOOGLE_CLIENT_ID,
-            clockSkewInSeconds: 600, // Margen aumentado a 10 min por desfase de reloj
+            clockSkewInSeconds: 600, 
         });
         const { email, name, family_name, picture, sub } = ticket.getPayload();
 
@@ -381,7 +381,11 @@ app.post('/api/auth/google', async (req, res) => {
             await usuario.save();
         }
 
-        res.status(200).json({ userId: usuario._id, userName: usuario.name });
+        res.status(200).json({ 
+            userId: usuario._id, 
+            userName: usuario.name,
+            fotoUrl: usuario.fotoUrl // Enviamos la foto para que el celular la guarde
+        });
     } catch (error) {
         console.error("Error en Google Auth:", error);
         res.status(500).json({ error: "Error al autenticar con Google" });
@@ -402,18 +406,26 @@ app.post('/api/auth/register', async (req, res) => {
     if (existe) return res.status(400).json({ error: "Ya existe" });
     const nuevoUsuario = new User(req.body);
     const usuarioGuardado = await nuevoUsuario.save();
-    res.status(201).json({ userId: usuarioGuardado._id, userName: usuarioGuardado.name });
+    res.status(201).json({ 
+        userId: usuarioGuardado._id, 
+        userName: usuarioGuardado.name,
+        fotoUrl: usuarioGuardado.fotoUrl 
+    });
   } catch (error) {
     res.status(500).json({ error: "Error" });
   }
 });
 
-// --- AUTENTICACIÓN: LOGIN MANUAL ---
+// --- AUTENTICACIÓN: LOGIN MANUAL (ACTUALIZADO: ENVÍA FOTO) ---
 app.post('/api/auth/login', async (req, res) => {
   try {
     const usuario = await User.findOne({ email: req.body.email, password: req.body.password });
     if (!usuario) return res.status(401).json({ error: "Error" });
-    res.json({ userId: usuario._id, userName: usuario.name });
+    res.json({ 
+        userId: usuario._id, 
+        userName: usuario.name,
+        fotoUrl: usuario.fotoUrl // Enviamos la foto para sincronizar el perfil
+    });
   } catch (error) {
     res.status(500).json({ error: "Error" });
   }
