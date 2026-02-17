@@ -6,8 +6,7 @@ import ModalPerfil from './ModalPerfil';
 import ModalConfiguraciones from './ModalConfiguraciones'; 
 import './Navbar.css';
 
-// Importa el logo si lo tienes en la carpeta src, o usa la ruta directa si está en public
-import logoApp from './logo.png'; // Asegúrate de que el nombre coincida con tu archivo
+import logoApp from './logo.png'; 
 import fotoPerfil from './perfil.png';
 
 const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
@@ -21,11 +20,16 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
     fotoUrl: ''
   });
 
+  // NUEVO: URL de Vercel centralizada para evitar errores en celular
+  const API_BASE_URL = "https://sistema-planificaciones-educativas.vercel.app";
+
   const obtenerUrlImagen = (url) => {
     if (!url) return fotoPerfil;
+    // CORRECCIÓN: Si es una ruta local de Google (https), se deja igual. 
+    // Si es una ruta del servidor (/uploads), se le pone la URL de Vercel.
     const base = url.startsWith('http') 
       ? url 
-      : `http://localhost:5000${url.startsWith('/') ? '' : '/'}${url}`;
+      : `${API_BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
     return `${base}${base.includes('?') ? '&' : '?'}t=${new Date().getTime()}`;
   };
 
@@ -41,7 +45,8 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
         return;
       }
 
-      const response = await fetch(`http://localhost:5000/api/usuario/perfil?userId=${userId}&t=${new Date().getTime()}`);
+      // CORRECCIÓN: Fetch a Vercel, no a localhost
+      const response = await fetch(`${API_BASE_URL}/api/usuario/perfil?userId=${userId}&t=${new Date().getTime()}`);
       if (response.ok) {
         const data = await response.json();
         setUsuario({
@@ -59,7 +64,7 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
     } catch (error) {
       console.log("Error de conexión perfil.");
     }
-  }, [setNombreApp]);
+  }, [setNombreApp, API_BASE_URL]);
 
   useEffect(() => {
     cargarDatos();
@@ -87,7 +92,8 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
         encabezados['Content-Type'] = 'application/json';
       }
 
-      const response = await fetch('http://localhost:5000/api/usuario/perfil', {
+      // CORRECCIÓN: Petición de guardado a Vercel
+      const response = await fetch(`${API_BASE_URL}/api/usuario/perfil`, {
         method: 'PATCH',
         headers: encabezados,
         body: cuerpoPeticion
