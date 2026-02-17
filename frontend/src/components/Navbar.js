@@ -20,13 +20,11 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
     fotoUrl: ''
   });
 
-  // NUEVO: URL de Vercel centralizada para evitar errores en celular
+  // URL de Vercel centralizada
   const API_BASE_URL = "https://sistema-planificaciones-educativas.vercel.app";
 
   const obtenerUrlImagen = (url) => {
     if (!url) return fotoPerfil;
-    // CORRECCIÓN: Si es una ruta local de Google (https), se deja igual. 
-    // Si es una ruta del servidor (/uploads), se le pone la URL de Vercel.
     const base = url.startsWith('http') 
       ? url 
       : `${API_BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
@@ -45,7 +43,6 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
         return;
       }
 
-      // CORRECCIÓN: Fetch a Vercel, no a localhost
       const response = await fetch(`${API_BASE_URL}/api/usuario/perfil?userId=${userId}&t=${new Date().getTime()}`);
       if (response.ok) {
         const data = await response.json();
@@ -73,15 +70,22 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
   const handleSave = async (datosNuevos) => {
     try {
       const userId = localStorage.getItem('userId');
+      if (!userId) {
+        alert("Sesión expirada. Por favor, inicia sesión de nuevo.");
+        return;
+      }
+
       let cuerpoPeticion;
       let encabezados = {};
 
       if (datosNuevos instanceof FormData) {
         cuerpoPeticion = datosNuevos;
-        if (!cuerpoPeticion.has('userId')) cuerpoPeticion.append('userId', userId);
+        // Nos aseguramos de que el FormData lleve el userId actual
+        cuerpoPeticion.set('userId', userId);
       } else {
         cuerpoPeticion = JSON.stringify({ 
-          userId, 
+          ...datosNuevos,
+          userId: userId, // Forzamos el ID desde localStorage para evitar errores de sincronización
           name: datosNuevos.nombre, 
           email: datosNuevos.correo,
           celular: datosNuevos.celular,
@@ -92,7 +96,6 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
         encabezados['Content-Type'] = 'application/json';
       }
 
-      // CORRECCIÓN: Petición de guardado a Vercel
       const response = await fetch(`${API_BASE_URL}/api/usuario/perfil`, {
         method: 'PATCH',
         headers: encabezados,
