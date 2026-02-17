@@ -28,13 +28,11 @@ const GestionSchema = new mongoose.Schema({
     fechaExportacion: { type: Date, default: Date.now }
 }, { strict: false });
 
-// Evitar error si el modelo ya está definido
 const Gestion = mongoose.models.Gestion || mongoose.model('Gestion', GestionSchema);
 
 const app = express();
 
-// --- ESTE ES EL ÚNICO BLOQUE QUE SE CAMBIÓ PARA QUE FUNCIONE EN VERCEL/CELULAR ---
-// --- BLOQUE DE CORS CORREGIDO ---
+// --- BLOQUE DE CORS Y OPTIONS (CORREGIDO PARA VERCEL) ---
 app.use(cors({
   origin: true, 
   methods: ["GET", "POST", "PATCH", "DELETE", "PUT", "OPTIONS"],
@@ -42,10 +40,14 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
-// REEMPLAZA TU LÍNEA 44 (app.options) POR ESTA:
-app.options('*', cors()); 
-// --- FIN DEL CAMBIO ---
-// --- FIN DEL CAMBIO ---
+// Middleware manual para manejar preflights sin usar rutas complejas que rompan Vercel
+app.use((req, res, next) => {
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
+// --- FIN DEL BLOQUE CORREGIDO ---
 
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -54,20 +56,23 @@ app.get('/api/test', (req, res) => {
     res.json({ message: "API funcionando perfectamente" });
 });
 
-// Ruta para la raíz
 app.get('/', (req, res) => {
     res.send('🚀 Servidor del Sistema de Planificaciones funcionando.');
 });
 
-// --- CONFIGURACIÓN PARA SUBIDA DE IMÁGENES ---
+// --- CONFIGURACIÓN PARA SUBIDA DE IMÁGENES (Ajustado para Vercel) ---
+// Nota: Vercel no permite persistencia de archivos locales. 
+// Comentamos la creación de carpeta para evitar errores de permisos.
+/*
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir);
 }
+*/
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, 'uploads/');
+        cb(null, '/tmp'); // Usamos /tmp que es la única carpeta donde Vercel permite escribir temporalmente
     },
     filename: (req, file, cb) => {
         cb(null, Date.now() + '-' + file.originalname);
@@ -360,7 +365,7 @@ app.post('/api/usuario/foto', upload.single('foto'), async (req, res) => {
     }
 });
 
-// --- AUTENTICACIÓN: GOOGLE (BLOQUE ORIGINAL RESTAURADO) ---
+// --- AUTENTICACIÓN: GOOGLE ---
 app.post('/api/auth/google', async (req, res) => {
     try {
         const { token } = req.body;
