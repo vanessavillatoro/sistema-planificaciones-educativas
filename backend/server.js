@@ -32,29 +32,18 @@ const Gestion = mongoose.models.Gestion || mongoose.model('Gestion', GestionSche
 
 const app = express();
 
-// --- BLOQUE DE CORS Y OPTIONS (SOLUCIÓN PARA VERCEL) ---
-app.use(cors({
-  origin: true, 
-  methods: ["GET", "POST", "PATCH", "DELETE", "PUT", "OPTIONS"],
-  credentials: true,
-  allowedHeaders: ["Content-Type", "Authorization"]
-}));
+// --- BLOQUE DE CORS SIMPLIFICADO (SOLUCIÓN DEFINITIVA) ---
+// Al usar solo app.use(cors()) y app.options('*'), eliminamos cualquier ruta 
+// que contenga ":" que es lo que rompe el motor de Vercel.
+app.use(cors());
+app.options('*', cors());
 
-// SOLUCIÓN LÍNEA 44: Usamos un selector universal '*' que no requiere parámetros
-// Esto evita el error "Missing parameter name at index 11"
-app.options('*', (req, res) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, PUT, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.sendStatus(200);
+// Middleware de seguridad simple
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    next();
 });
-
-// Middleware de seguridad adicional para rutas API
-app.use('/api', (req, res, next) => {
-  if (req.method === 'OPTIONS') return res.sendStatus(200);
-  next();
-});
-// --- FIN DEL BLOQUE CORREGIDO ---
+// --- FIN DEL BLOQUE ---
 
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
