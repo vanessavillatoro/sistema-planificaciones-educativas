@@ -21,7 +21,6 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
   const [editando, setEditando] = useState(null);
   const [cargando, setCargando] = useState(false);
   
-  // Usamos estas refs para que los errores de tu imagen desaparezcan
   const inputRefs = useRef({});
   const fileInputRef = useRef(null); 
 
@@ -36,7 +35,6 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
     setPerfil({ ...perfil, [e.target.name]: e.target.value });
   };
 
-  // Activa el clic en el input oculto de archivos
   const handleFotoClick = () => {
     if (fileInputRef.current) fileInputRef.current.click();
   };
@@ -65,15 +63,12 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
     }
   };
 
-  // Función para habilitar el teclado en un campo específico
   const habilitarEdicion = (campo) => {
     setEditando(campo);
     setTimeout(() => {
       inputRefs.current[campo]?.focus();
     }, 100);
   };
-
-// ... (mismo inicio de código)
 
   const handleGuardarDatos = async () => {
     const userId = localStorage.getItem('userId');
@@ -95,12 +90,14 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
       const data = await response.json();
 
       if (response.ok) {
-        // ACTUALIZACIÓN CLAVE: Sincroniza el nombre para que deje de decir "Invitado"
+        // Sincronización con el Perfil Flotante
         localStorage.setItem('userName', perfil.nombre);
+        
+        // Disparamos evento para que otros componentes se enteren del cambio
+        window.dispatchEvent(new Event('storage')); 
         
         alert("¡Datos guardados con éxito!");
 
-        // Ejecutamos onSave de forma segura
         if (onSave) {
           try {
             onSave(data); 
@@ -120,8 +117,6 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
       setCargando(false);
     }
   };
-
-// ... (resto del código igual)
 
   const campos = [
     { label: 'Nombre', name: 'nombre' },
