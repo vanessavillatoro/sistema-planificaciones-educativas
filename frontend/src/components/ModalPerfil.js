@@ -4,32 +4,30 @@ import fotoPerfilDefault from './perfil.png';
 
 const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
   
-  // --- CONFIGURACIÓN DE URL DINÁMICA ---
-  // Detectamos si estamos en producción (Vercel) o localmente
   const API_BASE_URL = window.location.hostname === 'localhost' 
     ? 'http://localhost:5000' 
     : 'https://sistema-planificaciones-educativas.vercel.app';
 
   const [perfil, setPerfil] = useState({
-    nombre: datosUsuario.nombre,
-    correo: datosUsuario.correo,
-    celular: datosUsuario.celular,
-    municipio: datosUsuario.municipio,
-    departamento: datosUsuario.departamento,
-    direccion: datosUsuario.direccion,
-    fotoUrl: datosUsuario.fotoUrl 
+    nombre: datosUsuario.nombre || '',
+    correo: datosUsuario.correo || '',
+    celular: datosUsuario.celular || '',
+    municipio: datosUsuario.municipio || '',
+    departamento: datosUsuario.departamento || '',
+    direccion: datosUsuario.direccion || '',
+    fotoUrl: datosUsuario.fotoUrl || ''
   });
 
   const [editando, setEditando] = useState(null);
+  const [cargando, setCargando] = useState(false);
+  
+  // Usamos estas refs para que los errores de tu imagen desaparezcan
   const inputRefs = useRef({});
   const fileInputRef = useRef(null); 
 
-  // --- FUNCIÓN PARA ASEGURAR URL VÁLIDA (CORREGIDA PARA VERCEL) ---
   const formatearUrlImagen = (url) => {
     if (!url) return fotoPerfilDefault;
     if (url.startsWith('http')) return url;
-    
-    // Usamos la API_BASE_URL en lugar de localhost fijo
     const base = `${API_BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
     return `${base}${base.includes('?') ? '&' : '?'}t=${new Date().getTime()}`;
   };
@@ -38,12 +36,9 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
     setPerfil({ ...perfil, [e.target.name]: e.target.value });
   };
 
-  const handleFotoClick = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    }
+  // Activa el clic en el input oculto de archivos
+  const handleFotoClick = () => {
+    if (fileInputRef.current) fileInputRef.current.click();
   };
 
   const handleFileChange = async (e) => {
@@ -52,11 +47,9 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
 
     const formData = new FormData();
     formData.append('foto', file);
-    const userId = localStorage.getItem('userId');
-    formData.append('userId', userId);
+    formData.append('userId', localStorage.getItem('userId'));
 
     try {
-      // CAMBIO: Usamos la URL dinámica aquí también
       const response = await fetch(`${API_BASE_URL}/api/usuario/foto`, {
         method: 'POST',
         body: formData,
@@ -66,26 +59,44 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
         const dataActualizada = await response.json();
         setPerfil({ ...perfil, fotoUrl: dataActualizada.fotoUrl });
         alert("Foto actualizada correctamente");
-      } else {
-        alert("Error al subir la imagen al servidor");
       }
     } catch (error) {
-      console.error("Error al subir la imagen:", error);
+      console.error("Error al subir imagen:", error);
     }
   };
 
+  // Función para habilitar el teclado en un campo específico
   const habilitarEdicion = (campo) => {
     setEditando(campo);
     setTimeout(() => {
       inputRefs.current[campo]?.focus();
-    }, 10);
+    }, 100);
   };
 
-  const handleGuardar = () => {
-    if (onSave) {
-      onSave(perfil); 
+  const handleGuardarDatos = async () => {
+    setCargando(true);
+    const userId = localStorage.getItem('userId');
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/usuario/perfil`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, ...perfil }),
+      });
+
+      if (response.ok) {
+        const usuarioActualizado = await response.json();
+        if (onSave) onSave(usuarioActualizado);
+        alert("¡Datos guardados con éxito!");
+        onClose();
+      } else {
+        alert("No se pudieron guardar los cambios.");
+      }
+    } catch (error) {
+      alert("Error de conexión.");
+    } finally {
+      setCargando(false);
     }
-    onClose(); 
   };
 
   const campos = [
@@ -103,42 +114,24 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
         <button className="close-x" onClick={onClose}>×</button>
 
         <div className="modal-header">
-          <input 
-            type="file" 
-            ref={fileInputRef} 
-            className="file-input-hidden"
-            style={{ display: 'none' }} 
-            accept="image/*" 
-            onChange={handleFileChange} 
-          />
-          
+          <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept="image/*" onChange={handleFileChange} />
           <div className="profile-img-container" onClick={handleFotoClick}>
-            <img 
-              src={formatearUrlImagen(perfil.fotoUrl)} 
-              alt="User" 
-              className="modal-avatar" 
-              key={perfil.fotoUrl}
-            />
-            <div className="edit-badge">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-            </div>
+            <img src={formatearUrlImagen(perfil.fotoUrl)} alt="User" className="modal-avatar" />
+            <div className="edit-badge">✎</div>
           </div>
-
           <div className="header-text">
-            <h3>{perfil.nombre}</h3>
+            <h3>{perfil.nombre || 'Usuario'}</h3>
             <p>{perfil.correo}</p>
           </div>
         </div>
-
-        <hr className="modal-divider" />
 
         <div className="modal-perfil-body">
           {campos.map((item) => (
             <div className={`input-group ${editando === item.name ? 'is-editing' : ''}`} key={item.name}>
               <div className="label-section">
-                <div className="btn-edit-small" onClick={() => habilitarEdicion(item.name)}>
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                </div>
+                <button className="btn-edit-small" onClick={() => habilitarEdicion(item.name)}>
+                  ✎
+                </button>
                 <label>{item.label}</label>
               </div>
               <input 
@@ -154,7 +147,9 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
           ))}
         </div>
 
-        <button className="save-btn" onClick={handleGuardar}>Save Changes</button>
+        <button className="save-btn" onClick={handleGuardarDatos} disabled={cargando}>
+          {cargando ? 'Guardando...' : 'Guardar Cambios'}
+        </button>
       </div>
     </div>
   );
