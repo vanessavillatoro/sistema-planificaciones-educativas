@@ -18,10 +18,10 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
     fotoUrl: datosUsuario.fotoUrl || ''
   });
 
-  const [editando, setEditando] = useState(null); // SE USA EN EL INPUT
+  const [editando, setEditando] = useState(null);
   const [cargando, setCargando] = useState(false);
   
-  const inputRefs = useRef({}); // SE USA EN EL REF DEL INPUT
+  const inputRefs = useRef({});
   const fileInputRef = useRef(null); 
 
   const formatearUrlImagen = (url) => {
@@ -72,12 +72,14 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
 
   const handleGuardarDatos = async () => {
     const userId = localStorage.getItem('userId');
+    
     if (!userId) {
-      alert("Sesión expirada. Inicia sesión de nuevo.");
+      alert("No se encontró el ID de usuario. Por favor, inicia sesión de nuevo.");
       return;
     }
 
     setCargando(true);
+
     try {
       const response = await fetch(`${API_BASE_URL}/api/usuario/perfil`, {
         method: 'PATCH',
@@ -88,9 +90,8 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
       const data = await response.json();
 
       if (response.ok) {
-        // ACTUALIZACIÓN DE STORAGE
+        // Esto actualiza el nombre en el storage y avisa al menú flotante
         localStorage.setItem('userName', perfil.nombre);
-        // AVISO GLOBAL PARA ELIMINAR EL "INVITADO"
         window.dispatchEvent(new Event('storage')); 
         
         alert("¡Datos guardados con éxito!");
@@ -98,16 +99,18 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
         if (onSave) {
           try {
             onSave(data); 
-          } catch (e) {
-            console.log("Error en componente padre, pero datos guardados.");
+          } catch (errorPadre) {
+            console.error("Error al actualizar el componente principal:", errorPadre);
           }
         }
+        
         onClose();
       } else {
-        alert(data.message || "Error al guardar.");
+        alert(data.message || "No se pudieron guardar los cambios.");
       }
     } catch (error) {
-      alert("Error de conexión.");
+      console.error("Error de conexión:", error);
+      alert("Error de conexión con el servidor.");
     } finally {
       setCargando(false);
     }
@@ -143,19 +146,18 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
           {campos.map((item) => (
             <div className={`input-group ${editando === item.name ? 'is-editing' : ''}`} key={item.name}>
               <div className="label-section">
-                {/* AQUÍ SE USA HABILITAREEDICION */}
                 <button className="btn-edit-small" onClick={() => habilitarEdicion(item.name)}>
                   ✎
                 </button>
                 <label>{item.label}</label>
               </div>
               <input 
-                ref={(el) => (inputRefs.current[item.name] = el)} // AQUÍ SE USA INPUTREFS
+                ref={(el) => (inputRefs.current[item.name] = el)}
                 type="text" 
                 name={item.name} 
                 value={perfil[item.name] || ''} 
                 onChange={handleChange} 
-                readOnly={editando !== item.name} // AQUÍ SE USA EDITANDO
+                readOnly={editando !== item.name}
                 onBlur={() => setEditando(null)}
               />
             </div>
@@ -163,7 +165,7 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
         </div>
 
         <button className="save-btn" onClick={handleGuardarDatos} disabled={cargando}>
-          {cargando ? 'Guardando...' : ' Cambios nuevos'}
+          {cargando ? 'Guardando...' : 'Guardar Cambios'}
         </button>
       </div>
     </div>
