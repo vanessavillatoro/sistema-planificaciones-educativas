@@ -73,9 +73,17 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
     }, 100);
   };
 
+// ... (mismo inicio de código)
+
   const handleGuardarDatos = async () => {
-    setCargando(true);
     const userId = localStorage.getItem('userId');
+    
+    if (!userId) {
+      alert("No se encontró el ID de usuario. Por favor, inicia sesión de nuevo.");
+      return;
+    }
+
+    setCargando(true);
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/usuario/perfil`, {
@@ -84,20 +92,36 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
         body: JSON.stringify({ userId, ...perfil }),
       });
 
+      const data = await response.json();
+
       if (response.ok) {
-        const usuarioActualizado = await response.json();
-        if (onSave) onSave(usuarioActualizado);
+        // ACTUALIZACIÓN CLAVE: Sincroniza el nombre para que deje de decir "Invitado"
+        localStorage.setItem('userName', perfil.nombre);
+        
         alert("¡Datos guardados con éxito!");
+
+        // Ejecutamos onSave de forma segura
+        if (onSave) {
+          try {
+            onSave(data); 
+          } catch (errorPadre) {
+            console.error("Error al actualizar el componente principal:", errorPadre);
+          }
+        }
+        
         onClose();
       } else {
-        alert("No se pudieron guardar los cambios.");
+        alert(data.message || "No se pudieron guardar los cambios.");
       }
     } catch (error) {
-      alert("Error de conexión.");
+      console.error("Error de conexión:", error);
+      alert("Error de conexión con el servidor.");
     } finally {
       setCargando(false);
     }
   };
+
+// ... (resto del código igual)
 
   const campos = [
     { label: 'Nombre', name: 'nombre' },
