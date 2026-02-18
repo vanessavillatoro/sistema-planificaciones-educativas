@@ -8,7 +8,7 @@ const imagenAuth = "https://images.unsplash.com/photo-1516321318423-f06f85e504b3
 // Asegúrate de que la segunda URL sea la de tu BACKEND (donde está server.js)
 const API_BASE_URL = window.location.hostname === "localhost" 
   ? "http://localhost:5000" 
-  : "https://sistema-planificaciones-educativas-ten.vercel.app"; 
+  : "https://sistema-planificaciones-educativas.vercel.app"; 
   // NOTA: Si tu API está en otra URL (ej: ...-api.vercel.app), pon esa aquí.
 
 const AuthContent = () => {
