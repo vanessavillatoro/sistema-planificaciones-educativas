@@ -4,6 +4,12 @@ import fotoPerfilDefault from './perfil.png';
 
 const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
   
+  // --- CONFIGURACIÓN DE URL DINÁMICA ---
+  // Detectamos si estamos en producción (Vercel) o localmente
+  const API_BASE_URL = window.location.hostname === 'localhost' 
+    ? 'http://localhost:5000' 
+    : 'https://sistema-planificaciones-educativas.vercel.app';
+
   const [perfil, setPerfil] = useState({
     nombre: datosUsuario.nombre,
     correo: datosUsuario.correo,
@@ -18,12 +24,13 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
   const inputRefs = useRef({});
   const fileInputRef = useRef(null); 
 
-  // --- FUNCIÓN PARA ASEGURAR URL VÁLIDA CON ANTI-CACHÉ ---
+  // --- FUNCIÓN PARA ASEGURAR URL VÁLIDA (CORREGIDA PARA VERCEL) ---
   const formatearUrlImagen = (url) => {
     if (!url) return fotoPerfilDefault;
-    const base = url.startsWith('http') 
-      ? url 
-      : `http://localhost:5000${url.startsWith('/') ? '' : '/'}${url}`;
+    if (url.startsWith('http')) return url;
+    
+    // Usamos la API_BASE_URL en lugar de localhost fijo
+    const base = `${API_BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
     return `${base}${base.includes('?') ? '&' : '?'}t=${new Date().getTime()}`;
   };
 
@@ -45,21 +52,22 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
 
     const formData = new FormData();
     formData.append('foto', file);
-    // Es vital enviar el userId para que el backend sepa de quién es la foto
     const userId = localStorage.getItem('userId');
     formData.append('userId', userId);
 
     try {
-      const response = await fetch('http://localhost:5000/api/usuario/foto', {
+      // CAMBIO: Usamos la URL dinámica aquí también
+      const response = await fetch(`${API_BASE_URL}/api/usuario/foto`, {
         method: 'POST',
         body: formData,
       });
 
       if (response.ok) {
         const dataActualizada = await response.json();
-        // Actualizamos el estado local con la nueva URL
         setPerfil({ ...perfil, fotoUrl: dataActualizada.fotoUrl });
         alert("Foto actualizada correctamente");
+      } else {
+        alert("Error al subir la imagen al servidor");
       }
     } catch (error) {
       console.error("Error al subir la imagen:", error);
@@ -99,18 +107,17 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
             type="file" 
             ref={fileInputRef} 
             className="file-input-hidden"
-            style={{ display: 'none' }} // Asegura que no estorbe visualmente
+            style={{ display: 'none' }} 
             accept="image/*" 
             onChange={handleFileChange} 
           />
           
           <div className="profile-img-container" onClick={handleFotoClick}>
             <img 
-              /* APLICAMOS LA FUNCIÓN AQUÍ */
               src={formatearUrlImagen(perfil.fotoUrl)} 
               alt="User" 
               className="modal-avatar" 
-              key={perfil.fotoUrl} // La key fuerza el re-renderizado
+              key={perfil.fotoUrl}
             />
             <div className="edit-badge">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
