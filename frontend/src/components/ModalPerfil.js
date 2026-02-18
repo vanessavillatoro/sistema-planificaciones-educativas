@@ -18,11 +18,10 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
     fotoUrl: datosUsuario.fotoUrl || ''
   });
 
-  const [editando, setEditando] = useState(null);
+  const [editando, setEditando] = useState(null); // SE USA EN EL INPUT
   const [cargando, setCargando] = useState(false);
   
-  // Usamos estas refs para que los errores de tu imagen desaparezcan
-  const inputRefs = useRef({});
+  const inputRefs = useRef({}); // SE USA EN EL REF DEL INPUT
   const fileInputRef = useRef(null); 
 
   const formatearUrlImagen = (url) => {
@@ -36,7 +35,6 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
     setPerfil({ ...perfil, [e.target.name]: e.target.value });
   };
 
-  // Activa el clic en el input oculto de archivos
   const handleFotoClick = () => {
     if (fileInputRef.current) fileInputRef.current.click();
   };
@@ -65,7 +63,6 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
     }
   };
 
-  // Función para habilitar el teclado en un campo específico
   const habilitarEdicion = (campo) => {
     setEditando(campo);
     setTimeout(() => {
@@ -75,14 +72,12 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
 
   const handleGuardarDatos = async () => {
     const userId = localStorage.getItem('userId');
-    
     if (!userId) {
-      alert("No se encontró el ID de usuario. Por favor, inicia sesión de nuevo.");
+      alert("Sesión expirada. Inicia sesión de nuevo.");
       return;
     }
 
     setCargando(true);
-
     try {
       const response = await fetch(`${API_BASE_URL}/api/usuario/perfil`, {
         method: 'PATCH',
@@ -93,29 +88,26 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
       const data = await response.json();
 
       if (response.ok) {
-        // --- ESTO ES LO ÚNICO QUE SE AGREGA PARA ELIMINAR EL "INVITADO" ---
+        // ACTUALIZACIÓN DE STORAGE
         localStorage.setItem('userName', perfil.nombre);
+        // AVISO GLOBAL PARA ELIMINAR EL "INVITADO"
         window.dispatchEvent(new Event('storage')); 
-        // -----------------------------------------------------------------
-
+        
         alert("¡Datos guardados con éxito!");
 
-        // Ejecutamos onSave de forma segura sin quitar tu lógica original
         if (onSave) {
           try {
             onSave(data); 
-          } catch (errorPadre) {
-            console.error("Error al actualizar el componente principal:", errorPadre);
+          } catch (e) {
+            console.log("Error en componente padre, pero datos guardados.");
           }
         }
-        
         onClose();
       } else {
-        alert(data.message || "No se pudieron guardar los cambios.");
+        alert(data.message || "Error al guardar.");
       }
     } catch (error) {
-      console.error("Error de conexión:", error);
-      alert("Error de conexión con el servidor.");
+      alert("Error de conexión.");
     } finally {
       setCargando(false);
     }
@@ -151,18 +143,19 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
           {campos.map((item) => (
             <div className={`input-group ${editando === item.name ? 'is-editing' : ''}`} key={item.name}>
               <div className="label-section">
+                {/* AQUÍ SE USA HABILITAREEDICION */}
                 <button className="btn-edit-small" onClick={() => habilitarEdicion(item.name)}>
                   ✎
                 </button>
                 <label>{item.label}</label>
               </div>
               <input 
-                ref={(el) => (inputRefs.current[item.name] = el)}
+                ref={(el) => (inputRefs.current[item.name] = el)} // AQUÍ SE USA INPUTREFS
                 type="text" 
                 name={item.name} 
                 value={perfil[item.name] || ''} 
                 onChange={handleChange} 
-                readOnly={editando !== item.name}
+                readOnly={editando !== item.name} // AQUÍ SE USA EDITANDO
                 onBlur={() => setEditando(null)}
               />
             </div>
