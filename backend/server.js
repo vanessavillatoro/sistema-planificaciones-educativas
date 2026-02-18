@@ -64,7 +64,7 @@ app.get('/api/test', (req, res) => {
 });
 
 app.get('/', (req, res) => {
-    res.send('🚀 Servidor del Sistema de Planificaciones funcionando.');
+    res.send('🚀 VERSION 5.0 - CAMBIO FORZADO');
 });
 
 // --- CONFIGURACIÓN PARA SUBIDA DE IMÁGENES ---
