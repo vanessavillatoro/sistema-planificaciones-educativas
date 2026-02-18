@@ -90,12 +90,11 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
       const data = await response.json();
 
       if (response.ok) {
-        // Sincronización con el Perfil Flotante
+        // --- LO QUE AGREGO SIN QUITAR NADA ---
         localStorage.setItem('userName', perfil.nombre);
-        
-        // Disparamos evento para que otros componentes se enteren del cambio
         window.dispatchEvent(new Event('storage')); 
-        
+        // -------------------------------------
+
         alert("¡Datos guardados con éxito!");
 
         if (onSave) {
