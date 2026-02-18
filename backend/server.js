@@ -32,15 +32,18 @@ const Gestion = mongoose.models.Gestion || mongoose.model('Gestion', GestionSche
 
 const app = express();
 
-// --- BLOQUE DE CORS SIMPLIFICADO (SOLUCIÓN DEFINITIVA) ---
-// Al usar solo app.use(cors()) y app.options('*'), eliminamos cualquier ruta 
-// que contenga ":" que es lo que rompe el motor de Vercel.
-app.use(cors());
+// --- BLOQUE DE CORS MEJORADO (SOLUCIÓN PARA CONEXIÓN FRONTEND) ---
+app.use(cors({
+  origin: '*', 
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.options('*', cors());
 
-// Middleware de seguridad simple
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     next();
 });
 // --- FIN DEL BLOQUE ---
@@ -68,8 +71,10 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-// --- CONEXIÓN A MONGODB ---
-mongoose.connect(process.env.MONGO_URI)
+// --- CONEXIÓN A MONGODB (CON MANEJO DE ERRORES) ---
+mongoose.connect(process.env.MONGO_URI, {
+    serverSelectionTimeoutMS: 5000
+})
   .then(() => console.log('✅ Se logró la conexión a MongoDB'))
   .catch(err => console.error('❌ Error de conexión a MongoDB:', err));
 
