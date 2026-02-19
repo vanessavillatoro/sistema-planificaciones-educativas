@@ -330,26 +330,59 @@ app.get('/api/usuario/perfil', async (req, res) => {
     }
 });
 
+// ... (Todo el código anterior se mantiene igual)
+
 app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
     try {
         const userId = req.body.userId;
         const datos = { ...req.body };
+        
         if (!userId || userId === "undefined" || userId === "null") {
             return res.status(400).json({ error: "ID de usuario no proporcionado" });
         }
-        if (req.file) { datos.fotoUrl = `/uploads/${req.file.filename}`; }
-        if (datos.nombre) { datos.name = datos.nombre; delete datos.nombre; }
+
+        if (req.file) { 
+            datos.fotoUrl = `/uploads/${req.file.filename}`; 
+        }
+
+        // --- AJUSTE PARA PERSISTENCIA DE NOMBRE ---
+        // Si viene 'nombre', lo asignamos a 'name' para que coincida con el modelo User
+        if (datos.nombre) { 
+            datos.name = datos.nombre; 
+        }
+        
         delete datos.userId;
+        delete datos.nombre; // Limpiamos para no duplicar campos en el $set
+
         const usuarioActualizado = await User.findByIdAndUpdate(
             userId,
             { $set: datos },
             { new: true, runValidators: true }
         );
-        res.status(200).json(usuarioActualizado);
+
+        if (!usuarioActualizado) {
+            return res.status(404).json({ error: "Usuario no encontrado" });
+        }
+
+        // DEVOLVEMOS EL USUARIO ACTUALIZADO: 
+        // Esto permite que el frontend reciba el nuevo nombre inmediatamente
+        res.status(200).json({
+            userId: usuarioActualizado._id,
+            userName: usuarioActualizado.name,
+            fotoUrl: usuarioActualizado.fotoUrl,
+            apellido: usuarioActualizado.apellido,
+            genero: usuarioActualizado.genero,
+            edad: usuarioActualizado.edad,
+            email: usuarioActualizado.email
+        });
+
     } catch (error) {
+        console.error("Error al actualizar perfil:", error);
         res.status(500).json({ error: "Error interno al guardar los datos" });
     }
 });
+
+// ... (Todo el resto del código, auth google, login, etc., se mantiene INTACTO)
 
 app.post('/api/usuario/foto', upload.single('foto'), async (req, res) => {
     try {
