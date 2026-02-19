@@ -32,7 +32,7 @@ const Gestion = mongoose.models.Gestion || mongoose.model('Gestion', GestionSche
 
 const app = express();
 
-// --- BLOQUE DE CORS MEJORADO (SOLUCIÓN PARA CONEXIÓN FRONTEND) ---
+// --- BLOQUE DE CORS MEJORADO ---
 app.use(cors({
   origin: '*', 
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
@@ -46,7 +46,6 @@ app.use((req, res, next) => {
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     next();
 });
-// --- FIN DEL BLOQUE ---
 
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -71,7 +70,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-// --- CONEXIÓN A MONGODB (CON MANEJO DE ERRORES) ---
+// --- CONEXIÓN A MONGODB ---
 mongoose.connect(process.env.MONGO_URI, {
     serverSelectionTimeoutMS: 5000
 })
@@ -193,9 +192,10 @@ app.post('/api/save-plan', async (req, res) => {
   try {
     const nuevaPlanificacion = new Planificacion(req.body);
     await nuevaPlanificacion.save();
-    res.status(200).send("Planificación guardada con éxito.");
+    // Corregido a .json para respuesta exitosa en frontend
+    res.status(200).json({ message: "Planificación guardada con éxito." });
   } catch (error) {
-    res.status(500).send("Error al guardar");
+    res.status(500).json({ error: "Error al guardar" });
   }
 });
 
@@ -314,17 +314,16 @@ app.delete('/api/papelera/permanente/:id', async (req, res) => {
     }
 });
 
-// --- GESTIÓN DE PERFIL ---
+// --- GESTIÓN DE PERFIL (CORREGIDO Y ÚNICO) ---
 app.patch('/api/usuario/perfil', async (req, res) => {
     try {
         const { userId, ...datos } = req.body;
 
-        // Validación: Si no hay userId, no podemos buscar nada
         if (!userId || userId === "undefined" || userId === "null") {
-            return res.status(400).json({ error: "ID de usuario no proporcionado o inválido" });
+            return res.status(400).json({ error: "ID de usuario no proporcionado" });
         }
 
-        // Mapeo de nombres: Si envías 'nombre' desde el frontend pero tu modelo usa 'name'
+        // Mapeo: Frontend 'nombre' -> Backend 'name'
         if (datos.nombre) {
             datos.name = datos.nombre;
             delete datos.nombre;
@@ -333,31 +332,17 @@ app.patch('/api/usuario/perfil', async (req, res) => {
         const usuarioActualizado = await User.findByIdAndUpdate(
             userId,
             { $set: datos },
-            { new: true, runValidators: true } // runValidators asegura que cumpla el esquema
+            { new: true, runValidators: true }
         );
 
         if (!usuarioActualizado) {
-            return res.status(404).json({ error: "Usuario no encontrado en la base de datos" });
+            return res.status(404).json({ error: "Usuario no encontrado" });
         }
 
         res.status(200).json(usuarioActualizado);
     } catch (error) {
-        console.error("Error detallado en PATCH perfil:", error);
-        res.status(500).json({ error: "Error interno al actualizar perfil" });
-    }
-});
-
-app.patch('/api/usuario/perfil', async (req, res) => {
-    try {
-        const { userId, ...datos } = req.body;
-        const usuarioActualizado = await User.findByIdAndUpdate(
-            userId,
-            { $set: datos },
-            { new: true, upsert: true }
-        );
-        res.status(200).json(usuarioActualizado);
-    } catch (error) {
-        res.status(500).json({ error: "Error" });
+        console.error("Error en PATCH perfil:", error);
+        res.status(500).json({ error: "Error interno" });
     }
 });
 
