@@ -37,7 +37,8 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
       const response = await fetch(`${API_BASE_URL}/api/usuario/perfil?userId=${userId}&t=${new Date().getTime()}`);
       if (response.ok) {
         const data = await response.json();
-        const nombreFinal = data.name || 'Docente';
+        // Sincronización con el campo 'name' del servidor
+        const nombreFinal = data.name || data.nombre || 'Docente';
         
         setUsuario(prev => ({
           ...prev,
@@ -84,6 +85,10 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
       if (datosNuevos instanceof FormData) {
         cuerpo = datosNuevos;
         cuerpo.set('userId', userId);
+        // Si el FormData trae 'nombre', aseguramos que el server reciba 'name'
+        if (datosNuevos.has('nombre')) {
+          cuerpo.set('name', datosNuevos.get('nombre'));
+        }
       } else {
         cuerpo = JSON.stringify({ 
           ...datosNuevos, 
@@ -102,10 +107,16 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
 
       if (res.ok) {
         const data = await res.json();
+        const nuevoNombre = data.name || datosNuevos.nombre;
+        
+        // Actualizar LocalStorage inmediatamente
+        localStorage.setItem('userName', nuevoNombre);
+
         // Disparar evento para que todos se enteren del cambio
         window.dispatchEvent(new CustomEvent('perfilActualizado', { 
-          detail: { nombre: datosNuevos.nombre || data.name } 
+          detail: { nombre: nuevoNombre } 
         }));
+        
         alert("¡Datos actualizados!");
         setModalAbierta(false);
       }
