@@ -330,6 +330,7 @@ app.get('/api/usuario/perfil', async (req, res) => {
     }
 });
 
+
 // ... (Todo el código anterior se mantiene igual)
 
 app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {

@@ -70,7 +70,7 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
     }, 100);
   };
 
-  const handleGuardarDatos = async () => {
+const handleGuardarDatos = async () => {
     const userId = localStorage.getItem('userId');
     if (!userId) {
       alert("Sesión expirada. Inicia sesión de nuevo.");
@@ -88,34 +88,38 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
       const data = await response.json();
 
       if (response.ok) {
-        // 1. Actualizamos el Storage
-        localStorage.setItem('userName', perfil.nombre);
+        // --- SINCRONIZACIÓN CLAVE ---
+        // Usamos data.userName (que es lo que el server envía ahora) 
+        // o perfil.nombre como respaldo.
+        const nombreActualizado = data.userName || perfil.nombre;
         
-        // 2. DISPARO DE EVENTO PERSONALIZADO (Solución al problema)
-        // Esto notifica a los otros componentes en la misma pestaña inmediatamente
+        localStorage.setItem('userName', nombreActualizado);
+        
+        // Disparamos el evento para que el Navbar y el Inicio cambien al instante
         const event = new CustomEvent('perfilActualizado', { 
-            detail: { nombre: perfil.nombre } 
+            detail: { nombre: nombreActualizado } 
         });
         window.dispatchEvent(event);
-        
-        // Mantenemos el dispatch original por si tienes otros listeners
         window.dispatchEvent(new Event('storage')); 
         
         alert("¡Datos guardados con éxito!");
 
         if (onSave) {
           try {
+            // Pasamos los datos limpios que vienen del servidor
             onSave(data); 
           } catch (e) {
-            console.log("Error en componente padre, pero datos guardados.");
+            console.log("Aviso: El componente padre no procesó el onSave, pero los datos están en la DB.");
           }
         }
         onClose();
       } else {
-        alert(data.message || "Error al guardar.");
+        // Capturamos el error específico del servidor para no mostrar "Error al guardar" genérico
+        alert(data.error || data.message || "Error al guardar.");
       }
     } catch (error) {
-      alert("Error de conexión.");
+      console.error("Error de conexión:", error);
+      alert("Error de conexión con el servidor.");
     } finally {
       setCargando(false);
     }
