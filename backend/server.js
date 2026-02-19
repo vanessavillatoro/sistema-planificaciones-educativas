@@ -316,10 +316,13 @@ app.delete('/api/papelera/permanente/:id', async (req, res) => {
 // --- GESTIÓN DE PERFIL (SOLUCIÓN PERSISTENCIA) ---
 
 // NUEVA RUTA: Obtener perfil por ID para evitar pérdida de datos al recargar
+// --- GESTIÓN DE PERFIL (SOLUCIÓN PERSISTENCIA Y GUARDADO HÍBRIDO) ---
+
+// 1. Esta función sirve para que cuando refresques la página, el nombre no se pierda
 app.get('/api/usuario/perfil', async (req, res) => {
     try {
         const { userId } = req.query;
-        if (!userId) return res.status(400).json({ error: "Falta userId" });
+        if (!userId || userId === "undefined") return res.status(400).json({ error: "Falta userId" });
         const usuario = await User.findById(userId);
         if (!usuario) return res.status(404).json({ error: "No encontrado" });
         res.json(usuario);
@@ -328,19 +331,29 @@ app.get('/api/usuario/perfil', async (req, res) => {
     }
 });
 
-app.patch('/api/usuario/perfil', async (req, res) => {
+// 2. Esta función es la que arregla el "Error al guardar" permitiendo JSON y Fotos
+app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
     try {
-        const { userId, ...datos } = req.body;
+        const userId = req.body.userId;
+        const datos = { ...req.body };
 
         if (!userId || userId === "undefined" || userId === "null") {
             return res.status(400).json({ error: "ID de usuario no proporcionado" });
         }
 
-        // Mapeo Crítico: Frontend 'nombre' -> Backend 'name' para persistencia real
+        // Manejo de la foto si se subió una
+        if (req.file) {
+            datos.fotoUrl = `/uploads/${req.file.filename}`;
+        }
+
+        // Mapeo Crítico: Frontend 'nombre' -> Backend 'name'
         if (datos.nombre) {
             datos.name = datos.nombre;
             delete datos.nombre;
         }
+
+        // Limpiar el userId de los datos para evitar error en MongoDB
+        delete datos.userId;
 
         const usuarioActualizado = await User.findByIdAndUpdate(
             userId,
@@ -355,7 +368,7 @@ app.patch('/api/usuario/perfil', async (req, res) => {
         res.status(200).json(usuarioActualizado);
     } catch (error) {
         console.error("Error en PATCH perfil:", error);
-        res.status(500).json({ error: "Error interno" });
+        res.status(500).json({ error: "Error interno al guardar los datos" });
     }
 });
 

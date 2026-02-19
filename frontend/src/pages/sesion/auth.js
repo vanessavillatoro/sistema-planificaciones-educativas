@@ -4,10 +4,10 @@ import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 
 const imagenAuth = "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070";
 
-// --- PASO 1: URL DEL BACKEND ---
+// --- PASO 1: URL DEL BACKEND (CORREGIDA CON -TEN) ---
 const API_BASE_URL = window.location.hostname === "localhost" 
   ? "http://localhost:5000" 
-  : "https://sistema-planificaciones-educativas.vercel.app"; 
+  : "https://sistema-planificaciones-educativas-ten.vercel.app"; 
 
 const AuthContent = () => {
   const [esLogin, setEsLogin] = useState(true);
@@ -43,9 +43,12 @@ const AuthContent = () => {
       const data = await response.json();
       
       if (response.ok) {
+        // Limpiamos rastro anterior para evitar conflictos de nombres
+        localStorage.clear();
+
         // Guardamos los datos para que el Navbar los reconozca
         localStorage.setItem('userId', data.userId);
-        localStorage.setItem('userName', data.userName); // Sincronizado con server.js
+        localStorage.setItem('userName', data.userName); 
         if (data.fotoUrl) {
           localStorage.setItem('userFoto', data.fotoUrl);
         }
@@ -57,7 +60,7 @@ const AuthContent = () => {
       }
     } catch (error) {
       console.error("Error Auth:", error);
-      alert("No se pudo conectar con el servidor. Revisa el CORS.");
+      alert("No se pudo conectar con el servidor. Revisa el URL de Vercel.");
     }
   };
 
@@ -94,9 +97,9 @@ const AuthContent = () => {
       
       const data = await response.json();
       if (response.ok) {
-        // Guardamos los datos recibidos del servidor
+        localStorage.clear();
         localStorage.setItem('userId', data.userId);
-        localStorage.setItem('userName', data.userName); // Este es el que lee el Navbar
+        localStorage.setItem('userName', data.userName); 
         if (data.fotoUrl) localStorage.setItem('userFoto', data.fotoUrl);
         
         window.location.href = '/'; 
