@@ -125,7 +125,7 @@ app.post('/api/generar-plan-completa', async (req, res) => {
       5. ACTIVIDADES COMPLEMENTARIAS: Por defecto genera 3. Formato: "* Act 1\\n* Act 2".
       6. MATERIALES: Array de EXACTAMENTE 8 elementos. Inicialmente, CADA uno de los 8 elementos del array DEBE contener EXACTAMENTE 3 materiales distintos (a menos que el docente pida más). Los materiales deben separarse por un salto de línea y un asterisco (*).
       8. No uses markdown ni texto fuera del JSON.
-    ESTRUCTURA REQUERIDA:
+    ESTRUURA REQUERIDA:
     {
       "objetivos": "...",
       "indicadoresLogro": "...",
@@ -192,7 +192,6 @@ app.post('/api/save-plan', async (req, res) => {
   try {
     const nuevaPlanificacion = new Planificacion(req.body);
     await nuevaPlanificacion.save();
-    // Corregido a .json para respuesta exitosa en frontend
     res.status(200).json({ message: "Planificación guardada con éxito." });
   } catch (error) {
     res.status(500).json({ error: "Error al guardar" });
@@ -314,7 +313,21 @@ app.delete('/api/papelera/permanente/:id', async (req, res) => {
     }
 });
 
-// --- GESTIÓN DE PERFIL (CORREGIDO Y ÚNICO) ---
+// --- GESTIÓN DE PERFIL (SOLUCIÓN PERSISTENCIA) ---
+
+// NUEVA RUTA: Obtener perfil por ID para evitar pérdida de datos al recargar
+app.get('/api/usuario/perfil', async (req, res) => {
+    try {
+        const { userId } = req.query;
+        if (!userId) return res.status(400).json({ error: "Falta userId" });
+        const usuario = await User.findById(userId);
+        if (!usuario) return res.status(404).json({ error: "No encontrado" });
+        res.json(usuario);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 app.patch('/api/usuario/perfil', async (req, res) => {
     try {
         const { userId, ...datos } = req.body;
@@ -323,7 +336,7 @@ app.patch('/api/usuario/perfil', async (req, res) => {
             return res.status(400).json({ error: "ID de usuario no proporcionado" });
         }
 
-        // Mapeo: Frontend 'nombre' -> Backend 'name'
+        // Mapeo Crítico: Frontend 'nombre' -> Backend 'name' para persistencia real
         if (datos.nombre) {
             datos.name = datos.nombre;
             delete datos.nombre;

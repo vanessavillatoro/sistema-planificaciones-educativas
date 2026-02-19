@@ -15,134 +15,112 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
   const [modalConfigAbierta, setModalConfigAbierta] = useState(false); 
   
   const [usuario, setUsuario] = useState({
-    nombre: 'Invitado',
+    nombre: localStorage.getItem('userName') || 'Invitado',
     correo: '',
     fotoUrl: ''
   });
 
   const userId = localStorage.getItem('userId');
-
   const API_BASE_URL = window.location.hostname === "localhost" 
     ? "http://localhost:5000" 
     : "https://sistema-planificaciones-educativas-ten.vercel.app";
 
   const obtenerUrlImagen = (url) => {
     if (!url) return fotoPerfil;
-    const base = url.startsWith('http') 
-      ? url 
-      : `${API_BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
-
+    const base = url.startsWith('http') ? url : `${API_BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
     return `${base}${base.includes('?') ? '&' : '?'}t=${new Date().getTime()}`;
-  };
-
-  const toggleMenu = () => {
-    setMenuAbierto(!menuAbierto);
   };
 
   const cargarDatos = useCallback(async () => {
     try {
-      if (!userId) {
-        setUsuario({ nombre: 'Invitado', correo: '', fotoUrl: '' });
-        return;
-      }
-
+      if (!userId) return;
       const response = await fetch(`${API_BASE_URL}/api/usuario/perfil?userId=${userId}&t=${new Date().getTime()}`);
       if (response.ok) {
         const data = await response.json();
-        setUsuario({
-          nombre: data.name || 'Docente',
+        const nombreFinal = data.name || 'Docente';
+        
+        setUsuario(prev => ({
+          ...prev,
+          nombre: nombreFinal,
           correo: data.email || '',
           fotoUrl: data.fotoUrl || '',
           celular: data.celular || '',
           municipio: data.municipio || '',
           departamento: data.departamento || '',
           direccion: data.direccion || ''
-        });
+        }));
 
-        if (setNombreApp) setNombreApp(data.name || 'Docente');
+        localStorage.setItem('userName', nombreFinal);
+        if (setNombreApp) setNombreApp(nombreFinal);
       }
     } catch (error) {
       console.log("Error de conexión perfil.");
     }
   }, [setNombreApp, API_BASE_URL, userId]);
 
-  // EFECTO ACTUALIZADO: Escucha cambios en tiempo real
   useEffect(() => {
     cargarDatos();
-
-    const manejarCambioPerfil = (e) => {
-      // Priorizamos el nombre que viene en el evento, sino el de localStorage
-      const nuevoNombre = e.detail?.nombre || localStorage.getItem('userName');
-      if (nuevoNombre) {
-        setUsuario(prev => ({ ...prev, nombre: nuevoNombre }));
-        if (setNombreApp) setNombreApp(nuevoNombre);
+    const manejarCambio = (e) => {
+      const n = e.detail?.nombre || localStorage.getItem('userName');
+      if (n) {
+        setUsuario(prev => ({ ...prev, nombre: n }));
+        if (setNombreApp) setNombreApp(n);
       }
     };
-
-    window.addEventListener('perfilActualizado', manejarCambioPerfil);
-    window.addEventListener('storage', manejarCambioPerfil);
-
+    window.addEventListener('perfilActualizado', manejarCambio);
+    window.addEventListener('storage', manejarCambio);
     return () => {
-      window.removeEventListener('perfilActualizado', manejarCambioPerfil);
-      window.removeEventListener('storage', manejarCambioPerfil);
+      window.removeEventListener('perfilActualizado', manejarCambio);
+      window.removeEventListener('storage', manejarCambio);
     };
   }, [cargarDatos, setNombreApp]);
 
   const handleSave = async (datosNuevos) => {
     try {
-      if (!userId) {
-        alert("Sesión expirada. Por favor, inicia sesión de nuevo.");
-        return;
-      }
-
-      let cuerpoPeticion;
-      let encabezados = {};
+      if (!userId) return alert("Sesión expirada.");
+      let cuerpo;
+      let headers = {};
 
       if (datosNuevos instanceof FormData) {
-        cuerpoPeticion = datosNuevos;
-        cuerpoPeticion.set('userId', userId);
+        cuerpo = datosNuevos;
+        cuerpo.set('userId', userId);
       } else {
-        cuerpoPeticion = JSON.stringify({ 
-          ...datosNuevos,
-          userId: userId, 
-          name: datosNuevos.nombre, 
-          email: datosNuevos.correo,
-          celular: datosNuevos.celular,
-          municipio: datosNuevos.municipio,
-          departamento: datosNuevos.departamento,
-          direccion: datosNuevos.direccion
+        cuerpo = JSON.stringify({ 
+          ...datosNuevos, 
+          userId, 
+          name: datosNuevos.nombre, // Mapeo de nombre a name para el server
+          email: datosNuevos.correo 
         });
-        encabezados['Content-Type'] = 'application/json';
+        headers['Content-Type'] = 'application/json';
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/usuario/perfil`, {
+      const res = await fetch(`${API_BASE_URL}/api/usuario/perfil`, {
         method: 'PATCH',
-        headers: encabezados,
-        body: cuerpoPeticion
+        headers,
+        body: cuerpo
       });
 
-      if (response.ok) {
-        await cargarDatos(); 
-        alert("¡Todos los datos se han actualizado!");
+      if (res.ok) {
+        const data = await res.json();
+        // Disparar evento para que todos se enteren del cambio
+        window.dispatchEvent(new CustomEvent('perfilActualizado', { 
+          detail: { nombre: datosNuevos.nombre || data.name } 
+        }));
+        alert("¡Datos actualizados!");
         setModalAbierta(false);
-      } else {
-        alert("Error al guardar los datos.");
       }
-    } catch (error) {
-      console.error("Error al guardar:", error);
-    }
+    } catch (e) { console.error(e); }
   };
 
   const handleLogout = () => {
     localStorage.clear();
-    setUsuario({ nombre: 'Invitado', correo: '', fotoUrl: '' });
     window.location.href = '/auth';
   };
 
   return (
     <nav className={`navbar ${darkMode ? 'dark' : 'light'}`}>
       <Link to="/" className="brand-container">
-        <img src={logoApp} alt="Logo Villatoro" className="logo-img" />
+        <img src={logoApp} alt="Logo" className="logo-img" />
         <div className="brand-text">
           <span className="brand-top">Villatoro's</span>
           <span className="brand-bottom">Solutions</span>
@@ -152,76 +130,36 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
       <div className="nav-menu">
         <NavDropdown />
         <Link to="/acerca-de-nosotros">Acerca de nosotros</Link>
-        <Link to="/blog">Blog</Link>
-        <Link to="/funciona">¿Cómo funciona?</Link>
       </div>
 
-      <div className="navbar-actions" style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+      <div className="navbar-actions">
         <ThemeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
-        
-        <div className="perfil-container" style={{ position: 'relative' }}>
-          <div className="perfil-trigger" onClick={toggleMenu} style={{ cursor: 'pointer' }}>
-            <img 
-              src={obtenerUrlImagen(usuario.fotoUrl)} 
-              alt="Perfil" 
-              className="avatar-img" 
-              key={usuario.fotoUrl} 
-              onError={(e) => { e.target.src = fotoPerfil; }} 
-            />
+        <div className="perfil-container">
+          <div className="perfil-trigger" onClick={() => setMenuAbierto(!menuAbierto)}>
+            <img src={obtenerUrlImagen(usuario.fotoUrl)} alt="Perfil" className="avatar-img" />
           </div>
 
           {menuAbierto && (
             <div className="perfil-dropdown">
               <div className="perfil-header">
-                <img src={obtenerUrlImagen(usuario.fotoUrl)} alt="User" />
                 <div className="perfil-user-info">
                   <h4>{usuario.nombre}</h4>
-                  <p className="user-email">{usuario.correo || 'Inicia sesión para ver datos'}</p>
+                  <p>{usuario.correo}</p>
                 </div>
-                <button className="close-btn" onClick={() => setMenuAbierto(false)}>×</button>
+                <button onClick={() => setMenuAbierto(false)}>×</button>
               </div>
-              
-              <hr />
-
               <ul className="perfil-menu-list">
-                {userId ? (
-                  <>
-                    <li onClick={() => { setModalAbierta(true); setMenuAbierto(false); }}>
-                      <i className="icon-user"></i> Mi perfil
-                    </li>
-                    <li onClick={() => { setModalConfigAbierta(true); setMenuAbierto(false); }}>
-                      <i className="icon-settings"></i> Configuraciones
-                    </li>
-                    <li className="logout" onClick={handleLogout}>
-                      <i className="icon-logout"></i> Cerrar sesión
-                    </li>
-                  </>
-                ) : (
-                  <li onClick={() => window.location.href = '/auth'}>
-                    <i className="icon-login"></i> Iniciar Sesión
-                  </li>
-                )}
+                <li onClick={() => { setModalAbierta(true); setMenuAbierto(false); }}>Mi perfil</li>
+                <li onClick={() => { setModalConfigAbierta(true); setMenuAbierto(false); }}>Configuraciones</li>
+                <li className="logout" onClick={handleLogout}>Cerrar sesión</li>
               </ul>
             </div>
           )}
         </div>
       </div>
 
-      {modalAbierta && (
-        <ModalPerfil 
-          onClose={() => setModalAbierta(false)} 
-          onSave={handleSave}
-          darkMode={darkMode} 
-          datosUsuario={usuario} 
-        />
-      )}
-      {modalConfigAbierta && (
-        <ModalConfiguraciones 
-          onClose={() => setModalConfigAbierta(false)} 
-          darkMode={darkMode}
-          setDarkMode={setDarkMode}
-        />
-      )}
+      {modalAbierta && <ModalPerfil onClose={() => setModalAbierta(false)} onSave={handleSave} darkMode={darkMode} datosUsuario={usuario} />}
+      {modalConfigAbierta && <ModalConfiguraciones onClose={() => setModalConfigAbierta(false)} darkMode={darkMode} setDarkMode={setDarkMode} />}
     </nav>
   );
 };

@@ -4,12 +4,10 @@ import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 
 const imagenAuth = "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070";
 
-// --- PASO 1: CORREGIR LA URL DEL BACKEND ---
-// Asegúrate de que la segunda URL sea la de tu BACKEND (donde está server.js)
+// --- PASO 1: URL DEL BACKEND ---
 const API_BASE_URL = window.location.hostname === "localhost" 
   ? "http://localhost:5000" 
   : "https://sistema-planificaciones-educativas.vercel.app"; 
-  // NOTA: Si tu API está en otra URL (ej: ...-api.vercel.app), pon esa aquí.
 
 const AuthContent = () => {
   const [esLogin, setEsLogin] = useState(true);
@@ -45,9 +43,9 @@ const AuthContent = () => {
       const data = await response.json();
       
       if (response.ok) {
-        // Guardamos los datos tal cual los manda tu server.js
+        // Guardamos los datos para que el Navbar los reconozca
         localStorage.setItem('userId', data.userId);
-        localStorage.setItem('userName', data.userName);
+        localStorage.setItem('userName', data.userName); // Sincronizado con server.js
         if (data.fotoUrl) {
           localStorage.setItem('userFoto', data.fotoUrl);
         }
@@ -96,9 +94,11 @@ const AuthContent = () => {
       
       const data = await response.json();
       if (response.ok) {
+        // Guardamos los datos recibidos del servidor
         localStorage.setItem('userId', data.userId);
-        localStorage.setItem('userName', data.userName);
+        localStorage.setItem('userName', data.userName); // Este es el que lee el Navbar
         if (data.fotoUrl) localStorage.setItem('userFoto', data.fotoUrl);
+        
         window.location.href = '/'; 
       } else {
         alert(data.error || "Error al iniciar sesión");
