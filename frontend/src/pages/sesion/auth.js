@@ -4,10 +4,10 @@ import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 
 const imagenAuth = "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070";
 
-// --- PASO 1: URL DEL BACKEND (CORREGIDA CON -TEN) ---
+// --- CONFIGURACIÓN DE URL DINÁMICA ---
 const API_BASE_URL = window.location.hostname === "localhost" 
   ? "http://localhost:5000" 
-  : "https://sistema-planificaciones-educativas-ten.vercel.app"; 
+  : "https://sistema-planificaciones-educativas-ten.vercel.app";
 
 const AuthContent = () => {
   const [esLogin, setEsLogin] = useState(true);
@@ -29,12 +29,13 @@ const AuthContent = () => {
     });
   };
 
-  // --- PASO 2: AJUSTAR EL MANEJO DE GOOGLE ---
+  // --- MANEJO DE GOOGLE AUTH ---
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
-      console.log("Enviando token a:", `${API_BASE_URL}/api/auth/google`);
+      // Limpiamos la URL para evitar doble barra o falta de ella
+      const urlFinal = `${API_BASE_URL.replace(/\/$/, '')}/api/auth/google`;
       
-      const response = await fetch(`${API_BASE_URL}/api/auth/google`, {
+      const response = await fetch(urlFinal, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token: credentialResponse.credential })
@@ -43,24 +44,18 @@ const AuthContent = () => {
       const data = await response.json();
       
       if (response.ok) {
-        // Limpiamos rastro anterior para evitar conflictos de nombres
         localStorage.clear();
-
-        // Guardamos los datos para que el Navbar los reconozca
         localStorage.setItem('userId', data.userId);
         localStorage.setItem('userName', data.userName); 
-        if (data.fotoUrl) {
-          localStorage.setItem('userFoto', data.fotoUrl);
-        }
+        if (data.fotoUrl) localStorage.setItem('userFoto', data.fotoUrl);
         
-        // Redirección limpia
         window.location.href = '/';
       } else {
         alert(data.error || "Error en el servidor");
       }
     } catch (error) {
       console.error("Error Auth:", error);
-      alert("No se pudo conectar con el servidor. Revisa el URL de Vercel.");
+      alert("No se pudo conectar con el servidor. Verifica que el backend esté activo.");
     }
   };
 
@@ -72,7 +67,6 @@ const AuthContent = () => {
       if (value === "") { setFormData({ ...formData, [name]: "" }); return; }
       if (!/^\d+$/.test(value)) return; 
       const num = parseInt(value);
-      if (value.length === 1 && !/[2-9]/.test(value)) return; 
       if (num > 100) return;
       setFormData({ ...formData, [name]: value });
       return;
@@ -88,8 +82,10 @@ const AuthContent = () => {
     }
 
     const ruta = esLogin ? '/api/auth/login' : '/api/auth/register';
+    const urlFinal = `${API_BASE_URL.replace(/\/$/, '')}/${ruta.replace(/^\//, '')}`;
+
     try {
-      const response = await fetch(`${API_BASE_URL}${ruta}`, {
+      const response = await fetch(urlFinal, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -104,7 +100,7 @@ const AuthContent = () => {
         
         window.location.href = '/'; 
       } else {
-        alert(data.error || "Error al iniciar sesión");
+        alert(data.error || "Error en la autenticación");
       }
     } catch (error) {
       alert("Error de conexión al servidor");
