@@ -18,10 +18,10 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
     fotoUrl: datosUsuario.fotoUrl || ''
   });
 
-  const [editando, setEditando] = useState(null); // SE USA EN EL INPUT
+  const [editando, setEditando] = useState(null);
   const [cargando, setCargando] = useState(false);
   
-  const inputRefs = useRef({}); // SE USA EN EL REF DEL INPUT
+  const inputRefs = useRef({});
   const fileInputRef = useRef(null); 
 
   const formatearUrlImagen = (url) => {
@@ -88,9 +88,17 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
       const data = await response.json();
 
       if (response.ok) {
-        // ACTUALIZACIÓN DE STORAGE
+        // 1. Actualizamos el Storage
         localStorage.setItem('userName', perfil.nombre);
-        // AVISO GLOBAL PARA ELIMINAR EL "INVITADO"
+        
+        // 2. DISPARO DE EVENTO PERSONALIZADO (Solución al problema)
+        // Esto notifica a los otros componentes en la misma pestaña inmediatamente
+        const event = new CustomEvent('perfilActualizado', { 
+            detail: { nombre: perfil.nombre } 
+        });
+        window.dispatchEvent(event);
+        
+        // Mantenemos el dispatch original por si tienes otros listeners
         window.dispatchEvent(new Event('storage')); 
         
         alert("¡Datos guardados con éxito!");
@@ -143,19 +151,18 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
           {campos.map((item) => (
             <div className={`input-group ${editando === item.name ? 'is-editing' : ''}`} key={item.name}>
               <div className="label-section">
-                {/* AQUÍ SE USA HABILITAREEDICION */}
                 <button className="btn-edit-small" onClick={() => habilitarEdicion(item.name)}>
                   ✎
                 </button>
                 <label>{item.label}</label>
               </div>
               <input 
-                ref={(el) => (inputRefs.current[item.name] = el)} // AQUÍ SE USA INPUTREFS
+                ref={(el) => (inputRefs.current[item.name] = el)}
                 type="text" 
                 name={item.name} 
                 value={perfil[item.name] || ''} 
                 onChange={handleChange} 
-                readOnly={editando !== item.name} // AQUÍ SE USA EDITANDO
+                readOnly={editando !== item.name}
                 onBlur={() => setEditando(null)}
               />
             </div>

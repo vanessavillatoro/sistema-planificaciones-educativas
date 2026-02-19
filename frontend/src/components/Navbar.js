@@ -22,12 +22,10 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
 
   const userId = localStorage.getItem('userId');
 
-  // SOLUCIÓN CORRECTA: Detección automática de URL para evitar errores en celular
   const API_BASE_URL = window.location.hostname === "localhost" 
     ? "http://localhost:5000" 
     : "https://sistema-planificaciones-educativas-ten.vercel.app";
 
-  // FUNCIÓN PARA IMÁGENES: Fuerza la actualización en celular con el timestamp (?t=)
   const obtenerUrlImagen = (url) => {
     if (!url) return fotoPerfil;
     const base = url.startsWith('http') 
@@ -48,7 +46,6 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
         return;
       }
 
-      // Agregamos timestamp también a la petición de datos para evitar caché vieja
       const response = await fetch(`${API_BASE_URL}/api/usuario/perfil?userId=${userId}&t=${new Date().getTime()}`);
       if (response.ok) {
         const data = await response.json();
@@ -69,9 +66,27 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
     }
   }, [setNombreApp, API_BASE_URL, userId]);
 
+  // EFECTO ACTUALIZADO: Escucha cambios en tiempo real
   useEffect(() => {
     cargarDatos();
-  }, [cargarDatos]);
+
+    const manejarCambioPerfil = (e) => {
+      // Priorizamos el nombre que viene en el evento, sino el de localStorage
+      const nuevoNombre = e.detail?.nombre || localStorage.getItem('userName');
+      if (nuevoNombre) {
+        setUsuario(prev => ({ ...prev, nombre: nuevoNombre }));
+        if (setNombreApp) setNombreApp(nuevoNombre);
+      }
+    };
+
+    window.addEventListener('perfilActualizado', manejarCambioPerfil);
+    window.addEventListener('storage', manejarCambioPerfil);
+
+    return () => {
+      window.removeEventListener('perfilActualizado', manejarCambioPerfil);
+      window.removeEventListener('storage', manejarCambioPerfil);
+    };
+  }, [cargarDatos, setNombreApp]);
 
   const handleSave = async (datosNuevos) => {
     try {
@@ -121,7 +136,7 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
   const handleLogout = () => {
     localStorage.clear();
     setUsuario({ nombre: 'Invitado', correo: '', fotoUrl: '' });
-    window.location.href = '/auth'; // Ajustado a tu ruta de App.js
+    window.location.href = '/auth';
   };
 
   return (
