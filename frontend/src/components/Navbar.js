@@ -15,7 +15,7 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
   const [modalConfigAbierta, setModalConfigAbierta] = useState(false); 
   
   const [usuario, setUsuario] = useState({
-    nombre: 'Invitado',
+    nombre: localStorage.getItem('userName') || 'Invitado',
     correo: '',
     fotoUrl: ''
   });
@@ -49,8 +49,11 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
       const response = await fetch(`${API_BASE_URL}/api/usuario/perfil?userId=${userId}&t=${new Date().getTime()}`);
       if (response.ok) {
         const data = await response.json();
+        // Sincronización con 'name' del servidor para persistencia
+        const nombrePersistente = data.name || data.nombre || 'Docente';
+        
         setUsuario({
-          nombre: data.name || 'Docente',
+          nombre: nombrePersistente,
           correo: data.email || '',
           fotoUrl: data.fotoUrl || '',
           celular: data.celular || '',
@@ -59,19 +62,18 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
           direccion: data.direccion || ''
         });
 
-        if (setNombreApp) setNombreApp(data.name || 'Docente');
+        localStorage.setItem('userName', nombrePersistente);
+        if (setNombreApp) setNombreApp(nombrePersistente);
       }
     } catch (error) {
       console.log("Error de conexión perfil.");
     }
   }, [setNombreApp, API_BASE_URL, userId]);
 
-  // EFECTO ACTUALIZADO: Escucha cambios en tiempo real
   useEffect(() => {
     cargarDatos();
 
     const manejarCambioPerfil = (e) => {
-      // Priorizamos el nombre que viene en el evento, sino el de localStorage
       const nuevoNombre = e.detail?.nombre || localStorage.getItem('userName');
       if (nuevoNombre) {
         setUsuario(prev => ({ ...prev, nombre: nuevoNombre }));
@@ -101,6 +103,9 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
       if (datosNuevos instanceof FormData) {
         cuerpoPeticion = datosNuevos;
         cuerpoPeticion.set('userId', userId);
+        if (datosNuevos.has('nombre')) {
+          cuerpoPeticion.set('name', datosNuevos.get('nombre'));
+        }
       } else {
         cuerpoPeticion = JSON.stringify({ 
           ...datosNuevos,
@@ -122,6 +127,16 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
       });
 
       if (response.ok) {
+        const data = await response.json();
+        const nombreActualizado = data.name || datosNuevos.nombre;
+        
+        localStorage.setItem('userName', nombreActualizado);
+        
+        // Disparar evento para actualizar todos los componentes
+        window.dispatchEvent(new CustomEvent('perfilActualizado', { 
+          detail: { nombre: nombreActualizado } 
+        }));
+
         await cargarDatos(); 
         alert("¡Todos los datos se han actualizado!");
         setModalAbierta(false);
