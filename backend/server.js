@@ -315,12 +315,35 @@ app.delete('/api/papelera/permanente/:id', async (req, res) => {
 });
 
 // --- GESTIÓN DE PERFIL ---
-app.get('/api/usuario/perfil', async (req, res) => {
+app.patch('/api/usuario/perfil', async (req, res) => {
     try {
-        const usuario = await User.findById(req.query.userId);
-        res.status(200).json(usuario || {});
+        const { userId, ...datos } = req.body;
+
+        // Validación: Si no hay userId, no podemos buscar nada
+        if (!userId || userId === "undefined" || userId === "null") {
+            return res.status(400).json({ error: "ID de usuario no proporcionado o inválido" });
+        }
+
+        // Mapeo de nombres: Si envías 'nombre' desde el frontend pero tu modelo usa 'name'
+        if (datos.nombre) {
+            datos.name = datos.nombre;
+            delete datos.nombre;
+        }
+
+        const usuarioActualizado = await User.findByIdAndUpdate(
+            userId,
+            { $set: datos },
+            { new: true, runValidators: true } // runValidators asegura que cumpla el esquema
+        );
+
+        if (!usuarioActualizado) {
+            return res.status(404).json({ error: "Usuario no encontrado en la base de datos" });
+        }
+
+        res.status(200).json(usuarioActualizado);
     } catch (error) {
-        res.status(500).json({ error: "Error" });
+        console.error("Error detallado en PATCH perfil:", error);
+        res.status(500).json({ error: "Error interno al actualizar perfil" });
     }
 });
 
