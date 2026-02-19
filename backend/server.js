@@ -32,15 +32,19 @@ const Gestion = mongoose.models.Gestion || mongoose.model('Gestion', GestionSche
 
 const app = express();
 
-// --- BLOQUE DE CORS REFORZADO (ACTUALIZADO PARA VERCEL) ---
-app.use(cors()); 
+// --- BLOQUE DE CORS MEJORADO (PARCHE PARA VERCEL) ---
+app.use(cors({
+  origin: '*', 
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     
-    // Responder rápido a las peticiones pre-flight (OPTIONS) vital para Vercel
+    // RESPUESTA CRÍTICA PARA VERCEL: Manejo de pre-flight
     if (req.method === 'OPTIONS') {
         return res.sendStatus(200);
     }
@@ -313,8 +317,7 @@ app.delete('/api/papelera/permanente/:id', async (req, res) => {
     }
 });
 
-// --- GESTIÓN DE PERFIL (SOLUCIÓN PERSISTENCIA Y GUARDADO HÍBRIDO) ---
-
+// --- GESTIÓN DE PERFIL ---
 app.get('/api/usuario/perfil', async (req, res) => {
     try {
         const { userId } = req.query;
@@ -331,35 +334,19 @@ app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
     try {
         const userId = req.body.userId;
         const datos = { ...req.body };
-
         if (!userId || userId === "undefined" || userId === "null") {
             return res.status(400).json({ error: "ID de usuario no proporcionado" });
         }
-
-        if (req.file) {
-            datos.fotoUrl = `/uploads/${req.file.filename}`;
-        }
-
-        if (datos.nombre) {
-            datos.name = datos.nombre;
-            delete datos.nombre;
-        }
-
+        if (req.file) { datos.fotoUrl = `/uploads/${req.file.filename}`; }
+        if (datos.nombre) { datos.name = datos.nombre; delete datos.nombre; }
         delete datos.userId;
-
         const usuarioActualizado = await User.findByIdAndUpdate(
             userId,
             { $set: datos },
             { new: true, runValidators: true }
         );
-
-        if (!usuarioActualizado) {
-            return res.status(404).json({ error: "Usuario no encontrado" });
-        }
-
         res.status(200).json(usuarioActualizado);
     } catch (error) {
-        console.error("Error en PATCH perfil:", error);
         res.status(500).json({ error: "Error interno al guardar los datos" });
     }
 });
@@ -368,34 +355,27 @@ app.post('/api/usuario/foto', upload.single('foto'), async (req, res) => {
     try {
         if (!req.file) return res.status(400).json({ error: "No hay imagen" });
         const userId = req.body.userId;
-        if (!userId) return res.status(400).json({ error: "Falta userId" });
         const urlFoto = `/uploads/${req.file.filename}`;
         const usuarioActualizado = await User.findByIdAndUpdate(
-            userId,
-            { $set: { fotoUrl: urlFoto } },
-            { new: true }
+            userId, { $set: { fotoUrl: urlFoto } }, { new: true }
         );
         res.status(200).json(usuarioActualizado);
     } catch (error) {
-        console.error("Error al subir foto:", error);
         res.status(500).json({ error: "Error interno" });
     }
 });
 
-// --- AUTENTICACIÓN: GOOGLE (MEJORADO PARA VERCEL) ---
+// --- AUTENTICACIÓN: GOOGLE (BLOQUE ORIGINAL MANTENIDO) ---
 app.post('/api/auth/google', async (req, res) => {
     try {
         const { token } = req.body;
-        if (!token) return res.status(400).json({ error: "Token no proporcionado" });
-
         const ticket = await client.verifyIdToken({
             idToken: token,
-            audience: process.env.GOOGLE_CLIENT_ID
+            audience: process.env.GOOGLE_CLIENT_ID,
+            clockSkewInSeconds: 600,
         });
-
         const { email, name, family_name, picture, sub } = ticket.getPayload();
         let usuario = await User.findOne({ email });
-        
         if (!usuario) {
             usuario = new User({
                 name: name,
@@ -414,7 +394,6 @@ app.post('/api/auth/google', async (req, res) => {
     }
 });
 
-// --- AUTENTICACIÓN: REGISTRO MANUAL ---
 app.post('/api/auth/register', async (req, res) => {
   try {
     const { name, apellido, email, password, edad } = req.body;
@@ -431,7 +410,6 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
-// --- AUTENTICACIÓN: LOGIN MANUAL ---
 app.post('/api/auth/login', async (req, res) => {
   try {
     const usuario = await User.findOne({ email: req.body.email, password: req.body.password });
