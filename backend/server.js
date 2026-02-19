@@ -32,18 +32,18 @@ const Gestion = mongoose.models.Gestion || mongoose.model('Gestion', GestionSche
 
 const app = express();
 
-// --- BLOQUE DE CORS MEJORADO ---
-app.use(cors({
-  origin: '*', 
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
-app.options('*', cors());
+// --- BLOQUE DE CORS REFORZADO (ACTUALIZADO PARA VERCEL) ---
+app.use(cors()); 
 
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    
+    // Responder rápido a las peticiones pre-flight (OPTIONS) vital para Vercel
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(200);
+    }
     next();
 });
 
@@ -313,12 +313,8 @@ app.delete('/api/papelera/permanente/:id', async (req, res) => {
     }
 });
 
-// --- GESTIÓN DE PERFIL (SOLUCIÓN PERSISTENCIA) ---
-
-// NUEVA RUTA: Obtener perfil por ID para evitar pérdida de datos al recargar
 // --- GESTIÓN DE PERFIL (SOLUCIÓN PERSISTENCIA Y GUARDADO HÍBRIDO) ---
 
-// 1. Esta función sirve para que cuando refresques la página, el nombre no se pierda
 app.get('/api/usuario/perfil', async (req, res) => {
     try {
         const { userId } = req.query;
@@ -331,7 +327,6 @@ app.get('/api/usuario/perfil', async (req, res) => {
     }
 });
 
-// 2. Esta función es la que arregla el "Error al guardar" permitiendo JSON y Fotos
 app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
     try {
         const userId = req.body.userId;
@@ -341,18 +336,15 @@ app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
             return res.status(400).json({ error: "ID de usuario no proporcionado" });
         }
 
-        // Manejo de la foto si se subió una
         if (req.file) {
             datos.fotoUrl = `/uploads/${req.file.filename}`;
         }
 
-        // Mapeo Crítico: Frontend 'nombre' -> Backend 'name'
         if (datos.nombre) {
             datos.name = datos.nombre;
             delete datos.nombre;
         }
 
-        // Limpiar el userId de los datos para evitar error en MongoDB
         delete datos.userId;
 
         const usuarioActualizado = await User.findByIdAndUpdate(
@@ -372,7 +364,6 @@ app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
     }
 });
 
-// --- SUBIR FOTO DE PERFIL ---
 app.post('/api/usuario/foto', upload.single('foto'), async (req, res) => {
     try {
         if (!req.file) return res.status(400).json({ error: "No hay imagen" });
@@ -391,17 +382,20 @@ app.post('/api/usuario/foto', upload.single('foto'), async (req, res) => {
     }
 });
 
-// --- AUTENTICACIÓN: GOOGLE ---
+// --- AUTENTICACIÓN: GOOGLE (MEJORADO PARA VERCEL) ---
 app.post('/api/auth/google', async (req, res) => {
     try {
         const { token } = req.body;
+        if (!token) return res.status(400).json({ error: "Token no proporcionado" });
+
         const ticket = await client.verifyIdToken({
             idToken: token,
-            audience: process.env.GOOGLE_CLIENT_ID,
-            clockSkewInSeconds: 600,
+            audience: process.env.GOOGLE_CLIENT_ID
         });
+
         const { email, name, family_name, picture, sub } = ticket.getPayload();
         let usuario = await User.findOne({ email });
+        
         if (!usuario) {
             usuario = new User({
                 name: name,
