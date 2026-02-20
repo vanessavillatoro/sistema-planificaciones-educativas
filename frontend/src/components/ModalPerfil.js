@@ -82,44 +82,39 @@ const handleGuardarDatos = async () => {
       const response = await fetch(`${API_BASE_URL}/api/usuario/perfil`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, ...perfil }),
+        body: JSON.stringify({ 
+          userId, 
+          nombre: perfil.nombre, // Aseguramos que el server reciba 'nombre'
+          ...perfil 
+        }),
       });
 
-      const data = await response.json();
-
+      // Primero verificamos si la respuesta fue exitosa antes de intentar leer el JSON
       if (response.ok) {
-        // --- SINCRONIZACIÓN CLAVE ---
-        // Usamos data.userName (que es lo que el server envía ahora) 
-        // o perfil.nombre como respaldo.
-        const nombreActualizado = data.userName || perfil.nombre;
+        const data = await response.json();
         
-        localStorage.setItem('userName', nombreActualizado);
+        // ACTUALIZACIÓN CRÍTICA DEL STORAGE
+        // Usamos el nombre que escribiste en el input para que el cambio sea inmediato
+        localStorage.setItem('userName', perfil.nombre);
         
-        // Disparamos el evento para que el Navbar y el Inicio cambien al instante
-        const event = new CustomEvent('perfilActualizado', { 
-            detail: { nombre: nombreActualizado } 
-        });
-        window.dispatchEvent(event);
+        // Notificamos al resto de la página
+        window.dispatchEvent(new CustomEvent('perfilActualizado', { 
+            detail: { nombre: perfil.nombre } 
+        }));
         window.dispatchEvent(new Event('storage')); 
         
         alert("¡Datos guardados con éxito!");
 
-        if (onSave) {
-          try {
-            // Pasamos los datos limpios que vienen del servidor
-            onSave(data); 
-          } catch (e) {
-            console.log("Aviso: El componente padre no procesó el onSave, pero los datos están en la DB.");
-          }
-        }
+        if (onSave) onSave(data);
         onClose();
       } else {
-        // Capturamos el error específico del servidor para no mostrar "Error al guardar" genérico
-        alert(data.error || data.message || "Error al guardar.");
+        // Si el servidor responde con error, intentamos ver qué dijo
+        const errorData = await response.json();
+        alert(errorData.error || "Error al procesar los datos en el servidor.");
       }
     } catch (error) {
       console.error("Error de conexión:", error);
-      alert("Error de conexión con el servidor.");
+      alert("No se pudo conectar con el servidor. Revisa tu internet.");
     } finally {
       setCargando(false);
     }
