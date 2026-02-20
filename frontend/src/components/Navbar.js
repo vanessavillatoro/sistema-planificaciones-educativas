@@ -17,7 +17,11 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
   const [usuario, setUsuario] = useState({
     nombre: localStorage.getItem('userName') || 'Invitado',
     correo: '',
-    fotoUrl: ''
+    fotoUrl: '',
+    celular: '',      // Agregado para que el modal no reciba undefined
+    municipio: '',    // Agregado para que el modal no reciba undefined
+    departamento: '', // Agregado para que el modal no reciba undefined
+    direccion: ''     // Agregado para que el modal no reciba undefined
   });
 
   const userId = localStorage.getItem('userId');
@@ -42,19 +46,18 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
   const cargarDatos = useCallback(async () => {
     try {
       if (!userId) {
-        setUsuario({ nombre: 'Invitado', correo: '', fotoUrl: '' });
+        setUsuario({ nombre: 'Invitado', correo: '', fotoUrl: '', celular: '', municipio: '', departamento: '', direccion: '' });
         return;
       }
 
       const response = await fetch(`${API_BASE_URL}/api/usuario/perfil?userId=${userId}&t=${new Date().getTime()}`);
       if (response.ok) {
         const data = await response.json();
-        // Sincronización con 'name' del servidor para persistencia
         const nombrePersistente = data.name || data.nombre || 'Docente';
         
         setUsuario({
           nombre: nombrePersistente,
-          correo: data.email || '',
+          correo: data.email || data.correo || '',
           fotoUrl: data.fotoUrl || '',
           celular: data.celular || '',
           municipio: data.municipio || '',
@@ -132,7 +135,6 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
         
         localStorage.setItem('userName', nombreActualizado);
         
-        // Disparar evento para actualizar todos los componentes
         window.dispatchEvent(new CustomEvent('perfilActualizado', { 
           detail: { nombre: nombreActualizado } 
         }));
@@ -150,7 +152,7 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
 
   const handleLogout = () => {
     localStorage.clear();
-    setUsuario({ nombre: 'Invitado', correo: '', fotoUrl: '' });
+    setUsuario({ nombre: 'Invitado', correo: '', fotoUrl: '', celular: '', municipio: '', departamento: '', direccion: '' });
     window.location.href = '/auth';
   };
 
