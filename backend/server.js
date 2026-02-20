@@ -385,7 +385,7 @@ app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error detallado en el servidor:", error);
+        console.error("Error en el servidor:", error);
         res.status(500).json({ error: "Error interno: " + error.message });
     }
 });
