@@ -336,43 +336,49 @@ app.get('/api/usuario/perfil', async (req, res) => {
 
 app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
     try {
-        const userId = req.body.userId;
+        const { userId } = req.body;
         
         if (!userId || userId === "undefined" || userId === "null") {
             return res.status(400).json({ error: "ID de usuario no proporcionado" });
         }
 
-        // 1. Extraemos los datos del cuerpo de la petición
-        // Si el frontend envía JSON, req.body tendrá los datos.
-        const { nombre, correo, celular, municipio, departamento, direccion } = req.body;
-
-        // 2. Preparamos el objeto de actualización mapeando a los nombres de tu modelo User
+        // Creamos el objeto de actualización basado en lo que llegue
         const updateData = {};
         
-        if (nombre) updateData.name = nombre;
-        if (correo) updateData.email = correo;
-        if (celular) updateData.celular = celular;
-        if (municipio) updateData.municipio = municipio;
-        if (departamento) updateData.departamento = departamento;
-        if (direccion) updateData.direccion = direccion;
+        // Mapeo inteligente: acepta tanto 'nombre' como 'name' para evitar errores
+        if (req.body.nombre || req.body.name) {
+            updateData.name = req.body.nombre || req.body.name;
+        }
+        
+        if (req.body.correo || req.body.email) {
+            updateData.email = req.body.correo || req.body.email;
+        }
 
-        // 3. Si hay una foto nueva subida por multer
+        // Otros campos directos
+        const camposDirectos = ['celular', 'municipio', 'departamento', 'direccion'];
+        camposDirectos.forEach(campo => {
+            if (req.body[campo] !== undefined) {
+                updateData[campo] = req.body[campo];
+            }
+        });
+
+        // Si se subió una foto nueva
         if (req.file) { 
             updateData.fotoUrl = `/uploads/${req.file.filename}`; 
         }
 
-        // 4. Actualización atómica en MongoDB
+        // Actualización en la base de datos
         const usuarioActualizado = await User.findByIdAndUpdate(
             userId,
             { $set: updateData },
-            { new: true, runValidators: false } // runValidators: false evita errores si el modelo es estricto
+            { new: true, runValidators: false } // Desactivamos validadores estrictos para evitar el Error 500
         );
 
         if (!usuarioActualizado) {
             return res.status(404).json({ error: "Usuario no encontrado" });
         }
 
-        // 5. Respuesta limpia al frontend
+        // Devolvemos el objeto limpio para que el Frontend lo guarde
         res.status(200).json({
             userId: usuarioActualizado._id,
             userName: usuarioActualizado.name,
@@ -385,8 +391,8 @@ app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error en el servidor:", error);
-        res.status(500).json({ error: "Error interno: " + error.message });
+        console.error("Error crítico en servidor:", error);
+        res.status(500).json({ error: "Error en servidor: " + error.message });
     }
 });
 
