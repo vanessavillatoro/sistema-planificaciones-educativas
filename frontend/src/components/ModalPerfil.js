@@ -86,7 +86,7 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
     }, 100);
   };
 
-  const handleGuardarDatos = async () => {
+const handleGuardarDatos = async () => {
     const userId = localStorage.getItem('userId');
     if (!userId) {
       alert("Sesión expirada. Inicia sesión de nuevo.");
@@ -95,54 +95,45 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
 
     setCargando(true);
     try {
-      // Objeto de envío con nombres de campos normalizados para el backend
-      const datosAEnviar = { 
-        userId, 
-        name: perfil.nombre, 
-        email: perfil.correo,
-        celular: perfil.celular,
-        municipio: perfil.municipio,
-        departamento: perfil.departamento,
-        direccion: perfil.direccion,
-        fotoUrl: perfil.fotoUrl
-      };
+      // USAMOS FORMDATA para que sea 100% compatible con 'upload.single' del server
+      const formData = new FormData();
+      formData.append('userId', userId);
+      formData.append('nombre', perfil.nombre); // El server lo traduce a 'name'
+      formData.append('correo', perfil.correo); // El server lo traduce a 'email'
+      formData.append('celular', perfil.celular);
+      formData.append('municipio', perfil.municipio);
+      formData.append('departamento', perfil.departamento);
+      formData.append('direccion', perfil.direccion);
 
+      // No necesitamos headers de 'Content-Type', el navegador lo pone solo al usar FormData
       const response = await fetch(`${API_BASE_URL}/api/usuario/perfil`, {
         method: 'PATCH',
-        mode: 'cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(datosAEnviar),
+        body: formData,
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        // --- ACTUALIZACIÓN DE STORAGE ---
-        // Usamos 'data' (respuesta del server) o en su defecto lo que enviamos
-        localStorage.setItem('userName', data.name || data.userName || perfil.nombre);
+        // Actualizamos LocalStorage con lo que el servidor nos devolvió
+        localStorage.setItem('userName', data.userName || perfil.nombre);
         localStorage.setItem('userEmail', data.email || perfil.correo);
         localStorage.setItem('userCelular', data.celular || perfil.celular);
         localStorage.setItem('userMunicipio', data.municipio || perfil.municipio);
         localStorage.setItem('userDepartamento', data.departamento || perfil.departamento);
         localStorage.setItem('userDireccion', data.direccion || perfil.direccion);
-        if (data.fotoUrl) localStorage.setItem('userFoto', data.fotoUrl);
         
-        // Sincronizar resto de la App
-        window.dispatchEvent(new CustomEvent('perfilActualizado', { 
-            detail: { ...perfil, ...data } 
-        }));
+        // Disparamos el evento para que la UI se entere del cambio de nombre
         window.dispatchEvent(new Event('storage')); 
         
         alert("¡Perfil actualizado con éxito!");
-
         if (onSave) onSave(data);
         onClose();
       } else {
-        alert(data.error || "Error al procesar los datos en el servidor.");
+        alert("Error del servidor: " + (data.error || "No se pudo guardar"));
       }
     } catch (error) {
       console.error("Error de conexión:", error);
-      alert("No se pudo conectar con el servidor. Revisa tu internet.");
+      alert("Error de conexión. Revisa el servidor.");
     } finally {
       setCargando(false);
     }
