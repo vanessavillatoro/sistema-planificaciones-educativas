@@ -337,40 +337,47 @@ app.get('/api/usuario/perfil', async (req, res) => {
 app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
     try {
         const userId = req.body.userId;
-        const datos = { ...req.body };
         
         if (!userId || userId === "undefined" || userId === "null") {
             return res.status(400).json({ error: "ID de usuario no proporcionado" });
         }
 
-        if (req.file) { 
-            datos.fotoUrl = `/uploads/${req.file.filename}`; 
-        }
+        // 1. Extraemos los datos del cuerpo de la petición
+        // Si el frontend envía JSON, req.body tendrá los datos.
+        const { nombre, correo, celular, municipio, departamento, direccion } = req.body;
 
-        if (datos.nombre) { 
-            datos.name = datos.nombre; 
-        }
+        // 2. Preparamos el objeto de actualización mapeando a los nombres de tu modelo User
+        const updateData = {};
         
-        delete datos.nombre; 
+        if (nombre) updateData.name = nombre;
+        if (correo) updateData.email = correo;
+        if (celular) updateData.celular = celular;
+        if (municipio) updateData.municipio = municipio;
+        if (departamento) updateData.departamento = departamento;
+        if (direccion) updateData.direccion = direccion;
 
+        // 3. Si hay una foto nueva subida por multer
+        if (req.file) { 
+            updateData.fotoUrl = `/uploads/${req.file.filename}`; 
+        }
+
+        // 4. Actualización atómica en MongoDB
         const usuarioActualizado = await User.findByIdAndUpdate(
             userId,
-            { $set: datos },
-            { new: true, runValidators: true }
+            { $set: updateData },
+            { new: true, runValidators: false } // runValidators: false evita errores si el modelo es estricto
         );
 
         if (!usuarioActualizado) {
             return res.status(404).json({ error: "Usuario no encontrado" });
         }
 
+        // 5. Respuesta limpia al frontend
         res.status(200).json({
             userId: usuarioActualizado._id,
             userName: usuarioActualizado.name,
-            fotoUrl: usuarioActualizado.fotoUrl,
-            apellido: usuarioActualizado.apellido || '',
-            genero: usuarioActualizado.genero || '',
-            edad: usuarioActualizado.edad || '',
             email: usuarioActualizado.email,
+            fotoUrl: usuarioActualizado.fotoUrl,
             celular: usuarioActualizado.celular || '',
             municipio: usuarioActualizado.municipio || '',
             departamento: usuarioActualizado.departamento || '',
@@ -378,8 +385,8 @@ app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error al actualizar perfil:", error);
-        res.status(500).json({ error: "Error interno al guardar los datos" });
+        console.error("Error detallado en el servidor:", error);
+        res.status(500).json({ error: "Error interno: " + error.message });
     }
 });
 
