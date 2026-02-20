@@ -347,7 +347,8 @@ app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
             datos.name = datos.nombre; 
         }
         
-        delete datos.userId;
+        // No borramos datos.userId aquí porque lo necesitamos para el find, 
+        // pero quitamos 'nombre' ya que lo mapeamos a 'name'
         delete datos.nombre; 
 
         const usuarioActualizado = await User.findByIdAndUpdate(
@@ -365,15 +366,14 @@ app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
             userId: usuarioActualizado._id,
             userName: usuarioActualizado.name,
             fotoUrl: usuarioActualizado.fotoUrl,
-            apellido: usuarioActualizado.apellido,
-            genero: usuarioActualizado.genero,
-            edad: usuarioActualizado.edad,
+            apellido: usuarioActualizado.apellido || '',
+            genero: usuarioActualizado.genero || '',
+            edad: usuarioActualizado.edad || '',
             email: usuarioActualizado.email,
-            // --- NUEVOS CAMPOS AGREGADOS ---
-            celular: usuarioActualizado.celular,
-            municipio: usuarioActualizado.municipio,
-            departamento: usuarioActualizado.departamento,
-            direccion: usuarioActualizado.direccion
+            celular: usuarioActualizado.celular || '',
+            municipio: usuarioActualizado.municipio || '',
+            departamento: usuarioActualizado.departamento || '',
+            direccion: usuarioActualizado.direccion || ''
         });
 
     } catch (error) {
@@ -419,15 +419,14 @@ app.post('/api/auth/google', async (req, res) => {
             await usuario.save();
         }
         res.status(200).json({ 
-    userId: usuario._id, 
-    userName: usuario.name, 
-    fotoUrl: usuario.fotoUrl,
-    // AGREGAR ESTO:
-    celular: usuario.celular || '',
-    municipio: usuario.municipio || '',
-    departamento: usuario.departamento || '',
-    direccion: usuario.direccion || ''
-});
+            userId: usuario._id, 
+            userName: usuario.name, 
+            fotoUrl: usuario.fotoUrl,
+            celular: usuario.celular || '',
+            municipio: usuario.municipio || '',
+            departamento: usuario.departamento || '',
+            direccion: usuario.direccion || ''
+        });
     } catch (error) {
         console.error("Error en Google Auth:", error);
         res.status(500).json({ error: "Error al autenticar con Google" });
@@ -453,17 +452,16 @@ app.post('/api/auth/register', async (req, res) => {
 app.post('/api/auth/login', async (req, res) => {
   try {
     const usuario = await User.findOne({ email: req.body.email, password: req.body.password });
-    if (!usuario) return res.status(401).json({ error: "Error" });
+    if (!usuario) return res.status(401).json({ error: "Credenciales inválidas" });
     res.json({ 
-    userId: usuario._id, 
-    userName: usuario.name, 
-    fotoUrl: usuario.fotoUrl,
-    // AGREGAR ESTO:
-    celular: usuario.celular || '',
-    municipio: usuario.municipio || '',
-    departamento: usuario.departamento || '',
-    direccion: usuario.direccion || ''
-});
+        userId: usuario._id, 
+        userName: usuario.name, 
+        fotoUrl: usuario.fotoUrl,
+        celular: usuario.celular || '',
+        municipio: usuario.municipio || '',
+        departamento: usuario.departamento || '',
+        direccion: usuario.direccion || ''
+    });
   } catch (error) {
     res.status(500).json({ error: "Error" });
   }
