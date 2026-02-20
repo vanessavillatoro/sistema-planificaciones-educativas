@@ -18,10 +18,10 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
     nombre: localStorage.getItem('userName') || 'Invitado',
     correo: '',
     fotoUrl: '',
-    celular: '',      // Agregado para que el modal no reciba undefined
-    municipio: '',    // Agregado para que el modal no reciba undefined
-    departamento: '', // Agregado para que el modal no reciba undefined
-    direccion: ''     // Agregado para que el modal no reciba undefined
+    celular: '',      // Agregado para persistencia en el modal
+    municipio: '',    // Agregado para persistencia en el modal
+    departamento: '', // Agregado para persistencia en el modal
+    direccion: ''     // Agregado para persistencia en el modal
   });
 
   const userId = localStorage.getItem('userId');

@@ -14,7 +14,7 @@ import PapeleraFlotante from './components/PapeleraFlotante';
 import Auth from './pages/sesion/auth'; 
 
 // URL de producción para que el celular conecte con el servidor real
-const API_BASE_URL = "https://sistema-planificaciones-educativas-ten.vercel.app";
+const API_BASE_URL = "https://sistema-planificaciones-educativas.vercel.app";
 
 function App() {
   const [darkMode, setDarkMode] = useState(() => {
