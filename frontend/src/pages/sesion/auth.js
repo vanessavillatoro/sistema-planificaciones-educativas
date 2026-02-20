@@ -32,7 +32,6 @@ const AuthContent = () => {
   // --- MANEJO DE GOOGLE AUTH ---
   const handleGoogleSuccess = async (credentialResponse) => {
     try {
-      // Limpiamos la URL para evitar doble barra o falta de ella
       const urlFinal = `${API_BASE_URL.replace(/\/$/, '')}/api/auth/google`;
       
       const response = await fetch(urlFinal, {
@@ -48,6 +47,12 @@ const AuthContent = () => {
         localStorage.setItem('userId', data.userId);
         localStorage.setItem('userName', data.userName); 
         if (data.fotoUrl) localStorage.setItem('userFoto', data.fotoUrl);
+        
+        // --- NUEVOS CAMPOS AGREGADOS PARA PERSISTENCIA ---
+        localStorage.setItem('userCelular', data.celular || '');
+        localStorage.setItem('userMunicipio', data.municipio || '');
+        localStorage.setItem('userDepartamento', data.departamento || '');
+        localStorage.setItem('userDireccion', data.direccion || '');
         
         window.location.href = '/';
       } else {
@@ -97,6 +102,12 @@ const AuthContent = () => {
         localStorage.setItem('userId', data.userId);
         localStorage.setItem('userName', data.userName); 
         if (data.fotoUrl) localStorage.setItem('userFoto', data.fotoUrl);
+        
+        // --- NUEVOS CAMPOS AGREGADOS PARA PERSISTENCIA ---
+        localStorage.setItem('userCelular', data.celular || '');
+        localStorage.setItem('userMunicipio', data.municipio || '');
+        localStorage.setItem('userDepartamento', data.departamento || '');
+        localStorage.setItem('userDireccion', data.direccion || '');
         
         window.location.href = '/'; 
       } else {

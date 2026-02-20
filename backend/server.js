@@ -418,7 +418,16 @@ app.post('/api/auth/google', async (req, res) => {
             });
             await usuario.save();
         }
-        res.status(200).json({ userId: usuario._id, userName: usuario.name, fotoUrl: usuario.fotoUrl });
+        res.status(200).json({ 
+    userId: usuario._id, 
+    userName: usuario.name, 
+    fotoUrl: usuario.fotoUrl,
+    // AGREGAR ESTO:
+    celular: usuario.celular || '',
+    municipio: usuario.municipio || '',
+    departamento: usuario.departamento || '',
+    direccion: usuario.direccion || ''
+});
     } catch (error) {
         console.error("Error en Google Auth:", error);
         res.status(500).json({ error: "Error al autenticar con Google" });
@@ -445,7 +454,16 @@ app.post('/api/auth/login', async (req, res) => {
   try {
     const usuario = await User.findOne({ email: req.body.email, password: req.body.password });
     if (!usuario) return res.status(401).json({ error: "Error" });
-    res.json({ userId: usuario._id, userName: usuario.name, fotoUrl: usuario.fotoUrl });
+    res.json({ 
+    userId: usuario._id, 
+    userName: usuario.name, 
+    fotoUrl: usuario.fotoUrl,
+    // AGREGAR ESTO:
+    celular: usuario.celular || '',
+    municipio: usuario.municipio || '',
+    departamento: usuario.departamento || '',
+    direccion: usuario.direccion || ''
+});
   } catch (error) {
     res.status(500).json({ error: "Error" });
   }
