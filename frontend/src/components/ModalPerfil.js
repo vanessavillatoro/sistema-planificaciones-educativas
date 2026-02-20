@@ -84,22 +84,24 @@ const handleGuardarDatos = async () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           userId, 
-          nombre: perfil.nombre, // Aseguramos que el server reciba 'nombre'
+          nombre: perfil.nombre, 
           ...perfil 
         }),
       });
 
-      // Primero verificamos si la respuesta fue exitosa antes de intentar leer el JSON
       if (response.ok) {
         const data = await response.json();
         
-        // ACTUALIZACIÓN CRÍTICA DEL STORAGE
-        // Usamos el nombre que escribiste en el input para que el cambio sea inmediato
+        // --- ACTUALIZACIÓN DE TODOS LOS CAMPOS EN STORAGE ---
         localStorage.setItem('userName', perfil.nombre);
+        localStorage.setItem('userCelular', perfil.celular);
+        localStorage.setItem('userMunicipio', perfil.municipio);
+        localStorage.setItem('userDepartamento', perfil.departamento);
+        localStorage.setItem('userDireccion', perfil.direccion);
         
         // Notificamos al resto de la página
         window.dispatchEvent(new CustomEvent('perfilActualizado', { 
-            detail: { nombre: perfil.nombre } 
+            detail: { ...perfil } 
         }));
         window.dispatchEvent(new Event('storage')); 
         
@@ -108,7 +110,6 @@ const handleGuardarDatos = async () => {
         if (onSave) onSave(data);
         onClose();
       } else {
-        // Si el servidor responde con error, intentamos ver qué dijo
         const errorData = await response.json();
         alert(errorData.error || "Error al procesar los datos en el servidor.");
       }
