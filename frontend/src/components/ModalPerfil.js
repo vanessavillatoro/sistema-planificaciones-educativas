@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react'; // Se agregó useEffect
 import './ModalPerfil.css';
 import fotoPerfilDefault from './perfil.png'; 
 
@@ -8,15 +8,31 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
     ? 'http://localhost:5000' 
     : 'https://sistema-planificaciones-educativas.vercel.app';
 
+  // Inicializamos el estado con los datos recibidos
   const [perfil, setPerfil] = useState({
-    nombre: datosUsuario.nombre || '',
-    correo: datosUsuario.correo || '',
-    celular: datosUsuario.celular || '',
-    municipio: datosUsuario.municipio || '',
-    departamento: datosUsuario.departamento || '',
-    direccion: datosUsuario.direccion || '',
-    fotoUrl: datosUsuario.fotoUrl || ''
+    nombre: datosUsuario?.nombre || datosUsuario?.name || '',
+    correo: datosUsuario?.correo || datosUsuario?.email || '',
+    celular: datosUsuario?.celular || '',
+    municipio: datosUsuario?.municipio || '',
+    departamento: datosUsuario?.departamento || '',
+    direccion: datosUsuario?.direccion || '',
+    fotoUrl: datosUsuario?.fotoUrl || ''
   });
+
+  // --- NUEVO: Sincronizar si datosUsuario cambia mientras el modal está abierto ---
+  useEffect(() => {
+    if (datosUsuario) {
+      setPerfil({
+        nombre: datosUsuario.nombre || datosUsuario.name || '',
+        correo: datosUsuario.correo || datosUsuario.email || '',
+        celular: datosUsuario.celular || '',
+        municipio: datosUsuario.municipio || '',
+        departamento: datosUsuario.departamento || '',
+        direccion: datosUsuario.direccion || '',
+        fotoUrl: datosUsuario.fotoUrl || ''
+      });
+    }
+  }, [datosUsuario]);
 
   const [editando, setEditando] = useState(null);
   const [cargando, setCargando] = useState(false);
@@ -70,7 +86,7 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
     }, 100);
   };
 
-const handleGuardarDatos = async () => {
+  const handleGuardarDatos = async () => {
     const userId = localStorage.getItem('userId');
     if (!userId) {
       alert("Sesión expirada. Inicia sesión de nuevo.");
@@ -93,15 +109,17 @@ const handleGuardarDatos = async () => {
         const data = await response.json();
         
         // --- ACTUALIZACIÓN DE TODOS LOS CAMPOS EN STORAGE ---
-        localStorage.setItem('userName', perfil.nombre);
-        localStorage.setItem('userCelular', perfil.celular);
-        localStorage.setItem('userMunicipio', perfil.municipio);
-        localStorage.setItem('userDepartamento', perfil.departamento);
-        localStorage.setItem('userDireccion', perfil.direccion);
+        // Usamos 'data' (la respuesta del servidor) para asegurar que se guardó
+        localStorage.setItem('userName', data.userName || perfil.nombre);
+        localStorage.setItem('userCelular', data.celular || perfil.celular);
+        localStorage.setItem('userMunicipio', data.municipio || perfil.municipio);
+        localStorage.setItem('userDepartamento', data.departamento || perfil.departamento);
+        localStorage.setItem('userDireccion', data.direccion || perfil.direccion);
+        if(data.fotoUrl) localStorage.setItem('fotoUrl', data.fotoUrl);
         
         // Notificamos al resto de la página
         window.dispatchEvent(new CustomEvent('perfilActualizado', { 
-            detail: { ...perfil } 
+            detail: { ...perfil, ...data } 
         }));
         window.dispatchEvent(new Event('storage')); 
         
@@ -162,7 +180,7 @@ const handleGuardarDatos = async () => {
                 name={item.name} 
                 value={perfil[item.name] || ''} 
                 onChange={handleChange} 
-                readOnly={editando !== item.name}
+                readOnly={editando !== item.name || item.name === 'correo'} // Correo suele ser lectura
                 onBlur={() => setEditando(null)}
               />
             </div>
