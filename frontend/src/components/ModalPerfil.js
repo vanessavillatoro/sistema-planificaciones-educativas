@@ -62,6 +62,12 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
     const formData = new FormData();
     formData.append('foto', file);
     formData.append('userId', localStorage.getItem('userId'));
+    formData.append('nombre', perfil.nombre);
+    formData.append('correo', perfil.correo);
+    formData.append('celular', perfil.celular);
+    formData.append('municipio', perfil.municipio);
+    formData.append('departamento', perfil.departamento);
+    formData.append('direccion', perfil.direccion); 
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/usuario/foto`, {
@@ -98,12 +104,14 @@ const handleGuardarDatos = async () => {
       // USAMOS FORMDATA para que sea 100% compatible con 'upload.single' del server
       const formData = new FormData();
       formData.append('userId', userId);
-      formData.append('nombre', perfil.nombre); // El server lo traduce a 'name'
-      formData.append('correo', perfil.correo); // El server lo traduce a 'email'
+      formData.append('nombre', perfil.nombre); // Cambiado de 'nombre' a 'name'
+      formData.append('correo', perfil.correo);
       formData.append('celular', perfil.celular);
       formData.append('municipio', perfil.municipio);
       formData.append('departamento', perfil.departamento);
       formData.append('direccion', perfil.direccion);
+      formData.append('apellido', perfil.apellido || ''); // Agregamos los que faltaban
+      formData.append('genero', perfil.genero || '');
 
       // No necesitamos headers de 'Content-Type', el navegador lo pone solo al usar FormData
       const response = await fetch(`${API_BASE_URL}/api/usuario/perfil`, {

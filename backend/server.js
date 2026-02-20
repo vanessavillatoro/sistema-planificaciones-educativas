@@ -336,6 +336,7 @@ app.get('/api/usuario/perfil', async (req, res) => {
 
 // --- RUTA DE PERFIL OPTIMIZADA (CORRECCIÓN ERROR 500) ---
 app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
+    console.log("DATOS RECIBIDOS EN EL SERVER:", req.body); // <--- AGREGA ESTO
     try {
         const { userId } = req.body;
         
