@@ -5,6 +5,7 @@ import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 const imagenAuth = "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070";
 
 // --- CONFIGURACIÓN DE URL DINÁMICA ---
+// Manteniendo la URL que confirmaste que funciona
 const API_BASE_URL = window.location.hostname === "localhost" 
   ? "http://localhost:5000" 
   : "https://sistema-planificaciones-educativas-ten.vercel.app";
@@ -48,7 +49,7 @@ const AuthContent = () => {
         localStorage.setItem('userName', data.userName); 
         if (data.fotoUrl) localStorage.setItem('userFoto', data.fotoUrl);
         
-        // --- NUEVOS CAMPOS AGREGADOS PARA PERSISTENCIA ---
+        // --- GUARDADO DE DATOS ADICIONALES ---
         localStorage.setItem('userCelular', data.celular || '');
         localStorage.setItem('userMunicipio', data.municipio || '');
         localStorage.setItem('userDepartamento', data.departamento || '');
@@ -103,7 +104,6 @@ const AuthContent = () => {
         localStorage.setItem('userName', data.userName); 
         if (data.fotoUrl) localStorage.setItem('userFoto', data.fotoUrl);
         
-        // --- NUEVOS CAMPOS AGREGADOS PARA PERSISTENCIA ---
         localStorage.setItem('userCelular', data.celular || '');
         localStorage.setItem('userMunicipio', data.municipio || '');
         localStorage.setItem('userDepartamento', data.departamento || '');
