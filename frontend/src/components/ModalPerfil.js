@@ -129,7 +129,7 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
         }));
         window.dispatchEvent(new Event('storage')); 
         
-        alert("¡Datos guardados con éxito!");
+        alert("¡Perfil actuaizado!");
 
         if (onSave) onSave(data);
         onClose();
