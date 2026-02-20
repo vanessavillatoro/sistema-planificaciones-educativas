@@ -47,6 +47,7 @@ const AuthContent = () => {
         localStorage.clear();
         localStorage.setItem('userId', data.userId);
         localStorage.setItem('userName', data.userName); 
+        localStorage.setItem('userEmail', data.email || ''); // <-- NUEVO: Persistencia del correo
         if (data.fotoUrl) localStorage.setItem('userFoto', data.fotoUrl);
         
         // --- GUARDADO DE DATOS ADICIONALES ---
@@ -102,6 +103,7 @@ const AuthContent = () => {
         localStorage.clear();
         localStorage.setItem('userId', data.userId);
         localStorage.setItem('userName', data.userName); 
+        localStorage.setItem('userEmail', data.email || ''); // <-- NUEVO: Persistencia del correo
         if (data.fotoUrl) localStorage.setItem('userFoto', data.fotoUrl);
         
         localStorage.setItem('userCelular', data.celular || '');

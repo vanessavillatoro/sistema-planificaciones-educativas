@@ -347,8 +347,6 @@ app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
             datos.name = datos.nombre; 
         }
         
-        // No borramos datos.userId aquí porque lo necesitamos para el find, 
-        // pero quitamos 'nombre' ya que lo mapeamos a 'name'
         delete datos.nombre; 
 
         const usuarioActualizado = await User.findByIdAndUpdate(
@@ -361,7 +359,6 @@ app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
             return res.status(404).json({ error: "Usuario no encontrado" });
         }
 
-        // DEVOLVEMOS TODOS LOS CAMPOS ACTUALIZADOS PARA PERSISTENCIA
         res.status(200).json({
             userId: usuarioActualizado._id,
             userName: usuarioActualizado.name,
@@ -396,7 +393,7 @@ app.post('/api/usuario/foto', upload.single('foto'), async (req, res) => {
     }
 });
 
-// --- AUTENTICACIÓN: GOOGLE (BLOQUE ORIGINAL MANTENIDO) ---
+// --- AUTENTICACIÓN: GOOGLE (BLOQUE CON EMAIL INCLUIDO) ---
 app.post('/api/auth/google', async (req, res) => {
     try {
         const { token } = req.body;
@@ -421,6 +418,7 @@ app.post('/api/auth/google', async (req, res) => {
         res.status(200).json({ 
             userId: usuario._id, 
             userName: usuario.name, 
+            email: usuario.email, // <--- CAMPO AGREGADO
             fotoUrl: usuario.fotoUrl,
             celular: usuario.celular || '',
             municipio: usuario.municipio || '',
@@ -443,7 +441,7 @@ app.post('/api/auth/register', async (req, res) => {
     if (existe) return res.status(400).json({ error: "Ya existe" });
     const nuevoUsuario = new User(req.body);
     const usuarioGuardado = await nuevoUsuario.save();
-    res.status(201).json({ userId: usuarioGuardado._id, userName: usuarioGuardado.name, fotoUrl: usuarioGuardado.fotoUrl });
+    res.status(201).json({ userId: usuarioGuardado._id, userName: usuarioGuardado.name, email: usuarioGuardado.email, fotoUrl: usuarioGuardado.fotoUrl });
   } catch (error) {
     res.status(500).json({ error: "Error" });
   }
@@ -456,6 +454,7 @@ app.post('/api/auth/login', async (req, res) => {
     res.json({ 
         userId: usuario._id, 
         userName: usuario.name, 
+        email: usuario.email, // <--- CAMPO AGREGADO
         fotoUrl: usuario.fotoUrl,
         celular: usuario.celular || '',
         municipio: usuario.municipio || '',
