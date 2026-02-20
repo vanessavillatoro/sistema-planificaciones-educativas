@@ -19,7 +19,7 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
     fotoUrl: datosUsuario?.fotoUrl || ''
   });
 
-  // --- NUEVO: Sincronizar si datosUsuario cambia mientras el modal está abierto ---
+  // --- Sincronizar si datosUsuario cambia mientras el modal está abierto ---
   useEffect(() => {
     if (datosUsuario) {
       setPerfil({
@@ -95,47 +95,50 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
 
     setCargando(true);
     try {
+      // Objeto de envío con nombres de campos normalizados para el backend
+      const datosAEnviar = { 
+        userId, 
+        name: perfil.nombre, 
+        email: perfil.correo,
+        celular: perfil.celular,
+        municipio: perfil.municipio,
+        departamento: perfil.departamento,
+        direccion: perfil.direccion,
+        fotoUrl: perfil.fotoUrl
+      };
+
       const response = await fetch(`${API_BASE_URL}/api/usuario/perfil`, {
         method: 'PATCH',
-        mode: 'cors', // Agregado para asegurar conexión entre URLs
+        mode: 'cors',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          userId, 
-          name: perfil.nombre,   // Mapeo corregido para el Backend
-          email: perfil.correo,  // Mapeo corregido para el Backend
-          celular: perfil.celular,
-          municipio: perfil.municipio,
-          departamento: perfil.departamento,
-          direccion: perfil.direccion,
-          fotoUrl: perfil.fotoUrl
-        }),
+        body: JSON.stringify(datosAEnviar),
       });
 
+      const data = await response.json();
+
       if (response.ok) {
-        const data = await response.json();
-        
-        // --- ACTUALIZACIÓN DE TODOS LOS CAMPOS EN STORAGE ---
-        localStorage.setItem('userName', data.name || perfil.nombre);
+        // --- ACTUALIZACIÓN DE STORAGE ---
+        // Usamos 'data' (respuesta del server) o en su defecto lo que enviamos
+        localStorage.setItem('userName', data.name || data.userName || perfil.nombre);
         localStorage.setItem('userEmail', data.email || perfil.correo);
         localStorage.setItem('userCelular', data.celular || perfil.celular);
         localStorage.setItem('userMunicipio', data.municipio || perfil.municipio);
         localStorage.setItem('userDepartamento', data.departamento || perfil.departamento);
         localStorage.setItem('userDireccion', data.direccion || perfil.direccion);
-        if(data.fotoUrl) localStorage.setItem('userFoto', data.fotoUrl);
+        if (data.fotoUrl) localStorage.setItem('userFoto', data.fotoUrl);
         
-        // Notificamos al resto de la página
+        // Sincronizar resto de la App
         window.dispatchEvent(new CustomEvent('perfilActualizado', { 
             detail: { ...perfil, ...data } 
         }));
         window.dispatchEvent(new Event('storage')); 
         
-        alert("¡Perfil actuaizado!");
+        alert("¡Perfil actualizado con éxito!");
 
         if (onSave) onSave(data);
         onClose();
       } else {
-        const errorData = await response.json();
-        alert(errorData.error || "Error al procesar los datos en el servidor.");
+        alert(data.error || "Error al procesar los datos en el servidor.");
       }
     } catch (error) {
       console.error("Error de conexión:", error);
