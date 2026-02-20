@@ -97,11 +97,17 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/usuario/perfil`, {
         method: 'PATCH',
+        mode: 'cors', // Agregado para asegurar conexión entre URLs
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           userId, 
-          nombre: perfil.nombre, 
-          ...perfil 
+          name: perfil.nombre,   // Mapeo corregido para el Backend
+          email: perfil.correo,  // Mapeo corregido para el Backend
+          celular: perfil.celular,
+          municipio: perfil.municipio,
+          departamento: perfil.departamento,
+          direccion: perfil.direccion,
+          fotoUrl: perfil.fotoUrl
         }),
       });
 
@@ -109,13 +115,13 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
         const data = await response.json();
         
         // --- ACTUALIZACIÓN DE TODOS LOS CAMPOS EN STORAGE ---
-        // Usamos 'data' (la respuesta del servidor) para asegurar que se guardó
-        localStorage.setItem('userName', data.userName || perfil.nombre);
+        localStorage.setItem('userName', data.name || perfil.nombre);
+        localStorage.setItem('userEmail', data.email || perfil.correo);
         localStorage.setItem('userCelular', data.celular || perfil.celular);
         localStorage.setItem('userMunicipio', data.municipio || perfil.municipio);
         localStorage.setItem('userDepartamento', data.departamento || perfil.departamento);
         localStorage.setItem('userDireccion', data.direccion || perfil.direccion);
-        if(data.fotoUrl) localStorage.setItem('fotoUrl', data.fotoUrl);
+        if(data.fotoUrl) localStorage.setItem('userFoto', data.fotoUrl);
         
         // Notificamos al resto de la página
         window.dispatchEvent(new CustomEvent('perfilActualizado', { 
@@ -180,7 +186,7 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
                 name={item.name} 
                 value={perfil[item.name] || ''} 
                 onChange={handleChange} 
-                readOnly={editando !== item.name || item.name === 'correo'} // Correo suele ser lectura
+                readOnly={editando !== item.name || item.name === 'correo'} 
                 onBlur={() => setEditando(null)}
               />
             </div>
