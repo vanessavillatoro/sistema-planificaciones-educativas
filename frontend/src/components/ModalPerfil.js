@@ -21,7 +21,7 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
   const [editando, setEditando] = useState(null);
   const [cargando, setCargando] = useState(false);
   const inputRefs = useRef({});
-  const fileInputRef = useRef(null); // Referencia para el input de imagen
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     const cargarDatos = () => {
@@ -43,21 +43,25 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
     setPerfil({ ...perfil, [e.target.name]: e.target.value });
   };
 
-  // --- NUEVA FUNCIÓN: Manejar el cambio de imagen ---
+  // --- FUNCIÓN MEJORADA: Manejar el cambio de imagen ---
   const handleFotoChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
+    // Vista previa inmediata (opcional, mejora la experiencia)
+    const previewUrl = URL.createObjectURL(file);
+    setPerfil(prev => ({ ...prev, userFoto: previewUrl }));
+
     const userId = localStorage.getItem('userId');
     const formData = new FormData();
     formData.append('userId', userId);
-    formData.append('foto', file); // 'foto' debe coincidir con upload.single('foto') en el server
+    formData.append('foto', file); 
 
     setCargando(true);
     try {
       const response = await fetch(`${API_BASE_URL}/api/usuario/perfil`, {
         method: 'PATCH',
-        body: formData, // Enviamos como FormData para procesar el archivo
+        body: formData, 
       });
 
       const data = await response.json();
@@ -68,9 +72,13 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
         setPerfil(prev => ({ ...prev, userFoto: nuevaUrl }));
         alert("Foto actualizada correctamente");
         if (onSave) onSave(data);
+      } else {
+        throw new Error("Error en la respuesta del servidor");
       }
     } catch (error) {
-      alert("Error al subir la foto");
+      alert("Error al subir la foto al servidor");
+      // Revertir a la que estaba si falla
+      setPerfil(prev => ({ ...prev, userFoto: localStorage.getItem('userFoto') || '' }));
     } finally {
       setCargando(false);
     }
@@ -109,7 +117,7 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
         onClose();
       }
     } catch (error) {
-      alert("Error al guardar");
+      alert("Error al guardar los datos");
     } finally {
       setCargando(false);
     }
@@ -124,22 +132,34 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
     { label: 'Direccion', name: 'userDireccion' }
   ];
 
+  // Lógica para determinar la URL final de la imagen
+  const getFotoUrl = () => {
+    if (!perfil.userFoto) return fotoPerfilDefault;
+    if (perfil.userFoto.startsWith('blob:') || perfil.userFoto.startsWith('http')) {
+      return perfil.userFoto;
+    }
+    return `${API_BASE_URL}${perfil.userFoto}`;
+  };
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className={`modal-content ${darkMode ? 'dark' : 'light'}`} onClick={(e) => e.stopPropagation()}>
         <button className="close-x" onClick={onClose}>×</button>
         
         <div className="modal-header">
-          <div className="avatar-container" onClick={() => fileInputRef.current.click()}>
+          <div className="avatar-container" onClick={() => !cargando && fileInputRef.current.click()}>
             <img 
-              src={perfil.userFoto ? (perfil.userFoto.startsWith('http') ? perfil.userFoto : `${API_BASE_URL}${perfil.userFoto}`) : fotoPerfilDefault} 
+              src={getFotoUrl()} 
               alt="Perfil" 
-              className="modal-avatar" 
+              className={`modal-avatar ${cargando ? 'img-loading' : ''}`}
+              onError={(e) => {
+                e.target.onerror = null; 
+                e.target.src = fotoPerfilDefault;
+              }}
             />
             <div className="avatar-overlay">
-              <span>✎</span>
+              <span>{cargando ? '...' : '✎'}</span>
             </div>
-            {/* Input de archivo oculto */}
             <input 
               type="file" 
               ref={fileInputRef} 
@@ -182,7 +202,7 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
         </div>
 
         <button className="save-btn" onClick={handleGuardarDatos} disabled={cargando}>
-          {cargando ? 'Actualizando...' : 'Guardar Cambios'}
+          {cargando ? 'Procesando...' : 'Guardar Cambios'}
         </button>
       </div>
     </div>

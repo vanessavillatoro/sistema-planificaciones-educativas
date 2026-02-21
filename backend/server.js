@@ -32,6 +32,12 @@ const Gestion = mongoose.models.Gestion || mongoose.model('Gestion', GestionSche
 
 const app = express();
 
+// --- CONFIGURACIÓN DE CARPETAS (NUEVO) ---
+const uploadsDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadsDir)){
+    fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
 // --- BLOQUE DE CORS MEJORADO (PARCHE PARA VERCEL) ---
 app.use(cors({
   origin: '*', 
@@ -51,7 +57,8 @@ app.use((req, res, next) => {
 });
 
 app.use(express.json());
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Servir archivos estáticos de forma explícita
+app.use('/uploads', express.static(uploadsDir));
 
 app.get('/api/test', (req, res) => {
     res.json({ message: "API funcionando perfectamente" });
@@ -62,12 +69,13 @@ app.get('/', (req, res) => {
 });
 
 // --- CONFIGURACIÓN PARA SUBIDA DE IMÁGENES ---
+// Nota: Usamos /tmp para compatibilidad con Vercel, pero guardamos en uploads para local
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, '/tmp'); 
+        cb(null, fs.existsSync('/tmp') ? '/tmp' : uploadsDir); 
     },
     filename: (req, file, cb) => {
-        cb(null, Date.now() + '-' + file.originalname);
+        cb(null, Date.now() + '-' + file.originalname.replace(/\s/g, '_'));
     }
 });
 
@@ -338,7 +346,6 @@ app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
 
         let datosAActualizar = { ...req.body };
 
-        // PROTECCIÓN CRÍTICA: Impedir cambio de email para evitar bloqueos de cuenta
         delete datosAActualizar.email;
         delete datosAActualizar.userEmail;
         delete datosAActualizar.correo;
@@ -351,8 +358,18 @@ app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
             }
         });
 
+        // Manejo de la foto nueva
         if (req.file) { 
-            datosAActualizar.fotoUrl = `/uploads/${req.file.filename}`; 
+            const fileName = req.file.filename;
+            const tempPath = req.file.path;
+            const targetPath = path.join(uploadsDir, fileName);
+
+            // Si el archivo está en /tmp (Vercel), lo movemos a uploads (opcional)
+            if (tempPath !== targetPath && fs.existsSync(tempPath)) {
+                fs.copyFileSync(tempPath, targetPath);
+            }
+            
+            datosAActualizar.fotoUrl = `/uploads/${fileName}`; 
         }
 
         delete datosAActualizar.userId;
