@@ -44,7 +44,6 @@ app.use((req, res, next) => {
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     
-    // RESPUESTA CRÍTICA PARA VERCEL: Manejo de pre-flight
     if (req.method === 'OPTIONS') {
         return res.sendStatus(200);
     }
@@ -330,8 +329,6 @@ app.get('/api/usuario/perfil', async (req, res) => {
     }
 });
 
-// --- SUSTITUIR ÚNICAMENTE ESTE BLOQUE EN TU SERVER.JS ---
-
 app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
     try {
         const userId = req.body.userId;
@@ -341,12 +338,13 @@ app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
 
         let datosAActualizar = { ...req.body };
 
-        // Mapeo de nombre -> name para el modelo de MongoDB
-        if (datosAActualizar.nombre) datosAActualizar.name = datosAActualizar.nombre;
-        // Mapeo de correo -> email por si acaso el front envía 'correo'
-        if (datosAActualizar.correo) datosAActualizar.email = datosAActualizar.correo;
+        // PROTECCIÓN CRÍTICA: Impedir cambio de email para evitar bloqueos de cuenta
+        delete datosAActualizar.email;
+        delete datosAActualizar.userEmail;
+        delete datosAActualizar.correo;
 
-        // Limpieza de campos vacíos para evitar errores de validación
+        if (datosAActualizar.nombre) datosAActualizar.name = datosAActualizar.nombre;
+
         Object.keys(datosAActualizar).forEach(key => {
             if (datosAActualizar[key] === "" || datosAActualizar[key] === null || datosAActualizar[key] === "undefined") {
                 delete datosAActualizar[key];
@@ -359,7 +357,6 @@ app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
 
         delete datosAActualizar.userId;
         delete datosAActualizar.nombre;
-        delete datosAActualizar.correo;
 
         const usuarioActualizado = await User.findByIdAndUpdate(
             userId,
@@ -369,7 +366,6 @@ app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
 
         if (!usuarioActualizado) return res.status(404).json({ error: "Usuario no encontrado" });
 
-        // IMPORTANTE: Esta respuesta debe coincidir con lo que ModalPerfil.js procesa
         res.status(200).json({
             userId: usuarioActualizado._id,
             userName: usuarioActualizado.name,
@@ -401,7 +397,7 @@ app.post('/api/usuario/foto', upload.single('foto'), async (req, res) => {
     }
 });
 
-// --- AUTENTICACIÓN: GOOGLE (BLOQUE CON EMAIL INCLUIDO) ---
+// --- AUTENTICACIÓN: GOOGLE ---
 app.post('/api/auth/google', async (req, res) => {
     try {
         const { token } = req.body;

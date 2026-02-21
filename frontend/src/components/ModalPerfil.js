@@ -8,7 +8,6 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
     ? 'http://localhost:5000' 
     : 'https://sistema-planificaciones-educativas.vercel.app';
 
-  // --- CAMBIO CLAVE: Los nombres aquí deben ser los del name de los inputs ---
   const [perfil, setPerfil] = useState({
     userName: localStorage.getItem('userName') || '',
     userEmail: localStorage.getItem('userEmail') || '',
@@ -54,21 +53,19 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId,
-          nombre: perfil.userName, // El server espera 'nombre' o 'name'
-          email: perfil.userEmail,
+          nombre: perfil.userName,
           celular: perfil.userCelular,
           municipio: perfil.userMunicipio,
           departamento: perfil.userDepartamento,
           direccion: perfil.userDireccion
+          // No enviamos el email para asegurar que no se cambie en DB
         }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        // Guardamos con los nombres que ya vimos en tu F12
         localStorage.setItem('userName', perfil.userName);
-        localStorage.setItem('userEmail', perfil.userEmail);
         localStorage.setItem('userCelular', perfil.userCelular);
         localStorage.setItem('userMunicipio', perfil.userMunicipio);
         localStorage.setItem('userDepartamento', perfil.userDepartamento);
@@ -85,10 +82,9 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
     }
   };
 
-  // --- IMPORTANTE: El 'name' debe coincidir con las llaves del objeto perfil ---
   const campos = [
     { label: 'Nombre', name: 'userName' },
-    { label: 'Correo', name: 'userEmail' },
+    { label: 'Correo', name: 'userEmail', noEditable: true }, // Marcado como no editable
     { label: 'Celular', name: 'userCelular' },
     { label: 'Municipio', name: 'userMunicipio' },
     { label: 'Departamento', name: 'userDepartamento' },
@@ -113,15 +109,17 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
 
         <div className="modal-perfil-body">
           {campos.map((item) => (
-            <div className="input-group" key={item.name}>
+            <div className={`input-group ${item.noEditable ? 'field-disabled' : ''}`} key={item.name}>
               <div className="label-section">
-                <button 
-                  className="btn-edit-small" 
-                  onClick={() => {
-                    setEditando(item.name);
-                    setTimeout(() => inputRefs.current[item.name]?.focus(), 100);
-                  }}
-                >✎</button>
+                {!item.noEditable && (
+                  <button 
+                    className="btn-edit-small" 
+                    onClick={() => {
+                      setEditando(item.name);
+                      setTimeout(() => inputRefs.current[item.name]?.focus(), 100);
+                    }}
+                  >✎</button>
+                )}
                 <label>{item.label}</label>
               </div>
               <input 
@@ -130,8 +128,10 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
                 name={item.name} 
                 value={perfil[item.name] || ''} 
                 onChange={handleChange} 
-                readOnly={editando !== item.name}
+                // Si es el correo o no está en modo edición, es solo lectura
+                readOnly={editando !== item.name || item.noEditable}
                 onBlur={() => setEditando(null)}
+                style={item.noEditable ? { opacity: 0.7, cursor: 'not-allowed' } : {}}
               />
             </div>
           ))}
