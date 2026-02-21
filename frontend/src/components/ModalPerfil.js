@@ -20,7 +20,6 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
 
   const [editando, setEditando] = useState(null);
   const [cargando, setCargando] = useState(false);
-  // --- NUEVO: Estado para forzar la recarga de la imagen ---
   const [version, setVersion] = useState(Date.now()); 
   
   const inputRefs = useRef({});
@@ -52,6 +51,8 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
 
     // Vista previa inmediata con blob
     const previewUrl = URL.createObjectURL(file);
+    const antiguaFoto = perfil.userFoto;
+    
     setPerfil(prev => ({ ...prev, userFoto: previewUrl }));
 
     const userId = localStorage.getItem('userId');
@@ -69,12 +70,15 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
       const data = await response.json();
 
       if (response.ok) {
+        // El servidor ahora responde con data.userFoto (gracias al ajuste en server.js)
         const nuevaUrl = data.userFoto;
         localStorage.setItem('userFoto', nuevaUrl);
         
-        // --- ACTUALIZACIÓN CRÍTICA: Cambiamos perfil y versión ---
         setPerfil(prev => ({ ...prev, userFoto: nuevaUrl }));
         setVersion(Date.now()); 
+        
+        // Limpiamos el objeto blob de la memoria
+        if (antiguaFoto.startsWith('blob:')) URL.revokeObjectURL(antiguaFoto);
         
         alert("Foto actualizada correctamente");
         if (onSave) onSave(data);
@@ -83,6 +87,7 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
       }
     } catch (error) {
       alert("Error al subir la foto al servidor");
+      // Revertimos si hay error
       setPerfil(prev => ({ ...prev, userFoto: localStorage.getItem('userFoto') || '' }));
     } finally {
       setCargando(false);
@@ -111,11 +116,12 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
       const data = await response.json();
 
       if (response.ok) {
-        localStorage.setItem('userName', perfil.userName);
-        localStorage.setItem('userCelular', perfil.userCelular);
-        localStorage.setItem('userMunicipio', perfil.userMunicipio);
-        localStorage.setItem('userDepartamento', perfil.userDepartamento);
-        localStorage.setItem('userDireccion', perfil.userDireccion);
+        // Actualizamos LocalStorage con los datos unificados que devuelve el server
+        localStorage.setItem('userName', data.userName || perfil.userName);
+        localStorage.setItem('userCelular', data.userCelular || perfil.userCelular);
+        localStorage.setItem('userMunicipio', data.userMunicipio || perfil.userMunicipio);
+        localStorage.setItem('userDepartamento', data.userDepartamento || perfil.userDepartamento);
+        localStorage.setItem('userDireccion', data.userDireccion || perfil.userDireccion);
         
         alert("¡Datos guardados con éxito!");
         if (onSave) onSave(data);
@@ -137,7 +143,6 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
     { label: 'Direccion', name: 'userDireccion' }
   ];
 
-  // --- FUNCIÓN ACTUALIZADA: Con Cache Busting ---
   const getFotoUrl = () => {
     if (!perfil.userFoto) return fotoPerfilDefault;
     
@@ -148,7 +153,7 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
       urlBase = `${API_BASE_URL}${perfil.userFoto}`;
     }
 
-    // Añadimos el parámetro v= para forzar al navegador a recargar la imagen real
+    // Cache Busting para forzar la recarga de la imagen real sin que el navegador use la vieja
     return `${urlBase}${urlBase.includes('?') ? '&' : '?'}v=${version}`;
   };
 

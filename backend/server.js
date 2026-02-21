@@ -32,13 +32,12 @@ const Gestion = mongoose.models.Gestion || mongoose.model('Gestion', GestionSche
 
 const app = express();
 
-// --- CONFIGURACIÓN DE CARPETAS Y RUTAS ESTÁTICAS (NUEVO) ---
+// --- CONFIGURACIÓN DE CARPETAS Y RUTAS ESTÁTICAS ---
 const uploadsDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)){
     fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
-// --- BLOQUE DE CORS MEJORADO (PARCHE PARA VERCEL) ---
 app.use(cors({
   origin: '*', 
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
@@ -57,7 +56,6 @@ app.use((req, res, next) => {
 });
 
 app.use(express.json());
-// Servir la carpeta de subidas de forma estática
 app.use('/uploads', express.static(uploadsDir));
 
 app.get('/api/test', (req, res) => {
@@ -65,13 +63,12 @@ app.get('/api/test', (req, res) => {
 });
 
 app.get('/', (req, res) => {
-    res.send('🚀 VERSION 5.0 - CAMBIO FORZADO');
+    res.send('🚀 VERSION 5.0 - PERFIL FIX');
 });
 
 // --- CONFIGURACIÓN PARA SUBIDA DE IMÁGENES ---
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        // En Vercel se usa /tmp, en local la carpeta uploads
         cb(null, fs.existsSync('/tmp') ? '/tmp' : uploadsDir); 
     },
     filename: (req, file, cb) => {
@@ -136,7 +133,7 @@ app.post('/api/generar-plan-completa', async (req, res) => {
       5. ACTIVIDADES COMPLEMENTARIAS: Por defecto genera 3. Formato: "* Act 1\\n* Act 2".
       6. MATERIALES: Array de EXACTAMENTE 8 elementos. Inicialmente, CADA uno de los 8 elementos del array DEBE contener EXACTAMENTE 3 materiales distintos (a menos que el docente pida más). Los materiales deben separarse por un salto de línea y un asterisco (*).
       8. No uses markdown ni texto fuera del JSON.
-    ESTRUURA REQUERIDA:
+    ESTRUCTURA REQUERIDA:
     {
       "objetivos": "...",
       "indicadoresLogro": "...",
@@ -175,7 +172,7 @@ app.post('/api/generar-plan-modulo3', async (req, res) => {
   if (!materia || !tema) return res.status(400).json({ error: "Faltan campos." });
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
   const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-  const prompt = `Estructura JSON pedagógica para: ${materia}, Tema: ${tema}...`;
+  const prompt = `Estructura JSON pedagógica para: ${materia}, Tema: ${tema}, Grado: ${grado}, Dificultad: ${dificultad}. Enfoque: ${enfoque}. Sugerencias: ${sugerencias}`;
   try {
     const result = await model.generateContent(prompt);
     const jsonOutput = procesarRespuestaIA(result.response.text());
@@ -191,7 +188,7 @@ app.post('/api/generar-recurso-ia', async (req, res) => {
   try {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-    const result = await model.generateContent(`Genera recurso: ${tipoRecurso} sobre ${tema}`);
+    const result = await model.generateContent(`Genera un recurso educativo de tipo ${tipoRecurso} sobre el tema ${tema} para la materia ${materia}.`);
     res.json({ contenido: result.response.text() });
   } catch (error) {
     res.status(500).json({ error: "Error al generar recurso." });
@@ -346,7 +343,6 @@ app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
 
         let datosAActualizar = { ...req.body };
 
-        // PROTECCIÓN: No permitir cambio de email aquí
         delete datosAActualizar.email;
         delete datosAActualizar.userEmail;
         delete datosAActualizar.correo;
@@ -360,15 +356,7 @@ app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
         });
 
         if (req.file) { 
-            const fileName = req.file.filename;
-            const tempPath = req.file.path;
-            const targetPath = path.join(uploadsDir, fileName);
-
-            // Mover archivo si está en carpeta temporal
-            if (tempPath !== targetPath && fs.existsSync(tempPath)) {
-                fs.copyFileSync(tempPath, targetPath);
-            }
-            datosAActualizar.fotoUrl = `/uploads/${fileName}`; 
+            datosAActualizar.fotoUrl = `/uploads/${req.file.filename}`; 
         }
 
         delete datosAActualizar.userId;
@@ -407,13 +395,13 @@ app.post('/api/usuario/foto', upload.single('foto'), async (req, res) => {
         const usuarioActualizado = await User.findByIdAndUpdate(
             userId, { $set: { fotoUrl: urlFoto } }, { new: true }
         );
-        res.status(200).json(usuarioActualizado);
+        res.status(200).json({ userFoto: usuarioActualizado.fotoUrl });
     } catch (error) {
         res.status(500).json({ error: "Error interno" });
     }
 });
 
-// --- AUTENTICACIÓN: GOOGLE ---
+// --- AUTENTICACIÓN ACTUALIZADA ---
 app.post('/api/auth/google', async (req, res) => {
     try {
         const { token } = req.body;
@@ -439,7 +427,7 @@ app.post('/api/auth/google', async (req, res) => {
             userId: usuario._id, 
             userName: usuario.name, 
             email: usuario.email, 
-            fotoUrl: usuario.fotoUrl,
+            userFoto: usuario.fotoUrl, // <--- ACTUALIZADO
             celular: usuario.celular || '',
             municipio: usuario.municipio || '',
             departamento: usuario.departamento || '',
@@ -461,7 +449,12 @@ app.post('/api/auth/register', async (req, res) => {
     if (existe) return res.status(400).json({ error: "Ya existe" });
     const nuevoUsuario = new User(req.body);
     const usuarioGuardado = await nuevoUsuario.save();
-    res.status(201).json({ userId: usuarioGuardado._id, userName: usuarioGuardado.name, email: usuarioGuardado.email, fotoUrl: usuarioGuardado.fotoUrl });
+    res.status(201).json({ 
+        userId: usuarioGuardado._id, 
+        userName: usuarioGuardado.name, 
+        email: usuarioGuardado.email, 
+        userFoto: usuarioGuardado.fotoUrl // <--- ACTUALIZADO
+    });
   } catch (error) {
     res.status(500).json({ error: "Error" });
   }
@@ -475,7 +468,7 @@ app.post('/api/auth/login', async (req, res) => {
         userId: usuario._id, 
         userName: usuario.name, 
         email: usuario.email, 
-        fotoUrl: usuario.fotoUrl,
+        userFoto: usuario.fotoUrl, // <--- ACTUALIZADO
         celular: usuario.celular || '',
         municipio: usuario.municipio || '',
         departamento: usuario.departamento || '',
