@@ -34,12 +34,9 @@ const app = express();
 
 // --- BLOQUE DE CORS MEJORADO (PARCHE PARA VERCEL) ---
 app.use(cors({
-    origin: [
-        'https://sistema-planificaciones-educativas.vercel.app',
-        'http://localhost:3000'
-    ],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+  origin: '*', 
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.use((req, res, next) => {
@@ -47,6 +44,7 @@ app.use((req, res, next) => {
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     
+    // RESPUESTA CRÍTICA PARA VERCEL: Manejo de pre-flight
     if (req.method === 'OPTIONS') {
         return res.sendStatus(200);
     }
@@ -54,14 +52,7 @@ app.use((req, res, next) => {
 });
 
 app.use(express.json());
-
-// --- PARCHE VERCEL: CARPETA TEMPORAL Y ARCHIVOS ESTÁTICOS ---
-const uploadDir = '/tmp';
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-}
-// Servimos /uploads desde la carpeta temporal /tmp de Vercel
-app.use('/uploads', express.static('/tmp'));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.get('/api/test', (req, res) => {
     res.json({ message: "API funcionando perfectamente" });
@@ -177,12 +168,7 @@ app.post('/api/generar-plan-modulo3', async (req, res) => {
   if (!materia || !tema) return res.status(400).json({ error: "Faltan campos." });
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
   const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-  const prompt = `
-    Genera una planificación para ${materia}, Tema: ${tema}, Grado: ${grado}, Nivel: ${dificultad}.
-    Enfoque pedagógico: ${enfoque || 'Tradicional'}.
-    Sugerencias adicionales: ${sugerencias || 'Ninguna'}.
-    Devuelve un JSON con: objetivos, contenidos, actividades y evaluacion.
-  `;
+  const prompt = `Estructura JSON pedagógica para: ${materia}, Tema: ${tema}...`;
   try {
     const result = await model.generateContent(prompt);
     const jsonOutput = procesarRespuestaIA(result.response.text());
@@ -198,8 +184,7 @@ app.post('/api/generar-recurso-ia', async (req, res) => {
   try {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-    const prompt = `Genera un recurso educativo de tipo ${tipoRecurso} sobre el tema ${tema} para la materia ${materia}.`;
-    const result = await model.generateContent(prompt);
+    const result = await model.generateContent(`Genera recurso: ${tipoRecurso} sobre ${tema}`);
     res.json({ contenido: result.response.text() });
   } catch (error) {
     res.status(500).json({ error: "Error al generar recurso." });
@@ -345,39 +330,52 @@ app.get('/api/usuario/perfil', async (req, res) => {
     }
 });
 
-// --- RUTA DE PERFIL OPTIMIZADA (SOLUCIÓN AL ERROR INTERNO) ---
 app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
     try {
-        const { userId } = req.body;
-        if (!userId || userId === "undefined") return res.status(400).json({ error: "ID inválido" });
-
-        const updateData = {};
-        if (req.body.name) updateData.name = req.body.name;
-        if (req.body.email) updateData.email = req.body.email;
+        const userId = req.body.userId;
+        const datos = { ...req.body };
         
-        const camposExtra = ['celular', 'municipio', 'departamento', 'direccion', 'apellido', 'genero', 'edad'];
-        camposExtra.forEach(campo => {
-            if (req.body[campo] !== undefined && req.body[campo] !== "") {
-                updateData[campo] = req.body[campo];
-            }
-        });
-
-        if (req.file) {
-            updateData.fotoUrl = `/uploads/${req.file.filename}`;
+        if (!userId || userId === "undefined" || userId === "null") {
+            return res.status(400).json({ error: "ID de usuario no proporcionado" });
         }
+
+        if (req.file) { 
+            datos.fotoUrl = `/uploads/${req.file.filename}`; 
+        }
+
+        if (datos.nombre) { 
+            datos.name = datos.nombre; 
+        }
+        
+        delete datos.nombre; 
 
         const usuarioActualizado = await User.findByIdAndUpdate(
             userId,
-            { $set: updateData },
-            { new: true, runValidators: false } // Crucial para evitar error 500 por validación de password
-        ).select('-password');
+            { $set: datos },
+            { new: true, runValidators: true }
+        );
 
-        if (!usuarioActualizado) return res.status(404).json({ error: "Usuario no encontrado" });
+        if (!usuarioActualizado) {
+            return res.status(404).json({ error: "Usuario no encontrado" });
+        }
 
-        res.status(200).json(usuarioActualizado);
+        res.status(200).json({
+            userId: usuarioActualizado._id,
+            userName: usuarioActualizado.name,
+            fotoUrl: usuarioActualizado.fotoUrl,
+            apellido: usuarioActualizado.apellido || '',
+            genero: usuarioActualizado.genero || '',
+            edad: usuarioActualizado.edad || '',
+            email: usuarioActualizado.email,
+            celular: usuarioActualizado.celular || '',
+            municipio: usuarioActualizado.municipio || '',
+            departamento: usuarioActualizado.departamento || '',
+            direccion: usuarioActualizado.direccion || ''
+        });
+
     } catch (error) {
-        console.error("ERROR REAL EN PERFIL:", error);
-        res.status(500).json({ error: "Error de validación o base de datos" });
+        console.error("Error al actualizar perfil:", error);
+        res.status(500).json({ error: "Error interno al guardar los datos" });
     }
 });
 
@@ -387,7 +385,7 @@ app.post('/api/usuario/foto', upload.single('foto'), async (req, res) => {
         const userId = req.body.userId;
         const urlFoto = `/uploads/${req.file.filename}`;
         const usuarioActualizado = await User.findByIdAndUpdate(
-            userId, { $set: { fotoUrl: urlFoto } }, { new: true, runValidators: false }
+            userId, { $set: { fotoUrl: urlFoto } }, { new: true }
         );
         res.status(200).json(usuarioActualizado);
     } catch (error) {
@@ -395,7 +393,7 @@ app.post('/api/usuario/foto', upload.single('foto'), async (req, res) => {
     }
 });
 
-// --- AUTENTICACIÓN: GOOGLE ---
+// --- AUTENTICACIÓN: GOOGLE (BLOQUE CON EMAIL INCLUIDO) ---
 app.post('/api/auth/google', async (req, res) => {
     try {
         const { token } = req.body;
@@ -420,7 +418,7 @@ app.post('/api/auth/google', async (req, res) => {
         res.status(200).json({ 
             userId: usuario._id, 
             userName: usuario.name, 
-            email: usuario.email,
+            email: usuario.email, // <--- CAMPO AGREGADO
             fotoUrl: usuario.fotoUrl,
             celular: usuario.celular || '',
             municipio: usuario.municipio || '',
@@ -456,7 +454,7 @@ app.post('/api/auth/login', async (req, res) => {
     res.json({ 
         userId: usuario._id, 
         userName: usuario.name, 
-        email: usuario.email,
+        email: usuario.email, // <--- CAMPO AGREGADO
         fotoUrl: usuario.fotoUrl,
         celular: usuario.celular || '',
         municipio: usuario.municipio || '',

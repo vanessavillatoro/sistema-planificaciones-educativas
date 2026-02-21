@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react'; // Se agregó useEffect
 import './ModalPerfil.css';
 import fotoPerfilDefault from './perfil.png'; 
 
@@ -8,17 +8,18 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
     ? 'http://localhost:5000' 
     : 'https://sistema-planificaciones-educativas.vercel.app';
 
-  // Estado inicial robusto
+  // Inicializamos el estado con los datos recibidos
   const [perfil, setPerfil] = useState({
-    nombre: datosUsuario?.nombre || datosUsuario?.name || localStorage.getItem('userName') || '',
-    correo: datosUsuario?.correo || datosUsuario?.email || localStorage.getItem('userEmail') || '',
-    celular: datosUsuario?.celular || localStorage.getItem('userCelular') || '',
-    municipio: datosUsuario?.municipio || localStorage.getItem('userMunicipio') || '',
-    departamento: datosUsuario?.departamento || localStorage.getItem('userDepartamento') || '',
-    direccion: datosUsuario?.direccion || localStorage.getItem('userDireccion') || '',
-    fotoUrl: datosUsuario?.fotoUrl || localStorage.getItem('userFoto') || ''
+    nombre: datosUsuario?.nombre || datosUsuario?.name || '',
+    correo: datosUsuario?.correo || datosUsuario?.email || '',
+    celular: datosUsuario?.celular || '',
+    municipio: datosUsuario?.municipio || '',
+    departamento: datosUsuario?.departamento || '',
+    direccion: datosUsuario?.direccion || '',
+    fotoUrl: datosUsuario?.fotoUrl || ''
   });
 
+  // --- NUEVO: Sincronizar si datosUsuario cambia mientras el modal está abierto ---
   useEffect(() => {
     if (datosUsuario) {
       setPerfil({
@@ -43,7 +44,6 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
     if (!url) return fotoPerfilDefault;
     if (url.startsWith('http')) return url;
     const base = `${API_BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
-    // Añadimos timestamp para evitar el caché del navegador al cambiar de foto
     return `${base}${base.includes('?') ? '&' : '?'}t=${new Date().getTime()}`;
   };
 
@@ -72,10 +72,6 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
       if (response.ok) {
         const dataActualizada = await response.json();
         setPerfil({ ...perfil, fotoUrl: dataActualizada.fotoUrl });
-        localStorage.setItem('userFoto', dataActualizada.fotoUrl);
-        
-        // Avisar al resto de la app
-        window.dispatchEvent(new Event('storage'));
         alert("Foto actualizada correctamente");
       }
     } catch (error) {
@@ -92,57 +88,52 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
 
   const handleGuardarDatos = async () => {
     const userId = localStorage.getItem('userId');
-    if (!userId || userId === "undefined") {
-      alert("Sesión no válida. Por favor, cierra sesión e ingresa de nuevo.");
+    if (!userId) {
+      alert("Sesión expirada. Inicia sesión de nuevo.");
       return;
     }
 
     setCargando(true);
     try {
-      const formData = new FormData();
-      formData.append('userId', userId);
-      
-      // Mapeo correcto: Frontend usa 'nombre' y 'correo', Backend espera 'name' y 'email'
-      formData.append('name', perfil.nombre); 
-      formData.append('email', perfil.correo);
-      
-      // Validación: No enviar campos vacíos que puedan romper la base de datos
-      const camposOpcionales = ['celular', 'municipio', 'departamento', 'direccion'];
-      camposOpcionales.forEach(campo => {
-        if (perfil[campo]) formData.append(campo, perfil[campo]);
-      });
-
       const response = await fetch(`${API_BASE_URL}/api/usuario/perfil`, {
         method: 'PATCH',
-        body: formData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          userId, 
+          nombre: perfil.nombre, 
+          ...perfil 
+        }),
       });
 
-      const data = await response.json();
-
       if (response.ok) {
-        // Actualizar almacenamiento local con la respuesta del servidor
-        localStorage.setItem('userName', data.name || perfil.nombre);
-        localStorage.setItem('userEmail', data.email || perfil.correo);
-        localStorage.setItem('userCelular', data.celular || '');
-        localStorage.setItem('userMunicipio', data.municipio || '');
-        localStorage.setItem('userDepartamento', data.departamento || '');
-        localStorage.setItem('userDireccion', data.direccion || '');
-        if (data.fotoUrl) localStorage.setItem('userFoto', data.fotoUrl);
+        const data = await response.json();
         
-        // Actualización en tiempo real de la UI
-        window.dispatchEvent(new CustomEvent('perfilActualizado', { detail: data }));
+        // --- ACTUALIZACIÓN DE TODOS LOS CAMPOS EN STORAGE ---
+        // Usamos 'data' (la respuesta del servidor) para asegurar que se guardó
+        localStorage.setItem('userName', data.userName || perfil.nombre);
+        localStorage.setItem('userCelular', data.celular || perfil.celular);
+        localStorage.setItem('userMunicipio', data.municipio || perfil.municipio);
+        localStorage.setItem('userDepartamento', data.departamento || perfil.departamento);
+        localStorage.setItem('userDireccion', data.direccion || perfil.direccion);
+        if(data.fotoUrl) localStorage.setItem('fotoUrl', data.fotoUrl);
+        
+        // Notificamos al resto de la página
+        window.dispatchEvent(new CustomEvent('perfilActualizado', { 
+            detail: { ...perfil, ...data } 
+        }));
         window.dispatchEvent(new Event('storage')); 
         
-        alert("¡Perfil actualizado con éxito!");
+        alert("¡Datos guardados con éxito!");
 
         if (onSave) onSave(data);
         onClose();
       } else {
-        alert(data.error || "Error al guardar los datos.");
+        const errorData = await response.json();
+        alert(errorData.error || "Error al procesar los datos en el servidor.");
       }
     } catch (error) {
       console.error("Error de conexión:", error);
-      alert("Error de conexión con el servidor.");
+      alert("No se pudo conectar con el servidor. Revisa tu internet.");
     } finally {
       setCargando(false);
     }
@@ -154,7 +145,7 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
     { label: 'Celular', name: 'celular' },
     { label: 'Municipio', name: 'municipio' },
     { label: 'Departamento', name: 'departamento' },
-    { label: 'Dirección', name: 'direccion' }
+    { label: 'Direccion', name: 'direccion' }
   ];
 
   return (
@@ -189,7 +180,7 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
                 name={item.name} 
                 value={perfil[item.name] || ''} 
                 onChange={handleChange} 
-                readOnly={editando !== item.name || item.name === 'correo'} 
+                readOnly={editando !== item.name || item.name === 'correo'} // Correo suele ser lectura
                 onBlur={() => setEditando(null)}
               />
             </div>
