@@ -21,6 +21,7 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
   const [editando, setEditando] = useState(null);
   const [cargando, setCargando] = useState(false);
   const inputRefs = useRef({});
+  const fileInputRef = useRef(null); // Referencia para el input de imagen
 
   useEffect(() => {
     const cargarDatos = () => {
@@ -42,6 +43,39 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
     setPerfil({ ...perfil, [e.target.name]: e.target.value });
   };
 
+  // --- NUEVA FUNCIÓN: Manejar el cambio de imagen ---
+  const handleFotoChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const userId = localStorage.getItem('userId');
+    const formData = new FormData();
+    formData.append('userId', userId);
+    formData.append('foto', file); // 'foto' debe coincidir con upload.single('foto') en el server
+
+    setCargando(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/usuario/perfil`, {
+        method: 'PATCH',
+        body: formData, // Enviamos como FormData para procesar el archivo
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        const nuevaUrl = data.userFoto;
+        localStorage.setItem('userFoto', nuevaUrl);
+        setPerfil(prev => ({ ...prev, userFoto: nuevaUrl }));
+        alert("Foto actualizada correctamente");
+        if (onSave) onSave(data);
+      }
+    } catch (error) {
+      alert("Error al subir la foto");
+    } finally {
+      setCargando(false);
+    }
+  };
+
   const handleGuardarDatos = async () => {
     const userId = localStorage.getItem('userId');
     if (!userId) return alert("Sesión expirada");
@@ -58,7 +92,6 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
           municipio: perfil.userMunicipio,
           departamento: perfil.userDepartamento,
           direccion: perfil.userDireccion
-          // No enviamos el email para asegurar que no se cambie en DB
         }),
       });
 
@@ -84,7 +117,7 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
 
   const campos = [
     { label: 'Nombre', name: 'userName' },
-    { label: 'Correo', name: 'userEmail', noEditable: true }, // Marcado como no editable
+    { label: 'Correo', name: 'userEmail', noEditable: true },
     { label: 'Celular', name: 'userCelular' },
     { label: 'Municipio', name: 'userMunicipio' },
     { label: 'Departamento', name: 'userDepartamento' },
@@ -97,11 +130,24 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
         <button className="close-x" onClick={onClose}>×</button>
         
         <div className="modal-header">
-          <img 
-            src={perfil.userFoto ? (perfil.userFoto.startsWith('http') ? perfil.userFoto : `${API_BASE_URL}${perfil.userFoto}`) : fotoPerfilDefault} 
-            alt="Perfil" 
-            className="modal-avatar" 
-          />
+          <div className="avatar-container" onClick={() => fileInputRef.current.click()}>
+            <img 
+              src={perfil.userFoto ? (perfil.userFoto.startsWith('http') ? perfil.userFoto : `${API_BASE_URL}${perfil.userFoto}`) : fotoPerfilDefault} 
+              alt="Perfil" 
+              className="modal-avatar" 
+            />
+            <div className="avatar-overlay">
+              <span>✎</span>
+            </div>
+            {/* Input de archivo oculto */}
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              style={{ display: 'none' }} 
+              accept="image/*" 
+              onChange={handleFotoChange} 
+            />
+          </div>
           <div className="header-text">
             <h3>{perfil.userName || 'Usuario'}</h3>
           </div>
@@ -128,17 +174,15 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
                 name={item.name} 
                 value={perfil[item.name] || ''} 
                 onChange={handleChange} 
-                // Si es el correo o no está en modo edición, es solo lectura
                 readOnly={editando !== item.name || item.noEditable}
                 onBlur={() => setEditando(null)}
-                style={item.noEditable ? { opacity: 0.7, cursor: 'not-allowed' } : {}}
               />
             </div>
           ))}
         </div>
 
         <button className="save-btn" onClick={handleGuardarDatos} disabled={cargando}>
-          {cargando ? 'Guardando...' : 'Guardar Cambios'}
+          {cargando ? 'Actualizando...' : 'Guardar Cambios'}
         </button>
       </div>
     </div>
