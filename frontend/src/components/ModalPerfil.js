@@ -55,6 +55,7 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
         body: JSON.stringify({
           userId,
           nombre: perfil.userName, // El server espera 'nombre' o 'name'
+          email: perfil.userEmail,
           celular: perfil.userCelular,
           municipio: perfil.userMunicipio,
           departamento: perfil.userDepartamento,

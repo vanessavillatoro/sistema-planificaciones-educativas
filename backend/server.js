@@ -426,7 +426,7 @@ app.post('/api/auth/google', async (req, res) => {
         res.status(200).json({ 
             userId: usuario._id, 
             userName: usuario.name, 
-            email: usuario.email, // <--- CAMPO AGREGADO
+            email: usuario.email, 
             fotoUrl: usuario.fotoUrl,
             celular: usuario.celular || '',
             municipio: usuario.municipio || '',
@@ -462,7 +462,7 @@ app.post('/api/auth/login', async (req, res) => {
     res.json({ 
         userId: usuario._id, 
         userName: usuario.name, 
-        email: usuario.email, // <--- CAMPO AGREGADO
+        email: usuario.email, 
         fotoUrl: usuario.fotoUrl,
         celular: usuario.celular || '',
         municipio: usuario.municipio || '',
