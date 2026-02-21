@@ -54,7 +54,14 @@ app.use((req, res, next) => {
 });
 
 app.use(express.json());
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// --- PARCHE VERCEL: CARPETA TEMPORAL Y ARCHIVOS ESTÁTICOS ---
+const uploadDir = '/tmp';
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+// Servimos /uploads desde la carpeta temporal /tmp de Vercel
+app.use('/uploads', express.static('/tmp'));
 
 app.get('/api/test', (req, res) => {
     res.json({ message: "API funcionando perfectamente" });
@@ -334,7 +341,6 @@ app.get('/api/usuario/perfil', async (req, res) => {
 
 // --- RUTA DE PERFIL OPTIMIZADA (BLINDADA PARA TODOS LOS CAMPOS) ---
 app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
-    console.log("DATOS RECIBIDOS EN EL SERVER:", req.body);
     try {
         const { userId } = req.body;
         
@@ -342,14 +348,11 @@ app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
             return res.status(400).json({ error: "ID de usuario no válido" });
         }
 
-        // Construimos el objeto de actualización de forma segura
         const updateData = {};
         
-        // Mapeo flexible de campos principales
         if (req.body.nombre || req.body.name) updateData.name = req.body.nombre || req.body.name;
         if (req.body.correo || req.body.email) updateData.email = req.body.correo || req.body.email;
         
-        // Mapeo automático de campos adicionales
         const campos = ['celular', 'municipio', 'departamento', 'direccion', 'apellido', 'genero', 'edad'];
         campos.forEach(campo => {
             if (req.body[campo] !== undefined) {
@@ -385,7 +388,7 @@ app.post('/api/usuario/foto', upload.single('foto'), async (req, res) => {
         const userId = req.body.userId;
         const urlFoto = `/uploads/${req.file.filename}`;
         const usuarioActualizado = await User.findByIdAndUpdate(
-            userId, { $set: { fotoUrl: urlFoto } }, { new: true }
+            userId, { $set: { fotoUrl: urlFoto } }, { new: true, runValidators: false }
         );
         res.status(200).json(usuarioActualizado);
     } catch (error) {

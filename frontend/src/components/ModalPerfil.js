@@ -96,7 +96,6 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
 
     setCargando(true);
     try {
-      // USAMOS FormData para que el server (Multer) procese los campos correctamente
       const formData = new FormData();
       formData.append('userId', userId);
       formData.append('nombre', perfil.nombre);
@@ -108,13 +107,12 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
 
       const response = await fetch(`${API_BASE_URL}/api/usuario/perfil`, {
         method: 'PATCH',
-        body: formData, // El navegador asigna el Content-Type adecuado automáticamente
+        body: formData,
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        // --- ACTUALIZACIÓN DE STORAGE CON NOMBRES NORMALIZADOS ---
         localStorage.setItem('userName', data.name || perfil.nombre);
         localStorage.setItem('userEmail', data.email || perfil.correo);
         localStorage.setItem('userCelular', data.celular || perfil.celular);
@@ -123,7 +121,6 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
         localStorage.setItem('userDireccion', data.direccion || perfil.direccion);
         if (data.fotoUrl) localStorage.setItem('userFoto', data.fotoUrl);
         
-        // Sincronizar eventos globales
         window.dispatchEvent(new CustomEvent('perfilActualizado', { 
             detail: { ...perfil, ...data } 
         }));
