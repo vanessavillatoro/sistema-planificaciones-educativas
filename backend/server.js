@@ -335,60 +335,50 @@ app.get('/api/usuario/perfil', async (req, res) => {
 app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
     try {
         const userId = req.body.userId;
-        
-        // Verificación de seguridad para no romper el proceso
         if (!userId || userId === "undefined" || userId === "null") {
             return res.status(400).json({ error: "ID de usuario no proporcionado" });
         }
 
-        // 1. Clonamos los datos para no afectar el req.body original
         let datosAActualizar = { ...req.body };
 
-        // 2. Mapeo de nombre a name (como pide tu esquema)
-        if (datosAActualizar.nombre) {
-            datosAActualizar.name = datosAActualizar.nombre;
-        }
+        // Mapeo de nombre -> name para el modelo de MongoDB
+        if (datosAActualizar.nombre) datosAActualizar.name = datosAActualizar.nombre;
+        // Mapeo de correo -> email por si acaso el front envía 'correo'
+        if (datosAActualizar.correo) datosAActualizar.email = datosAActualizar.correo;
 
-        // 3. LIMPIEZA DE CAMPOS VACÍOS (Evita que la edad o strings vacíos bloqueen el guardado)
+        // Limpieza de campos vacíos para evitar errores de validación
         Object.keys(datosAActualizar).forEach(key => {
             if (datosAActualizar[key] === "" || datosAActualizar[key] === null || datosAActualizar[key] === "undefined") {
                 delete datosAActualizar[key];
             }
         });
 
-        // 4. Procesar la foto si existe
         if (req.file) { 
             datosAActualizar.fotoUrl = `/uploads/${req.file.filename}`; 
         }
 
-        // 5. Limpieza de llaves auxiliares antes de ir a MongoDB
         delete datosAActualizar.userId;
         delete datosAActualizar.nombre;
+        delete datosAActualizar.correo;
 
-        // 6. Actualización en DB
         const usuarioActualizado = await User.findByIdAndUpdate(
             userId,
             { $set: datosAActualizar },
-            { new: true, runValidators: false } // runValidators en false es la clave para que NO se bloquee
+            { new: true, runValidators: false } 
         );
 
-        if (!usuarioActualizado) {
-            return res.status(404).json({ error: "Usuario no encontrado" });
-        }
+        if (!usuarioActualizado) return res.status(404).json({ error: "Usuario no encontrado" });
 
-        // 7. Respuesta que el Frontend espera recibir
+        // IMPORTANTE: Esta respuesta debe coincidir con lo que ModalPerfil.js procesa
         res.status(200).json({
             userId: usuarioActualizado._id,
             userName: usuarioActualizado.name,
-            email: usuarioActualizado.email,
-            fotoUrl: usuarioActualizado.fotoUrl,
-            celular: usuarioActualizado.celular || '',
-            municipio: usuarioActualizado.municipio || '',
-            departamento: usuarioActualizado.departamento || '',
-            direccion: usuarioActualizado.direccion || '',
-            apellido: usuarioActualizado.apellido || '',
-            genero: usuarioActualizado.genero || '',
-            edad: usuarioActualizado.edad || ''
+            userEmail: usuarioActualizado.email,
+            userFoto: usuarioActualizado.fotoUrl,
+            userCelular: usuarioActualizado.celular || '',
+            userMunicipio: usuarioActualizado.municipio || '',
+            userDepartamento: usuarioActualizado.departamento || '',
+            userDireccion: usuarioActualizado.direccion || ''
         });
 
     } catch (error) {
