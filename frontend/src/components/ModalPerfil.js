@@ -8,6 +8,7 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
     ? 'http://localhost:5000' 
     : 'https://sistema-planificaciones-educativas.vercel.app';
 
+  // Estado inicial robusto
   const [perfil, setPerfil] = useState({
     nombre: datosUsuario?.nombre || datosUsuario?.name || localStorage.getItem('userName') || '',
     correo: datosUsuario?.correo || datosUsuario?.email || localStorage.getItem('userEmail') || '',
@@ -42,6 +43,7 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
     if (!url) return fotoPerfilDefault;
     if (url.startsWith('http')) return url;
     const base = `${API_BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
+    // Añadimos timestamp para evitar el caché del navegador al cambiar de foto
     return `${base}${base.includes('?') ? '&' : '?'}t=${new Date().getTime()}`;
   };
 
@@ -71,6 +73,9 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
         const dataActualizada = await response.json();
         setPerfil({ ...perfil, fotoUrl: dataActualizada.fotoUrl });
         localStorage.setItem('userFoto', dataActualizada.fotoUrl);
+        
+        // Avisar al resto de la app
+        window.dispatchEvent(new Event('storage'));
         alert("Foto actualizada correctamente");
       }
     } catch (error) {
@@ -97,25 +102,25 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
       const formData = new FormData();
       formData.append('userId', userId);
       
-      // MAPEO CORRECTO PARA EL SERVIDOR
+      // Mapeo correcto: Frontend usa 'nombre' y 'correo', Backend espera 'name' y 'email'
       formData.append('name', perfil.nombre); 
       formData.append('email', perfil.correo);
       
-      // Solo enviar si tienen contenido para evitar errores de validación
-      if (perfil.celular) formData.append('celular', perfil.celular);
-      if (perfil.municipio) formData.append('municipio', perfil.municipio);
-      if (perfil.departamento) formData.append('departamento', perfil.departamento);
-      if (perfil.direccion) formData.append('direccion', perfil.direccion);
+      // Validación: No enviar campos vacíos que puedan romper la base de datos
+      const camposOpcionales = ['celular', 'municipio', 'departamento', 'direccion'];
+      camposOpcionales.forEach(campo => {
+        if (perfil[campo]) formData.append(campo, perfil[campo]);
+      });
 
       const response = await fetch(`${API_BASE_URL}/api/usuario/perfil`, {
         method: 'PATCH',
-        body: formData, // Enviamos como FormData
+        body: formData,
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        // Actualizar localStorage con los nombres de campos que devuelve el servidor
+        // Actualizar almacenamiento local con la respuesta del servidor
         localStorage.setItem('userName', data.name || perfil.nombre);
         localStorage.setItem('userEmail', data.email || perfil.correo);
         localStorage.setItem('userCelular', data.celular || '');
@@ -124,10 +129,8 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
         localStorage.setItem('userDireccion', data.direccion || '');
         if (data.fotoUrl) localStorage.setItem('userFoto', data.fotoUrl);
         
-        // Disparar eventos para actualizar la interfaz global
-        window.dispatchEvent(new CustomEvent('perfilActualizado', { 
-            detail: data 
-        }));
+        // Actualización en tiempo real de la UI
+        window.dispatchEvent(new CustomEvent('perfilActualizado', { detail: data }));
         window.dispatchEvent(new Event('storage')); 
         
         alert("¡Perfil actualizado con éxito!");

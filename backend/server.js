@@ -177,7 +177,12 @@ app.post('/api/generar-plan-modulo3', async (req, res) => {
   if (!materia || !tema) return res.status(400).json({ error: "Faltan campos." });
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
   const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-  const prompt = `Estructura JSON pedagógica para: ${materia}, Tema: ${tema}...`;
+  const prompt = `
+    Genera una planificación para ${materia}, Tema: ${tema}, Grado: ${grado}, Nivel: ${dificultad}.
+    Enfoque pedagógico: ${enfoque || 'Tradicional'}.
+    Sugerencias adicionales: ${sugerencias || 'Ninguna'}.
+    Devuelve un JSON con: objetivos, contenidos, actividades y evaluacion.
+  `;
   try {
     const result = await model.generateContent(prompt);
     const jsonOutput = procesarRespuestaIA(result.response.text());
@@ -193,7 +198,8 @@ app.post('/api/generar-recurso-ia', async (req, res) => {
   try {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-    const result = await model.generateContent(`Genera recurso: ${tipoRecurso} sobre ${tema}`);
+    const prompt = `Genera un recurso educativo de tipo ${tipoRecurso} sobre el tema ${tema} para la materia ${materia}.`;
+    const result = await model.generateContent(prompt);
     res.json({ contenido: result.response.text() });
   } catch (error) {
     res.status(500).json({ error: "Error al generar recurso." });
@@ -339,46 +345,39 @@ app.get('/api/usuario/perfil', async (req, res) => {
     }
 });
 
-// --- RUTA DE PERFIL OPTIMIZADA (BLINDADA PARA TODOS LOS CAMPOS) ---
+// --- RUTA DE PERFIL OPTIMIZADA (SOLUCIÓN AL ERROR INTERNO) ---
 app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
     try {
         const { userId } = req.body;
-        
-        if (!userId || userId === "undefined" || userId === "null") {
-            return res.status(400).json({ error: "ID de usuario no válido" });
-        }
+        if (!userId || userId === "undefined") return res.status(400).json({ error: "ID inválido" });
 
         const updateData = {};
+        if (req.body.name) updateData.name = req.body.name;
+        if (req.body.email) updateData.email = req.body.email;
         
-        if (req.body.nombre || req.body.name) updateData.name = req.body.nombre || req.body.name;
-        if (req.body.correo || req.body.email) updateData.email = req.body.correo || req.body.email;
-        
-        const campos = ['celular', 'municipio', 'departamento', 'direccion', 'apellido', 'genero', 'edad'];
-        campos.forEach(campo => {
-            if (req.body[campo] !== undefined) {
+        const camposExtra = ['celular', 'municipio', 'departamento', 'direccion', 'apellido', 'genero', 'edad'];
+        camposExtra.forEach(campo => {
+            if (req.body[campo] !== undefined && req.body[campo] !== "") {
                 updateData[campo] = req.body[campo];
             }
         });
 
-        if (req.file) { 
-            updateData.fotoUrl = `/uploads/${req.file.filename}`; 
+        if (req.file) {
+            updateData.fotoUrl = `/uploads/${req.file.filename}`;
         }
 
         const usuarioActualizado = await User.findByIdAndUpdate(
             userId,
             { $set: updateData },
-            { new: true, runValidators: false } 
-        );
+            { new: true, runValidators: false } // Crucial para evitar error 500 por validación de password
+        ).select('-password');
 
-        if (!usuarioActualizado) {
-            return res.status(404).json({ error: "Usuario no encontrado" });
-        }
+        if (!usuarioActualizado) return res.status(404).json({ error: "Usuario no encontrado" });
 
         res.status(200).json(usuarioActualizado);
-
     } catch (error) {
-        console.error("ERROR CRÍTICO EN PERFIL:", error);
-        res.status(500).json({ error: "Fallo en servidor: " + error.message });
+        console.error("ERROR REAL EN PERFIL:", error);
+        res.status(500).json({ error: "Error de validación o base de datos" });
     }
 });
 
