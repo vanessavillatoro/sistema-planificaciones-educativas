@@ -1,9 +1,8 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-  // Datos que ya tenías
   name: String,
-  email: { type: String, unique: true, required: true }, // El correo debe ser único
+  email: { type: String, unique: true, required: true },
   celular: String,
   municipio: String,
   departamento: String,
@@ -11,19 +10,24 @@ const userSchema = new mongoose.Schema({
   fotoUrl: String,
   role: { type: String, default: 'docente' },
 
-  // --- CAMPOS ACTUALIZADOS CON RESTRICCIONES ---
   apellido: String,
   genero: String,
   edad: { 
     type: Number, 
-    min: 20, 
-    max: 100 
+    // Usamos una validación condicional: solo si el valor existe
+    min: [20, 'La edad mínima es 20'], 
+    max: 100,
+    // Permite que sea opcional en la actualización
+    required: false 
   },
-  // Se quita 'required: true' para permitir registros vía Google
+  
   password: { type: String }, 
   
-  // --- NUEVO PARA AUTH CON GOOGLE ---
-  googleId: { type: String, unique: true, sparse: true },
+  googleId: { 
+    type: String, 
+    unique: true, 
+    sparse: true // Vital para que no choque con usuarios tradicionales
+  },
   
   createdAt: { type: Date, default: Date.now }
 });

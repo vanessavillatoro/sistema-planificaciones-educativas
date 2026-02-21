@@ -8,7 +8,6 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
     ? 'http://localhost:5000' 
     : 'https://sistema-planificaciones-educativas.vercel.app';
 
-  // Inicializamos el estado con datos de props o localStorage para mayor robustez
   const [perfil, setPerfil] = useState({
     nombre: datosUsuario?.nombre || datosUsuario?.name || localStorage.getItem('userName') || '',
     correo: datosUsuario?.correo || datosUsuario?.email || localStorage.getItem('userEmail') || '',
@@ -19,7 +18,6 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
     fotoUrl: datosUsuario?.fotoUrl || localStorage.getItem('userFoto') || ''
   });
 
-  // Sincronizar si datosUsuario cambia
   useEffect(() => {
     if (datosUsuario) {
       setPerfil({
@@ -89,8 +87,8 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
 
   const handleGuardarDatos = async () => {
     const userId = localStorage.getItem('userId');
-    if (!userId) {
-      alert("Sesión expirada. Inicia sesión de nuevo.");
+    if (!userId || userId === "undefined") {
+      alert("Sesión no válida. Por favor, cierra sesión e ingresa de nuevo.");
       return;
     }
 
@@ -98,31 +96,37 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
     try {
       const formData = new FormData();
       formData.append('userId', userId);
-      formData.append('nombre', perfil.nombre);
+      
+      // MAPEO CORRECTO PARA EL SERVIDOR
+      formData.append('name', perfil.nombre); 
       formData.append('email', perfil.correo);
-      formData.append('celular', perfil.celular);
-      formData.append('municipio', perfil.municipio);
-      formData.append('departamento', perfil.departamento);
-      formData.append('direccion', perfil.direccion);
+      
+      // Solo enviar si tienen contenido para evitar errores de validación
+      if (perfil.celular) formData.append('celular', perfil.celular);
+      if (perfil.municipio) formData.append('municipio', perfil.municipio);
+      if (perfil.departamento) formData.append('departamento', perfil.departamento);
+      if (perfil.direccion) formData.append('direccion', perfil.direccion);
 
       const response = await fetch(`${API_BASE_URL}/api/usuario/perfil`, {
         method: 'PATCH',
-        body: formData,
+        body: formData, // Enviamos como FormData
       });
 
       const data = await response.json();
 
       if (response.ok) {
+        // Actualizar localStorage con los nombres de campos que devuelve el servidor
         localStorage.setItem('userName', data.name || perfil.nombre);
         localStorage.setItem('userEmail', data.email || perfil.correo);
-        localStorage.setItem('userCelular', data.celular || perfil.celular);
-        localStorage.setItem('userMunicipio', data.municipio || perfil.municipio);
-        localStorage.setItem('userDepartamento', data.departamento || perfil.departamento);
-        localStorage.setItem('userDireccion', data.direccion || perfil.direccion);
+        localStorage.setItem('userCelular', data.celular || '');
+        localStorage.setItem('userMunicipio', data.municipio || '');
+        localStorage.setItem('userDepartamento', data.departamento || '');
+        localStorage.setItem('userDireccion', data.direccion || '');
         if (data.fotoUrl) localStorage.setItem('userFoto', data.fotoUrl);
         
+        // Disparar eventos para actualizar la interfaz global
         window.dispatchEvent(new CustomEvent('perfilActualizado', { 
-            detail: { ...perfil, ...data } 
+            detail: data 
         }));
         window.dispatchEvent(new Event('storage')); 
         
@@ -131,11 +135,11 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
         if (onSave) onSave(data);
         onClose();
       } else {
-        alert(data.error || "Error al procesar los datos.");
+        alert(data.error || "Error al guardar los datos.");
       }
     } catch (error) {
       console.error("Error de conexión:", error);
-      alert("No se pudo conectar con el servidor.");
+      alert("Error de conexión con el servidor.");
     } finally {
       setCargando(false);
     }
