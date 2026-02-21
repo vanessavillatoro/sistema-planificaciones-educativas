@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react'; // Se agregó useEffect
 import './ModalPerfil.css';
 import fotoPerfilDefault from './perfil.png'; 
 
@@ -8,26 +8,27 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
     ? 'http://localhost:5000' 
     : 'https://sistema-planificaciones-educativas.vercel.app';
 
-  // --- CORRECCIÓN: Nombres alineados con el Backend y Storage ---
+  // Inicializamos el estado con los datos recibidos
   const [perfil, setPerfil] = useState({
-    nombre: datosUsuario?.userName || datosUsuario?.name || '',
-    correo: datosUsuario?.userEmail || datosUsuario?.email || '',
-    celular: datosUsuario?.userCelular || datosUsuario?.celular || '',
-    municipio: datosUsuario?.userMunicipio || datosUsuario?.municipio || '',
-    departamento: datosUsuario?.userDepartamento || datosUsuario?.departamento || '',
-    direccion: datosUsuario?.userDireccion || datosUsuario?.direccion || '',
+    nombre: datosUsuario?.nombre || datosUsuario?.name || '',
+    correo: datosUsuario?.correo || datosUsuario?.email || '',
+    celular: datosUsuario?.celular || '',
+    municipio: datosUsuario?.municipio || '',
+    departamento: datosUsuario?.departamento || '',
+    direccion: datosUsuario?.direccion || '',
     fotoUrl: datosUsuario?.fotoUrl || ''
   });
 
+  // --- NUEVO: Sincronizar si datosUsuario cambia mientras el modal está abierto ---
   useEffect(() => {
     if (datosUsuario) {
       setPerfil({
-        nombre: datosUsuario.userName || datosUsuario.name || '',
-        correo: datosUsuario.userEmail || datosUsuario.email || '',
-        celular: datosUsuario.userCelular || datosUsuario.celular || '',
-        municipio: datosUsuario.userMunicipio || datosUsuario.municipio || '',
-        departamento: datosUsuario.userDepartamento || datosUsuario.departamento || '',
-        direccion: datosUsuario.userDireccion || datosUsuario.direccion || '',
+        nombre: datosUsuario.nombre || datosUsuario.name || '',
+        correo: datosUsuario.correo || datosUsuario.email || '',
+        celular: datosUsuario.celular || '',
+        municipio: datosUsuario.municipio || '',
+        departamento: datosUsuario.departamento || '',
+        direccion: datosUsuario.direccion || '',
         fotoUrl: datosUsuario.fotoUrl || ''
       });
     }
@@ -70,8 +71,7 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
 
       if (response.ok) {
         const dataActualizada = await response.json();
-        setPerfil(prev => ({ ...prev, fotoUrl: dataActualizada.fotoUrl }));
-        localStorage.setItem('fotoUrl', dataActualizada.fotoUrl);
+        setPerfil({ ...perfil, fotoUrl: dataActualizada.fotoUrl });
         alert("Foto actualizada correctamente");
       }
     } catch (error) {
@@ -95,28 +95,21 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
 
     setCargando(true);
     try {
-      // --- CORRECCIÓN CRÍTICA: Mapeo de nombres para el Server ---
-      const payload = {
-        userId,
-        nombre: perfil.nombre, // El server hace: datos.name = datos.nombre
-        email: perfil.correo,
-        celular: perfil.celular,
-        municipio: perfil.municipio,
-        departamento: perfil.departamento,
-        direccion: perfil.direccion,
-        fotoUrl: perfil.fotoUrl
-      };
-
       const response = await fetch(`${API_BASE_URL}/api/usuario/perfil`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ 
+          userId, 
+          nombre: perfil.nombre, 
+          ...perfil 
+        }),
       });
 
-      const data = await response.json();
-
       if (response.ok) {
-        // --- ACTUALIZACIÓN DE STORAGE CON KEYS CORRECTAS ---
+        const data = await response.json();
+        
+        // --- ACTUALIZACIÓN DE TODOS LOS CAMPOS EN STORAGE ---
+        // Usamos 'data' (la respuesta del servidor) para asegurar que se guardó
         localStorage.setItem('userName', data.userName || perfil.nombre);
         localStorage.setItem('userCelular', data.celular || perfil.celular);
         localStorage.setItem('userMunicipio', data.municipio || perfil.municipio);
@@ -124,19 +117,23 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
         localStorage.setItem('userDireccion', data.direccion || perfil.direccion);
         if(data.fotoUrl) localStorage.setItem('fotoUrl', data.fotoUrl);
         
-        // Disparar eventos para actualizar la UI global
-        window.dispatchEvent(new CustomEvent('perfilActualizado', { detail: data }));
+        // Notificamos al resto de la página
+        window.dispatchEvent(new CustomEvent('perfilActualizado', { 
+            detail: { ...perfil, ...data } 
+        }));
         window.dispatchEvent(new Event('storage')); 
         
         alert("¡Datos guardados con éxito!");
+
         if (onSave) onSave(data);
         onClose();
       } else {
-        alert(data.error || "Error al procesar los datos.");
+        const errorData = await response.json();
+        alert(errorData.error || "Error al procesar los datos en el servidor.");
       }
     } catch (error) {
       console.error("Error de conexión:", error);
-      alert("No se pudo conectar con el servidor.");
+      alert("No se pudo conectar con el servidor. Revisa tu internet.");
     } finally {
       setCargando(false);
     }
@@ -183,7 +180,7 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
                 name={item.name} 
                 value={perfil[item.name] || ''} 
                 onChange={handleChange} 
-                readOnly={editando !== item.name || item.name === 'correo'} 
+                readOnly={editando !== item.name || item.name === 'correo'} // Correo suele ser lectura
                 onBlur={() => setEditando(null)}
               />
             </div>

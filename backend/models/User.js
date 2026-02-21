@@ -3,22 +3,22 @@ const mongoose = require('mongoose');
 const userSchema = new mongoose.Schema({
   name: String,
   email: { type: String, unique: true, required: true },
-  celular: { type: String, default: '' },     // Añadir default evita valores null
-  municipio: { type: String, default: '' },
-  departamento: { type: String, default: '' },
-  direccion: { type: String, default: '' },
-  fotoUrl: { type: String, default: '' },
+  celular: String,
+  municipio: String,
+  departamento: String,
+  direccion: String,
+  fotoUrl: String,
   role: { type: String, default: 'docente' },
 
-  apellido: { type: String, default: '' },
-  genero: { type: String, default: '' },
-  
-  // CORRECCIÓN AQUÍ:
+  apellido: String,
+  genero: String,
   edad: { 
     type: Number, 
-    // Quitamos las validaciones estrictas momentáneamente para asegurar el guardado
-    // O nos aseguramos de que solo valide si el número existe
-    required: false
+    // Usamos una validación condicional: solo si el valor existe
+    min: [20, 'La edad mínima es 20'], 
+    max: 100,
+    // Permite que sea opcional en la actualización
+    required: false 
   },
   
   password: { type: String }, 
@@ -26,7 +26,7 @@ const userSchema = new mongoose.Schema({
   googleId: { 
     type: String, 
     unique: true, 
-    sparse: true 
+    sparse: true // Vital para que no choque con usuarios tradicionales
   },
   
   createdAt: { type: Date, default: Date.now }
