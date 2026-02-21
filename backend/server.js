@@ -32,7 +32,7 @@ const Gestion = mongoose.models.Gestion || mongoose.model('Gestion', GestionSche
 
 const app = express();
 
-// --- CONFIGURACIÓN DE CARPETAS (NUEVO) ---
+// --- CONFIGURACIÓN DE CARPETAS Y RUTAS ESTÁTICAS (NUEVO) ---
 const uploadsDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)){
     fs.mkdirSync(uploadsDir, { recursive: true });
@@ -57,7 +57,7 @@ app.use((req, res, next) => {
 });
 
 app.use(express.json());
-// Servir archivos estáticos de forma explícita
+// Servir la carpeta de subidas de forma estática
 app.use('/uploads', express.static(uploadsDir));
 
 app.get('/api/test', (req, res) => {
@@ -69,9 +69,9 @@ app.get('/', (req, res) => {
 });
 
 // --- CONFIGURACIÓN PARA SUBIDA DE IMÁGENES ---
-// Nota: Usamos /tmp para compatibilidad con Vercel, pero guardamos en uploads para local
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
+        // En Vercel se usa /tmp, en local la carpeta uploads
         cb(null, fs.existsSync('/tmp') ? '/tmp' : uploadsDir); 
     },
     filename: (req, file, cb) => {
@@ -346,6 +346,7 @@ app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
 
         let datosAActualizar = { ...req.body };
 
+        // PROTECCIÓN: No permitir cambio de email aquí
         delete datosAActualizar.email;
         delete datosAActualizar.userEmail;
         delete datosAActualizar.correo;
@@ -358,17 +359,15 @@ app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
             }
         });
 
-        // Manejo de la foto nueva
         if (req.file) { 
             const fileName = req.file.filename;
             const tempPath = req.file.path;
             const targetPath = path.join(uploadsDir, fileName);
 
-            // Si el archivo está en /tmp (Vercel), lo movemos a uploads (opcional)
+            // Mover archivo si está en carpeta temporal
             if (tempPath !== targetPath && fs.existsSync(tempPath)) {
                 fs.copyFileSync(tempPath, targetPath);
             }
-            
             datosAActualizar.fotoUrl = `/uploads/${fileName}`; 
         }
 
@@ -488,6 +487,6 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 puerto corriendo${PORT}`));
+app.listen(PORT, () => console.log(`🚀 puerto corriendo ${PORT}`));
 
 module.exports = app;

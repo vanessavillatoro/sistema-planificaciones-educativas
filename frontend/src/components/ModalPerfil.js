@@ -20,6 +20,9 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
 
   const [editando, setEditando] = useState(null);
   const [cargando, setCargando] = useState(false);
+  // --- NUEVO: Estado para forzar la recarga de la imagen ---
+  const [version, setVersion] = useState(Date.now()); 
+  
   const inputRefs = useRef({});
   const fileInputRef = useRef(null);
 
@@ -43,12 +46,11 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
     setPerfil({ ...perfil, [e.target.name]: e.target.value });
   };
 
-  // --- FUNCIÓN MEJORADA: Manejar el cambio de imagen ---
   const handleFotoChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Vista previa inmediata (opcional, mejora la experiencia)
+    // Vista previa inmediata con blob
     const previewUrl = URL.createObjectURL(file);
     setPerfil(prev => ({ ...prev, userFoto: previewUrl }));
 
@@ -69,7 +71,11 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
       if (response.ok) {
         const nuevaUrl = data.userFoto;
         localStorage.setItem('userFoto', nuevaUrl);
+        
+        // --- ACTUALIZACIÓN CRÍTICA: Cambiamos perfil y versión ---
         setPerfil(prev => ({ ...prev, userFoto: nuevaUrl }));
+        setVersion(Date.now()); 
+        
         alert("Foto actualizada correctamente");
         if (onSave) onSave(data);
       } else {
@@ -77,7 +83,6 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
       }
     } catch (error) {
       alert("Error al subir la foto al servidor");
-      // Revertir a la que estaba si falla
       setPerfil(prev => ({ ...prev, userFoto: localStorage.getItem('userFoto') || '' }));
     } finally {
       setCargando(false);
@@ -132,13 +137,19 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
     { label: 'Direccion', name: 'userDireccion' }
   ];
 
-  // Lógica para determinar la URL final de la imagen
+  // --- FUNCIÓN ACTUALIZADA: Con Cache Busting ---
   const getFotoUrl = () => {
     if (!perfil.userFoto) return fotoPerfilDefault;
+    
+    let urlBase = "";
     if (perfil.userFoto.startsWith('blob:') || perfil.userFoto.startsWith('http')) {
-      return perfil.userFoto;
+      urlBase = perfil.userFoto;
+    } else {
+      urlBase = `${API_BASE_URL}${perfil.userFoto}`;
     }
-    return `${API_BASE_URL}${perfil.userFoto}`;
+
+    // Añadimos el parámetro v= para forzar al navegador a recargar la imagen real
+    return `${urlBase}${urlBase.includes('?') ? '&' : '?'}v=${version}`;
   };
 
   return (
