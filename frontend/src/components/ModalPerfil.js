@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'; // Se agregó useEffect
+import React, { useState, useRef, useEffect } from 'react';
 import './ModalPerfil.css';
 import fotoPerfilDefault from './perfil.png'; 
 
@@ -8,18 +8,18 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
     ? 'http://localhost:5000' 
     : 'https://sistema-planificaciones-educativas.vercel.app';
 
-  // Inicializamos el estado con los datos recibidos
+  // Inicializamos el estado con datos de props o localStorage para mayor robustez
   const [perfil, setPerfil] = useState({
-    nombre: datosUsuario?.nombre || datosUsuario?.name || '',
-    correo: datosUsuario?.correo || datosUsuario?.email || '',
-    celular: datosUsuario?.celular || '',
-    municipio: datosUsuario?.municipio || '',
-    departamento: datosUsuario?.departamento || '',
-    direccion: datosUsuario?.direccion || '',
-    fotoUrl: datosUsuario?.fotoUrl || ''
+    nombre: datosUsuario?.nombre || datosUsuario?.name || localStorage.getItem('userName') || '',
+    correo: datosUsuario?.correo || datosUsuario?.email || localStorage.getItem('userEmail') || '',
+    celular: datosUsuario?.celular || localStorage.getItem('userCelular') || '',
+    municipio: datosUsuario?.municipio || localStorage.getItem('userMunicipio') || '',
+    departamento: datosUsuario?.departamento || localStorage.getItem('userDepartamento') || '',
+    direccion: datosUsuario?.direccion || localStorage.getItem('userDireccion') || '',
+    fotoUrl: datosUsuario?.fotoUrl || localStorage.getItem('userFoto') || ''
   });
 
-  // --- Sincronizar si datosUsuario cambia mientras el modal está abierto ---
+  // Sincronizar si datosUsuario cambia
   useEffect(() => {
     if (datosUsuario) {
       setPerfil({
@@ -62,12 +62,6 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
     const formData = new FormData();
     formData.append('foto', file);
     formData.append('userId', localStorage.getItem('userId'));
-    formData.append('nombre', perfil.nombre);
-    formData.append('correo', perfil.correo);
-    formData.append('celular', perfil.celular);
-    formData.append('municipio', perfil.municipio);
-    formData.append('departamento', perfil.departamento);
-    formData.append('direccion', perfil.direccion); 
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/usuario/foto`, {
@@ -78,6 +72,7 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
       if (response.ok) {
         const dataActualizada = await response.json();
         setPerfil({ ...perfil, fotoUrl: dataActualizada.fotoUrl });
+        localStorage.setItem('userFoto', dataActualizada.fotoUrl);
         alert("Foto actualizada correctamente");
       }
     } catch (error) {
@@ -92,7 +87,7 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
     }, 100);
   };
 
-const handleGuardarDatos = async () => {
+  const handleGuardarDatos = async () => {
     const userId = localStorage.getItem('userId');
     if (!userId) {
       alert("Sesión expirada. Inicia sesión de nuevo.");
@@ -101,47 +96,49 @@ const handleGuardarDatos = async () => {
 
     setCargando(true);
     try {
-      // USAMOS FORMDATA para que sea 100% compatible con 'upload.single' del server
+      // USAMOS FormData para que el server (Multer) procese los campos correctamente
       const formData = new FormData();
       formData.append('userId', userId);
-      formData.append('nombre', perfil.nombre); // Cambiado de 'nombre' a 'name'
-      formData.append('correo', perfil.correo);
+      formData.append('nombre', perfil.nombre);
+      formData.append('email', perfil.correo);
       formData.append('celular', perfil.celular);
       formData.append('municipio', perfil.municipio);
       formData.append('departamento', perfil.departamento);
       formData.append('direccion', perfil.direccion);
-      formData.append('apellido', perfil.apellido || ''); // Agregamos los que faltaban
-      formData.append('genero', perfil.genero || '');
 
-      // No necesitamos headers de 'Content-Type', el navegador lo pone solo al usar FormData
       const response = await fetch(`${API_BASE_URL}/api/usuario/perfil`, {
         method: 'PATCH',
-        body: formData,
+        body: formData, // El navegador asigna el Content-Type adecuado automáticamente
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        // Actualizamos LocalStorage con lo que el servidor nos devolvió
-        localStorage.setItem('userName', data.userName || perfil.nombre);
+        // --- ACTUALIZACIÓN DE STORAGE CON NOMBRES NORMALIZADOS ---
+        localStorage.setItem('userName', data.name || perfil.nombre);
         localStorage.setItem('userEmail', data.email || perfil.correo);
         localStorage.setItem('userCelular', data.celular || perfil.celular);
         localStorage.setItem('userMunicipio', data.municipio || perfil.municipio);
         localStorage.setItem('userDepartamento', data.departamento || perfil.departamento);
         localStorage.setItem('userDireccion', data.direccion || perfil.direccion);
+        if (data.fotoUrl) localStorage.setItem('userFoto', data.fotoUrl);
         
-        // Disparamos el evento para que la UI se entere del cambio de nombre
+        // Sincronizar eventos globales
+        window.dispatchEvent(new CustomEvent('perfilActualizado', { 
+            detail: { ...perfil, ...data } 
+        }));
         window.dispatchEvent(new Event('storage')); 
         
         alert("¡Perfil actualizado con éxito!");
+
         if (onSave) onSave(data);
         onClose();
       } else {
-        alert("Error del servidor: " + (data.error || "No se pudo guardar"));
+        alert(data.error || "Error al procesar los datos.");
       }
     } catch (error) {
       console.error("Error de conexión:", error);
-      alert("Error de conexión. Revisa el servidor.");
+      alert("No se pudo conectar con el servidor.");
     } finally {
       setCargando(false);
     }
@@ -153,7 +150,7 @@ const handleGuardarDatos = async () => {
     { label: 'Celular', name: 'celular' },
     { label: 'Municipio', name: 'municipio' },
     { label: 'Departamento', name: 'departamento' },
-    { label: 'Direccion', name: 'direccion' }
+    { label: 'Dirección', name: 'direccion' }
   ];
 
   return (

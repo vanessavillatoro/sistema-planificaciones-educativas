@@ -34,13 +34,13 @@ const app = express();
 
 // --- BLOQUE DE CORS MEJORADO (PARCHE PARA VERCEL) ---
 app.use(cors({
-  origin: [
-    'https://sistema-planificaciones-educativas-ten.vercel.app',
-    'https://sistema-planificaciones-educativas.vercel.app',
-    'http://localhost:3000'
-  ],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+    origin: [
+        'https://sistema-planificaciones-educativas-ten.vercel.app',
+        'https://sistema-planificaciones-educativas.vercel.app',
+        'http://localhost:3000'
+    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.use((req, res, next) => {
@@ -48,7 +48,6 @@ app.use((req, res, next) => {
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     
-    // RESPUESTA CRÍTICA PARA VERCEL: Manejo de pre-flight
     if (req.method === 'OPTIONS') {
         return res.sendStatus(200);
     }
@@ -334,37 +333,35 @@ app.get('/api/usuario/perfil', async (req, res) => {
     }
 });
 
-// --- RUTA DE PERFIL OPTIMIZADA (CORRECCIÓN ERROR 500) ---
+// --- RUTA DE PERFIL OPTIMIZADA (BLINDADA PARA TODOS LOS CAMPOS) ---
 app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
-    console.log("DATOS RECIBIDOS EN EL SERVER:", req.body); // <--- AGREGA ESTO
+    console.log("DATOS RECIBIDOS EN EL SERVER:", req.body);
     try {
         const { userId } = req.body;
         
-        // Verificación básica de seguridad
         if (!userId || userId === "undefined" || userId === "null") {
             return res.status(400).json({ error: "ID de usuario no válido" });
         }
 
-        // Construimos el objeto de actualización campo por campo
-        // Usamos req.body[campo] directamente para evitar errores de desestructuración
+        // Construimos el objeto de actualización de forma segura
         const updateData = {};
         
-        // Mapeo de nombres (Frontend -> Backend/DB)
+        // Mapeo flexible de campos principales
         if (req.body.nombre || req.body.name) updateData.name = req.body.nombre || req.body.name;
         if (req.body.correo || req.body.email) updateData.email = req.body.correo || req.body.email;
-        if (req.body.celular) updateData.celular = req.body.celular;
-        if (req.body.municipio) updateData.municipio = req.body.municipio;
-        if (req.body.departamento) updateData.departamento = req.body.departamento;
-        if (req.body.direccion) updateData.direccion = req.body.direccion;
+        
+        // Mapeo automático de campos adicionales
+        const campos = ['celular', 'municipio', 'departamento', 'direccion', 'apellido', 'genero', 'edad'];
+        campos.forEach(campo => {
+            if (req.body[campo] !== undefined) {
+                updateData[campo] = req.body[campo];
+            }
+        });
 
-        // Si el usuario subió una imagen nueva
         if (req.file) { 
             updateData.fotoUrl = `/uploads/${req.file.filename}`; 
         }
 
-        // EL CAMBIO CRÍTICO: 
-        // 1. Usamos { $set: updateData } para que solo cambie lo que enviamos.
-        // 2. runValidators: false evita que MongoDB rechace la actualización por falta de otros datos (como password).
         const usuarioActualizado = await User.findByIdAndUpdate(
             userId,
             { $set: updateData },
@@ -372,27 +369,17 @@ app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
         );
 
         if (!usuarioActualizado) {
-            return res.status(404).json({ error: "Usuario no encontrado en la base de datos" });
+            return res.status(404).json({ error: "Usuario no encontrado" });
         }
 
-        // Respondemos con los datos actualizados
-        res.status(200).json({
-            userId: usuarioActualizado._id,
-            userName: usuarioActualizado.name,
-            email: usuarioActualizado.email,
-            fotoUrl: usuarioActualizado.fotoUrl,
-            celular: usuarioActualizado.celular || '',
-            municipio: usuarioActualizado.municipio || '',
-            departamento: usuarioActualizado.departamento || '',
-            direccion: usuarioActualizado.direccion || ''
-        });
+        res.status(200).json(usuarioActualizado);
 
     } catch (error) {
         console.error("ERROR CRÍTICO EN PERFIL:", error);
-        // Ahora el error te dirá exactamente qué falló en la alerta del navegador
         res.status(500).json({ error: "Fallo en servidor: " + error.message });
     }
 });
+
 app.post('/api/usuario/foto', upload.single('foto'), async (req, res) => {
     try {
         if (!req.file) return res.status(400).json({ error: "No hay imagen" });
@@ -407,7 +394,7 @@ app.post('/api/usuario/foto', upload.single('foto'), async (req, res) => {
     }
 });
 
-// --- AUTENTICACIÓN: GOOGLE (BLOQUE CON EMAIL INCLUIDO) ---
+// --- AUTENTICACIÓN: GOOGLE ---
 app.post('/api/auth/google', async (req, res) => {
     try {
         const { token } = req.body;
@@ -432,7 +419,7 @@ app.post('/api/auth/google', async (req, res) => {
         res.status(200).json({ 
             userId: usuario._id, 
             userName: usuario.name, 
-            email: usuario.email, // <--- CAMPO AGREGADO
+            email: usuario.email,
             fotoUrl: usuario.fotoUrl,
             celular: usuario.celular || '',
             municipio: usuario.municipio || '',
@@ -468,7 +455,7 @@ app.post('/api/auth/login', async (req, res) => {
     res.json({ 
         userId: usuario._id, 
         userName: usuario.name, 
-        email: usuario.email, // <--- CAMPO AGREGADO
+        email: usuario.email,
         fotoUrl: usuario.fotoUrl,
         celular: usuario.celular || '',
         municipio: usuario.municipio || '',
