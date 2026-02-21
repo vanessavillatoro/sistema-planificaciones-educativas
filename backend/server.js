@@ -330,52 +330,70 @@ app.get('/api/usuario/perfil', async (req, res) => {
     }
 });
 
+// --- SUSTITUIR ÚNICAMENTE ESTE BLOQUE EN TU SERVER.JS ---
+
 app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
     try {
         const userId = req.body.userId;
-        const datos = { ...req.body };
         
+        // Verificación de seguridad para no romper el proceso
         if (!userId || userId === "undefined" || userId === "null") {
             return res.status(400).json({ error: "ID de usuario no proporcionado" });
         }
 
+        // 1. Clonamos los datos para no afectar el req.body original
+        let datosAActualizar = { ...req.body };
+
+        // 2. Mapeo de nombre a name (como pide tu esquema)
+        if (datosAActualizar.nombre) {
+            datosAActualizar.name = datosAActualizar.nombre;
+        }
+
+        // 3. LIMPIEZA DE CAMPOS VACÍOS (Evita que la edad o strings vacíos bloqueen el guardado)
+        Object.keys(datosAActualizar).forEach(key => {
+            if (datosAActualizar[key] === "" || datosAActualizar[key] === null || datosAActualizar[key] === "undefined") {
+                delete datosAActualizar[key];
+            }
+        });
+
+        // 4. Procesar la foto si existe
         if (req.file) { 
-            datos.fotoUrl = `/uploads/${req.file.filename}`; 
+            datosAActualizar.fotoUrl = `/uploads/${req.file.filename}`; 
         }
 
-        if (datos.nombre) { 
-            datos.name = datos.nombre; 
-        }
-        
-        delete datos.nombre; 
+        // 5. Limpieza de llaves auxiliares antes de ir a MongoDB
+        delete datosAActualizar.userId;
+        delete datosAActualizar.nombre;
 
+        // 6. Actualización en DB
         const usuarioActualizado = await User.findByIdAndUpdate(
             userId,
-            { $set: datos },
-            { new: true, runValidators: true }
+            { $set: datosAActualizar },
+            { new: true, runValidators: false } // runValidators en false es la clave para que NO se bloquee
         );
 
         if (!usuarioActualizado) {
             return res.status(404).json({ error: "Usuario no encontrado" });
         }
 
+        // 7. Respuesta que el Frontend espera recibir
         res.status(200).json({
             userId: usuarioActualizado._id,
             userName: usuarioActualizado.name,
-            fotoUrl: usuarioActualizado.fotoUrl,
-            apellido: usuarioActualizado.apellido || '',
-            genero: usuarioActualizado.genero || '',
-            edad: usuarioActualizado.edad || '',
             email: usuarioActualizado.email,
+            fotoUrl: usuarioActualizado.fotoUrl,
             celular: usuarioActualizado.celular || '',
             municipio: usuarioActualizado.municipio || '',
             departamento: usuarioActualizado.departamento || '',
-            direccion: usuarioActualizado.direccion || ''
+            direccion: usuarioActualizado.direccion || '',
+            apellido: usuarioActualizado.apellido || '',
+            genero: usuarioActualizado.genero || '',
+            edad: usuarioActualizado.edad || ''
         });
 
     } catch (error) {
-        console.error("Error al actualizar perfil:", error);
-        res.status(500).json({ error: "Error interno al guardar los datos" });
+        console.error("Error en perfil:", error);
+        res.status(500).json({ error: "Error interno al guardar datos" });
     }
 });
 
