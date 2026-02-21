@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'; // Se agregó useEffect
+import React, { useState, useRef, useEffect } from 'react';
 import './ModalPerfil.css';
 import fotoPerfilDefault from './perfil.png'; 
 
@@ -8,27 +8,26 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
     ? 'http://localhost:5000' 
     : 'https://sistema-planificaciones-educativas.vercel.app';
 
-  // Inicializamos el estado con los datos recibidos
+  // 1. Mapeo inteligente al cargar para que los inputs NUNCA nazcan vacíos
   const [perfil, setPerfil] = useState({
-    nombre: datosUsuario?.nombre || datosUsuario?.name || '',
-    correo: datosUsuario?.correo || datosUsuario?.email || '',
-    celular: datosUsuario?.celular || '',
-    municipio: datosUsuario?.municipio || '',
-    departamento: datosUsuario?.departamento || '',
-    direccion: datosUsuario?.direccion || '',
+    nombre: datosUsuario?.userName || datosUsuario?.name || datosUsuario?.nombre || '',
+    correo: datosUsuario?.userEmail || datosUsuario?.email || datosUsuario?.correo || '',
+    celular: datosUsuario?.userCelular || datosUsuario?.celular || '',
+    municipio: datosUsuario?.userMunicipio || datosUsuario?.municipio || '',
+    departamento: datosUsuario?.userDepartamento || datosUsuario?.departamento || '',
+    direccion: datosUsuario?.userDireccion || datosUsuario?.direccion || '',
     fotoUrl: datosUsuario?.fotoUrl || ''
   });
 
-  // --- NUEVO: Sincronizar si datosUsuario cambia mientras el modal está abierto ---
   useEffect(() => {
     if (datosUsuario) {
       setPerfil({
-        nombre: datosUsuario.nombre || datosUsuario.name || '',
-        correo: datosUsuario.correo || datosUsuario.email || '',
-        celular: datosUsuario.celular || '',
-        municipio: datosUsuario.municipio || '',
-        departamento: datosUsuario.departamento || '',
-        direccion: datosUsuario.direccion || '',
+        nombre: datosUsuario.userName || datosUsuario.name || datosUsuario.nombre || '',
+        correo: datosUsuario.userEmail || datosUsuario.email || datosUsuario.correo || '',
+        celular: datosUsuario.userCelular || datosUsuario.celular || '',
+        municipio: datosUsuario.userMunicipio || datosUsuario.municipio || '',
+        departamento: datosUsuario.userDepartamento || datosUsuario.departamento || '',
+        direccion: datosUsuario.userDireccion || datosUsuario.direccion || '',
         fotoUrl: datosUsuario.fotoUrl || ''
       });
     }
@@ -36,80 +35,43 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
 
   const [editando, setEditando] = useState(null);
   const [cargando, setCargando] = useState(false);
-  
   const inputRefs = useRef({});
   const fileInputRef = useRef(null); 
-
-  const formatearUrlImagen = (url) => {
-    if (!url) return fotoPerfilDefault;
-    if (url.startsWith('http')) return url;
-    const base = `${API_BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
-    return `${base}${base.includes('?') ? '&' : '?'}t=${new Date().getTime()}`;
-  };
 
   const handleChange = (e) => {
     setPerfil({ ...perfil, [e.target.name]: e.target.value });
   };
 
-  const handleFotoClick = () => {
-    if (fileInputRef.current) fileInputRef.current.click();
-  };
-
-  const handleFileChange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const formData = new FormData();
-    formData.append('foto', file);
-    formData.append('userId', localStorage.getItem('userId'));
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/usuario/foto`, {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (response.ok) {
-        const dataActualizada = await response.json();
-        setPerfil({ ...perfil, fotoUrl: dataActualizada.fotoUrl });
-        alert("Foto actualizada correctamente");
-      }
-    } catch (error) {
-      console.error("Error al subir imagen:", error);
-    }
-  };
-
-  const habilitarEdicion = (campo) => {
-    setEditando(campo);
-    setTimeout(() => {
-      inputRefs.current[campo]?.focus();
-    }, 100);
-  };
-
   const handleGuardarDatos = async () => {
     const userId = localStorage.getItem('userId');
     if (!userId) {
-      alert("Sesión expirada. Inicia sesión de nuevo.");
+      alert("Sesión expirada.");
       return;
     }
 
     setCargando(true);
     try {
+      // 2. LIMPIEZA TOTAL: Enviamos lo que el servidor espera exactamente
+      const payload = {
+        userId,
+        nombre: perfil.nombre, // El server.js lo convertirá a 'name'
+        celular: perfil.celular,
+        municipio: perfil.municipio,
+        departamento: perfil.departamento,
+        direccion: perfil.direccion,
+        fotoUrl: perfil.fotoUrl
+      };
+
       const response = await fetch(`${API_BASE_URL}/api/usuario/perfil`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          userId, 
-          nombre: perfil.nombre, 
-          ...perfil 
-        }),
+        body: JSON.stringify(payload),
       });
 
+      const data = await response.json();
+
       if (response.ok) {
-        const data = await response.json();
-        
-        // --- ACTUALIZACIÓN DE TODOS LOS CAMPOS EN STORAGE ---
-        // Usamos 'data' (la respuesta del servidor) para asegurar que se guardó
+        // 3. ACTUALIZACIÓN DE STORAGE CON PREFIJOS (Como lo tienes en tu App)
         localStorage.setItem('userName', data.userName || perfil.nombre);
         localStorage.setItem('userCelular', data.celular || perfil.celular);
         localStorage.setItem('userMunicipio', data.municipio || perfil.municipio);
@@ -117,23 +79,19 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
         localStorage.setItem('userDireccion', data.direccion || perfil.direccion);
         if(data.fotoUrl) localStorage.setItem('fotoUrl', data.fotoUrl);
         
-        // Notificamos al resto de la página
-        window.dispatchEvent(new CustomEvent('perfilActualizado', { 
-            detail: { ...perfil, ...data } 
-        }));
+        // Notificar cambios
         window.dispatchEvent(new Event('storage')); 
         
+        // 4. ÉXITO SEGURO: Cerramos el modal ANTES de cualquier otra lógica que pueda fallar
         alert("¡Datos guardados con éxito!");
-
         if (onSave) onSave(data);
         onClose();
       } else {
-        const errorData = await response.json();
-        alert(errorData.error || "Error al procesar los datos en el servidor.");
+        alert(data.error || "Error en el servidor");
       }
     } catch (error) {
-      console.error("Error de conexión:", error);
-      alert("No se pudo conectar con el servidor. Revisa tu internet.");
+      console.error("Error:", error);
+      alert("Error de conexión");
     } finally {
       setCargando(false);
     }
@@ -148,14 +106,18 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
     { label: 'Direccion', name: 'direccion' }
   ];
 
+  const formatearUrlImagen = (url) => {
+    if (!url) return fotoPerfilDefault;
+    if (url.startsWith('http')) return url;
+    return `${API_BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
+  };
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className={`modal-content ${darkMode ? 'dark' : 'light'}`} onClick={(e) => e.stopPropagation()}>
         <button className="close-x" onClick={onClose}>×</button>
-
         <div className="modal-header">
-          <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept="image/*" onChange={handleFileChange} />
-          <div className="profile-img-container" onClick={handleFotoClick}>
+          <div className="profile-img-container" onClick={() => fileInputRef.current.click()}>
             <img src={formatearUrlImagen(perfil.fotoUrl)} alt="User" className="modal-avatar" />
             <div className="edit-badge">✎</div>
           </div>
@@ -164,14 +126,11 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
             <p>{perfil.correo}</p>
           </div>
         </div>
-
         <div className="modal-perfil-body">
           {campos.map((item) => (
             <div className={`input-group ${editando === item.name ? 'is-editing' : ''}`} key={item.name}>
               <div className="label-section">
-                <button className="btn-edit-small" onClick={() => habilitarEdicion(item.name)}>
-                  ✎
-                </button>
+                <button className="btn-edit-small" onClick={() => { setEditando(item.name); setTimeout(() => inputRefs.current[item.name]?.focus(), 50); }}>✎</button>
                 <label>{item.label}</label>
               </div>
               <input 
@@ -180,16 +139,29 @@ const ModalPerfil = ({ onClose, onSave, darkMode, datosUsuario }) => {
                 name={item.name} 
                 value={perfil[item.name] || ''} 
                 onChange={handleChange} 
-                readOnly={editando !== item.name || item.name === 'correo'} // Correo suele ser lectura
+                readOnly={editando !== item.name || item.name === 'correo'} 
                 onBlur={() => setEditando(null)}
               />
             </div>
           ))}
         </div>
-
         <button className="save-btn" onClick={handleGuardarDatos} disabled={cargando}>
           {cargando ? 'Guardando...' : 'Guardar Cambios'}
         </button>
+        <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept="image/*" onChange={async (e) => {
+             const file = e.target.files[0];
+             if (!file) return;
+             const formData = new FormData();
+             formData.append('foto', file);
+             formData.append('userId', localStorage.getItem('userId'));
+             const res = await fetch(`${API_BASE_URL}/api/usuario/foto`, { method: 'POST', body: formData });
+             if (res.ok) {
+               const d = await res.json();
+               setPerfil({...perfil, fotoUrl: d.fotoUrl});
+               localStorage.setItem('fotoUrl', d.fotoUrl);
+               alert("Foto actualizada");
+             }
+        }} />
       </div>
     </div>
   );

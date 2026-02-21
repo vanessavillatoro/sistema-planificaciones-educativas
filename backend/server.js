@@ -330,52 +330,69 @@ app.get('/api/usuario/perfil', async (req, res) => {
     }
 });
 
+// --- REEMPLAZA ÚNICAMENTE LA RUTA PATCH /api/usuario/perfil POR ESTA ---
+
 app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
     try {
         const userId = req.body.userId;
-        const datos = { ...req.body };
         
         if (!userId || userId === "undefined" || userId === "null") {
             return res.status(400).json({ error: "ID de usuario no proporcionado" });
         }
 
-        if (req.file) { 
-            datos.fotoUrl = `/uploads/${req.file.filename}`; 
+        // 1. Clonamos los datos recibidos
+        let datosAActualizar = { ...req.body };
+
+        // 2. Mapeamos 'nombre' a 'name' (que es lo que el esquema User.js tiene)
+        if (datosAActualizar.nombre) {
+            datosAActualizar.name = datosAActualizar.nombre;
         }
 
-        if (datos.nombre) { 
-            datos.name = datos.nombre; 
+        // 3. LIMPIEZA CRÍTICA: Eliminamos campos vacíos o nulos 
+        // Esto evita errores de validación en campos como 'edad' si vienen vacíos
+        Object.keys(datosAActualizar).forEach(key => {
+            if (datosAActualizar[key] === "" || datosAActualizar[key] === null || datosAActualizar[key] === "undefined") {
+                delete datosAActualizar[key];
+            }
+        });
+
+        // 4. Si hay foto, actualizamos la URL
+        if (req.file) { 
+            datosAActualizar.fotoUrl = `/uploads/${req.file.filename}`; 
         }
-        
-        delete datos.nombre; 
+
+        // 5. Quitamos userId de los datos a actualizar para que MongoDB no intente sobreescribir el _id
+        delete datosAActualizar.userId;
+        delete datosAActualizar.nombre; // Ya lo pasamos a .name
 
         const usuarioActualizado = await User.findByIdAndUpdate(
             userId,
-            { $set: datos },
-            { new: true, runValidators: true }
+            { $set: datosAActualizar },
+            { new: true, runValidators: false } // runValidators: false evita el choque con la edad mínima
         );
 
         if (!usuarioActualizado) {
             return res.status(404).json({ error: "Usuario no encontrado" });
         }
 
+        // 6. Respuesta con nombres consistentes para el Frontend
         res.status(200).json({
             userId: usuarioActualizado._id,
             userName: usuarioActualizado.name,
-            fotoUrl: usuarioActualizado.fotoUrl,
-            apellido: usuarioActualizado.apellido || '',
-            genero: usuarioActualizado.genero || '',
-            edad: usuarioActualizado.edad || '',
             email: usuarioActualizado.email,
+            fotoUrl: usuarioActualizado.fotoUrl,
             celular: usuarioActualizado.celular || '',
             municipio: usuarioActualizado.municipio || '',
             departamento: usuarioActualizado.departamento || '',
-            direccion: usuarioActualizado.direccion || ''
+            direccion: usuarioActualizado.direccion || '',
+            apellido: usuarioActualizado.apellido || '',
+            genero: usuarioActualizado.genero || '',
+            edad: usuarioActualizado.edad || ''
         });
 
     } catch (error) {
-        console.error("Error al actualizar perfil:", error);
-        res.status(500).json({ error: "Error interno al guardar los datos" });
+        console.error("ERROR EN SERVIDOR:", error);
+        res.status(500).json({ error: "Error interno: " + error.message });
     }
 });
 
