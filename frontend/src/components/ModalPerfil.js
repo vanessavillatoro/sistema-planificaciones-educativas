@@ -7,15 +7,15 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
   const API_BASE_URL = window.location.hostname === 'localhost' 
     ? 'http://localhost:5000' 
     : 'https://sistema-planificaciones-educativas.vercel.app';
- 
+
   const [perfil, setPerfil] = useState({
-    userFoto: localStorage.getItem('userFoto') || localStorage.getItem('fotoUrl') || '',
     userName: localStorage.getItem('userName') || '',
     userEmail: localStorage.getItem('userEmail') || '',
     userCelular: localStorage.getItem('userCelular') || '',
     userMunicipio: localStorage.getItem('userMunicipio') || '',
     userDepartamento: localStorage.getItem('userDepartamento') || '',
     userDireccion: localStorage.getItem('userDireccion') || '',
+    userFoto: localStorage.getItem('userFoto') || localStorage.getItem('fotoUrl') || ''
   });
 
   const [editando, setEditando] = useState(null);
@@ -25,6 +25,7 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
   const inputRefs = useRef({});
   const fileInputRef = useRef(null);
 
+  // --- ESCUCHADOR DE CAMBIOS ---
   useEffect(() => {
     const cargarDatos = () => {
       setPerfil({
@@ -36,9 +37,16 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
         userDireccion: localStorage.getItem('userDireccion') || '',
         userFoto: localStorage.getItem('userFoto') || localStorage.getItem('fotoUrl') || ''
       });
+      setVersion(Date.now()); // Forzar refresco visual
     };
+
     window.addEventListener('storage', cargarDatos);
-    return () => window.removeEventListener('storage', cargarDatos);
+    window.addEventListener('perfilActualizado', cargarDatos);
+    
+    return () => {
+      window.removeEventListener('storage', cargarDatos);
+      window.removeEventListener('perfilActualizado', cargarDatos);
+    };
   }, []);
 
   const handleChange = (e) => {
@@ -49,10 +57,9 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Vista previa inmediata con blob
+    // Vista previa inmediata
     const previewUrl = URL.createObjectURL(file);
     const antiguaFoto = perfil.userFoto;
-    
     setPerfil(prev => ({ ...prev, userFoto: previewUrl }));
 
     const userId = localStorage.getItem('userId');
@@ -70,24 +77,24 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
       const data = await response.json();
 
       if (response.ok) {
-        // El servidor ahora responde con data.userFoto (gracias al ajuste en server.js)
         const nuevaUrl = data.userFoto;
         localStorage.setItem('userFoto', nuevaUrl);
+        
+        // DISPARAR EVENTO PARA EL NAVBAR
+        window.dispatchEvent(new Event('perfilActualizado'));
         
         setPerfil(prev => ({ ...prev, userFoto: nuevaUrl }));
         setVersion(Date.now()); 
         
-        // Limpiamos el objeto blob de la memoria
         if (antiguaFoto.startsWith('blob:')) URL.revokeObjectURL(antiguaFoto);
         
         alert("Foto actualizada correctamente");
         if (onSave) onSave(data);
       } else {
-        throw new Error("Error en la respuesta del servidor");
+        throw new Error("Error en servidor");
       }
     } catch (error) {
-      alert("Error al subir la foto al servidor");
-      // Revertimos si hay error
+      alert("Error al subir la foto");
       setPerfil(prev => ({ ...prev, userFoto: localStorage.getItem('userFoto') || '' }));
     } finally {
       setCargando(false);
@@ -105,7 +112,6 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId,
-          foto: perfil.userFoto,
           nombre: perfil.userName,
           celular: perfil.userCelular,
           municipio: perfil.userMunicipio,
@@ -117,20 +123,21 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
       const data = await response.json();
 
       if (response.ok) {
-        // Actualizamos LocalStorage con los datos unificados que devuelve el server
-        localStorage.setItem('userFoto', data.userFoto || perfil.userFoto);
         localStorage.setItem('userName', data.userName || perfil.userName);
         localStorage.setItem('userCelular', data.userCelular || perfil.userCelular);
         localStorage.setItem('userMunicipio', data.userMunicipio || perfil.userMunicipio);
         localStorage.setItem('userDepartamento', data.userDepartamento || perfil.userDepartamento);
         localStorage.setItem('userDireccion', data.userDireccion || perfil.userDireccion);
         
+        // Sincronizar otros componentes
+        window.dispatchEvent(new Event('perfilActualizado'));
+        
         alert("¡Datos guardados con éxito!");
         if (onSave) onSave(data);
         onClose();
       }
     } catch (error) {
-      alert("Error al guardar los datos");
+      alert("Error al guardar datos");
     } finally {
       setCargando(false);
     }
@@ -155,7 +162,7 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
       urlBase = `${API_BASE_URL}${perfil.userFoto}`;
     }
 
-    // Cache Busting para forzar la recarga de la imagen real sin que el navegador use la vieja
+    // Cache Busting con v=
     return `${urlBase}${urlBase.includes('?') ? '&' : '?'}v=${version}`;
   };
 

@@ -374,7 +374,7 @@ app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
             userId: usuarioActualizado._id,
             userName: usuarioActualizado.name,
             userEmail: usuarioActualizado.email,
-            userFoto: usuarioActualizado.fotoUrl || usuarioActualizado.userFoto || '',
+            userFoto: usuarioActualizado.fotoUrl,
             userCelular: usuarioActualizado.celular || '',
             userMunicipio: usuarioActualizado.municipio || '',
             userDepartamento: usuarioActualizado.departamento || '',
@@ -395,7 +395,7 @@ app.post('/api/usuario/foto', upload.single('foto'), async (req, res) => {
         const usuarioActualizado = await User.findByIdAndUpdate(
             userId, { $set: { fotoUrl: urlFoto } }, { new: true }
         );
-        res.status(200).json({ userFoto: usuarioActualizado.fotoUrl || usuarioActualizado.userFoto || '' });
+        res.status(200).json({ userFoto: usuarioActualizado.fotoUrl });
     } catch (error) {
         res.status(500).json({ error: "Error interno" });
     }

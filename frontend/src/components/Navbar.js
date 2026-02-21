@@ -17,11 +17,11 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
   const [usuario, setUsuario] = useState({
     nombre: localStorage.getItem('userName') || 'Invitado',
     correo: '',
-    fotoUrl: '',
-    celular: '',      // Agregado para persistencia en el modal
-    municipio: '',    // Agregado para persistencia en el modal
-    departamento: '', // Agregado para persistencia en el modal
-    direccion: ''     // Agregado para persistencia en el modal
+    fotoUrl: localStorage.getItem('userFoto') || '',
+    celular: '',
+    municipio: '',
+    departamento: '',
+    direccion: ''
   });
 
   const userId = localStorage.getItem('userId');
@@ -32,11 +32,8 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
 
   const obtenerUrlImagen = (url) => {
     if (!url) return fotoPerfil;
-    const base = url.startsWith('http') 
-      ? url 
-      : `${API_BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
-
-    return `${base}${base.includes('?') ? '&' : '?'}t=${new Date().getTime()}`;
+    if (url.startsWith('blob:') || url.startsWith('http')) return url;
+    return `${API_BASE_URL}${url.startsWith('/') ? '' : '/'}${url}?v=${Date.now()}`;
   };
 
   const toggleMenu = () => {
@@ -54,11 +51,12 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
       if (response.ok) {
         const data = await response.json();
         const nombrePersistente = data.name || data.nombre || 'Docente';
+        const fotoPersistente = data.fotoUrl || data.userFoto || '';
         
         setUsuario({
           nombre: nombrePersistente,
           correo: data.email || data.correo || '',
-          fotoUrl: data.fotoUrl || '',
+          fotoUrl: fotoPersistente,
           celular: data.celular || '',
           municipio: data.municipio || '',
           departamento: data.departamento || '',
@@ -66,6 +64,7 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
         });
 
         localStorage.setItem('userName', nombrePersistente);
+        localStorage.setItem('userFoto', fotoPersistente);
         if (setNombreApp) setNombreApp(nombrePersistente);
       }
     } catch (error) {
@@ -76,12 +75,18 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
   useEffect(() => {
     cargarDatos();
 
-    const manejarCambioPerfil = (e) => {
-      const nuevoNombre = e.detail?.nombre || localStorage.getItem('userName');
-      if (nuevoNombre) {
-        setUsuario(prev => ({ ...prev, nombre: nuevoNombre }));
-        if (setNombreApp) setNombreApp(nuevoNombre);
-      }
+    const manejarCambioPerfil = () => {
+      // Al dispararse el evento, leemos directamente del localStorage actualizado
+      const nuevoNombre = localStorage.getItem('userName');
+      const nuevaFoto = localStorage.getItem('userFoto');
+      
+      setUsuario(prev => ({
+        ...prev,
+        nombre: nuevoNombre || prev.nombre,
+        fotoUrl: nuevaFoto || prev.fotoUrl
+      }));
+
+      if (setNombreApp && nuevoNombre) setNombreApp(nuevoNombre);
     };
 
     window.addEventListener('perfilActualizado', manejarCambioPerfil);
@@ -94,60 +99,11 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
   }, [cargarDatos, setNombreApp]);
 
   const handleSave = async (datosNuevos) => {
-    try {
-      if (!userId) {
-        alert("Sesión expirada. Por favor, inicia sesión de nuevo.");
-        return;
-      }
-
-      let cuerpoPeticion;
-      let encabezados = {};
-
-      if (datosNuevos instanceof FormData) {
-        cuerpoPeticion = datosNuevos;
-        cuerpoPeticion.set('userId', userId);
-        if (datosNuevos.has('nombre')) {
-          cuerpoPeticion.set('name', datosNuevos.get('nombre'));
-        }
-      } else {
-        cuerpoPeticion = JSON.stringify({ 
-          ...datosNuevos,
-          userId: userId, 
-          name: datosNuevos.nombre, 
-          email: datosNuevos.correo,
-          celular: datosNuevos.celular,
-          municipio: datosNuevos.municipio,
-          departamento: datosNuevos.departamento,
-          direccion: datosNuevos.direccion
-        });
-        encabezados['Content-Type'] = 'application/json';
-      }
-
-      const response = await fetch(`${API_BASE_URL}/api/usuario/perfil`, {
-        method: 'PATCH',
-        headers: encabezados,
-        body: cuerpoPeticion
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        const nombreActualizado = data.name || datosNuevos.nombre;
-        
-        localStorage.setItem('userName', nombreActualizado);
-        
-        window.dispatchEvent(new CustomEvent('perfilActualizado', { 
-          detail: { nombre: nombreActualizado } 
-        }));
-
-        await cargarDatos(); 
-        alert("¡Todos los datos se han actualizado!");
-        setModalAbierta(false);
-      } else {
-        alert("Error al guardar los datos.");
-      }
-    } catch (error) {
-      console.error("Error al guardar:", error);
-    }
+    // La lógica de guardado ahora es manejada por el ModalPerfil directamente.
+    // Este handleSave se mantiene para cerrar el modal y refrescar la vista.
+    await cargarDatos();
+    window.dispatchEvent(new Event('perfilActualizado'));
+    setModalAbierta(false);
   };
 
   const handleLogout = () => {
@@ -182,7 +138,7 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
               src={obtenerUrlImagen(usuario.fotoUrl)} 
               alt="Perfil" 
               className="avatar-img" 
-              key={usuario.fotoUrl} 
+              key={`${usuario.fotoUrl}-${Date.now()}`} 
               onError={(e) => { e.target.src = fotoPerfil; }} 
             />
           </div>
