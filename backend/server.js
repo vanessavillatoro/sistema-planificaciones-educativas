@@ -35,7 +35,6 @@ const app = express();
 // --- BLOQUE DE CORS MEJORADO (PARCHE PARA VERCEL) ---
 app.use(cors({
     origin: [
-        'https://sistema-planificaciones-educativas-ten.vercel.app',
         'https://sistema-planificaciones-educativas.vercel.app',
         'http://localhost:3000'
     ],
