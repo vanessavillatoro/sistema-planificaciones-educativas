@@ -7,15 +7,15 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
   const API_BASE_URL = window.location.hostname === 'localhost' 
     ? 'http://localhost:5000' 
     : 'https://sistema-planificaciones-educativas.vercel.app';
-
+ 
   const [perfil, setPerfil] = useState({
+    userFoto: localStorage.getItem('userFoto') || localStorage.getItem('fotoUrl') || '',
     userName: localStorage.getItem('userName') || '',
     userEmail: localStorage.getItem('userEmail') || '',
     userCelular: localStorage.getItem('userCelular') || '',
     userMunicipio: localStorage.getItem('userMunicipio') || '',
     userDepartamento: localStorage.getItem('userDepartamento') || '',
     userDireccion: localStorage.getItem('userDireccion') || '',
-    userFoto: localStorage.getItem('userFoto') || localStorage.getItem('fotoUrl') || ''
   });
 
   const [editando, setEditando] = useState(null);
@@ -105,6 +105,7 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId,
+          foto: perfil.userFoto,
           nombre: perfil.userName,
           celular: perfil.userCelular,
           municipio: perfil.userMunicipio,
@@ -117,6 +118,7 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
 
       if (response.ok) {
         // Actualizamos LocalStorage con los datos unificados que devuelve el server
+        localStorage.setItem('userFoto', data.userFoto || perfil.userFoto);
         localStorage.setItem('userName', data.userName || perfil.userName);
         localStorage.setItem('userCelular', data.userCelular || perfil.userCelular);
         localStorage.setItem('userMunicipio', data.userMunicipio || perfil.userMunicipio);
