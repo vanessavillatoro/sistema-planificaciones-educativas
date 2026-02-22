@@ -334,8 +334,10 @@ app.get('/api/usuario/perfil', async (req, res) => {
     }
 });
 
+// --- GESTIÓN DE PERFIL ACTUALIZADA (CORRECCIÓN DE SEGURIDAD) ---
 app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
     try {
+        // 1. Verificación de seguridad para evitar que el server se caiga
         const userId = req.body.userId;
         if (!userId || userId === "undefined" || userId === "null") {
             return res.status(400).json({ error: "ID de usuario no proporcionado" });
@@ -343,24 +345,29 @@ app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
 
         let datosAActualizar = { ...req.body };
 
-        // Limpieza de campos sensibles
+        // Limpieza de campos que no deben sobrescribirse
         delete datosAActualizar.email;
         delete datosAActualizar.userEmail;
         delete datosAActualizar.correo;
 
         if (datosAActualizar.nombre) datosAActualizar.name = datosAActualizar.nombre;
 
-        // --- FIX VERCEL: CONVERTIR IMAGEN A BASE64 ---
+        // 2. Lógica de Foto (Si falla la foto, que no falle el resto)
         if (req.file) { 
-            const imgPath = req.file.path;
-            const buffer = fs.readFileSync(imgPath);
-            const base64Image = `data:${req.file.mimetype};base64,${buffer.toString('base64')}`;
-            datosAActualizar.fotoUrl = base64Image;
-            
-            // Eliminar archivo temporal
-            if (fs.existsSync(imgPath)) fs.unlinkSync(imgPath);
+            try {
+                const imgPath = req.file.path;
+                const buffer = fs.readFileSync(imgPath);
+                const base64Image = `data:${req.file.mimetype};base64,${buffer.toString('base64')}`;
+                datosAActualizar.fotoUrl = base64Image;
+                if (fs.existsSync(imgPath)) fs.unlinkSync(imgPath);
+            } catch (errFoto) {
+                console.error("Error procesando archivo físico:", errFoto);
+            }
+        } else if (req.body.foto && req.body.foto.startsWith('data:image')) {
+            datosAActualizar.fotoUrl = req.body.foto;
         }
 
+        // 3. Limpiar el objeto antes de ir a MongoDB
         Object.keys(datosAActualizar).forEach(key => {
             if (datosAActualizar[key] === "" || datosAActualizar[key] === null || datosAActualizar[key] === "undefined") {
                 delete datosAActualizar[key];
@@ -369,7 +376,9 @@ app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
 
         delete datosAActualizar.userId;
         delete datosAActualizar.nombre;
+        delete datosAActualizar.foto; 
 
+        // 4. Actualización en Base de Datos
         const usuarioActualizado = await User.findByIdAndUpdate(
             userId,
             { $set: datosAActualizar },
@@ -378,6 +387,7 @@ app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
 
         if (!usuarioActualizado) return res.status(404).json({ error: "Usuario no encontrado" });
 
+        // 5. Respuesta idéntica a la que espera tu Frontend
         res.status(200).json({
             userId: usuarioActualizado._id,
             userName: usuarioActualizado.name,
@@ -390,11 +400,10 @@ app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
         });
 
     } catch (error) {
-        console.error("Error en perfil:", error);
-        res.status(500).json({ error: "Error interno al guardar datos" });
+        console.error("Error CRÍTICO en perfil:", error);
+        res.status(500).json({ error: "Error interno del servidor" });
     }
 });
-
 // Ruta simplificada para solo foto
 app.post('/api/usuario/foto', upload.single('foto'), async (req, res) => {
     try {
