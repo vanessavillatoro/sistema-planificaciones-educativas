@@ -334,6 +334,7 @@ app.get('/api/usuario/perfil', async (req, res) => {
     }
 });
 
+// --- GESTIÓN DE PERFIL ACTUALIZADA (SOPORTA JSON + BASE64 Y MULTER) ---
 app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
     try {
         const userId = req.body.userId;
@@ -350,17 +351,21 @@ app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
 
         if (datosAActualizar.nombre) datosAActualizar.name = datosAActualizar.nombre;
 
-        // --- FIX VERCEL: CONVERTIR IMAGEN A BASE64 ---
+        // --- LÓGICA DE FOTO DUAL ---
+        // Caso A: Si viene un archivo físico por Multer
         if (req.file) { 
             const imgPath = req.file.path;
             const buffer = fs.readFileSync(imgPath);
             const base64Image = `data:${req.file.mimetype};base64,${buffer.toString('base64')}`;
             datosAActualizar.fotoUrl = base64Image;
-            
-            // Eliminar archivo temporal
             if (fs.existsSync(imgPath)) fs.unlinkSync(imgPath);
+        } 
+        // Caso B: Si viene el Base64 directo en el JSON (desde nuestro nuevo ModalPerfil)
+        else if (req.body.foto && req.body.foto.startsWith('data:image')) {
+            datosAActualizar.fotoUrl = req.body.foto;
         }
 
+        // Limpiar campos vacíos
         Object.keys(datosAActualizar).forEach(key => {
             if (datosAActualizar[key] === "" || datosAActualizar[key] === null || datosAActualizar[key] === "undefined") {
                 delete datosAActualizar[key];
@@ -369,6 +374,7 @@ app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
 
         delete datosAActualizar.userId;
         delete datosAActualizar.nombre;
+        delete datosAActualizar.foto; // Borramos el campo temporal del body
 
         const usuarioActualizado = await User.findByIdAndUpdate(
             userId,
@@ -382,7 +388,7 @@ app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
             userId: usuarioActualizado._id,
             userName: usuarioActualizado.name,
             userEmail: usuarioActualizado.email,
-            userFoto: usuarioActualizado.fotoUrl,
+            userFoto: usuarioActualizado.fotoUrl, // Devolvemos el Base64 guardado
             userCelular: usuarioActualizado.celular || '',
             userMunicipio: usuarioActualizado.municipio || '',
             userDepartamento: usuarioActualizado.departamento || '',
@@ -392,6 +398,34 @@ app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
     } catch (error) {
         console.error("Error en perfil:", error);
         res.status(500).json({ error: "Error interno al guardar datos" });
+    }
+});
+
+// Ruta simplificada para solo foto (también actualizada para seguridad)
+app.post('/api/usuario/foto', upload.single('foto'), async (req, res) => {
+    try {
+        const userId = req.body.userId;
+        if (!userId) return res.status(400).json({ error: "Falta userId" });
+
+        let base64Image;
+
+        if (req.file) {
+            const buffer = fs.readFileSync(req.file.path);
+            base64Image = `data:${req.file.mimetype};base64,${buffer.toString('base64')}`;
+            if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+        } else if (req.body.foto) {
+            base64Image = req.body.foto;
+        } else {
+            return res.status(400).json({ error: "No hay imagen" });
+        }
+        
+        const usuarioActualizado = await User.findByIdAndUpdate(
+            userId, { $set: { fotoUrl: base64Image } }, { new: true }
+        );
+        
+        res.status(200).json({ userFoto: usuarioActualizado.fotoUrl });
+    } catch (error) {
+        res.status(500).json({ error: "Error interno" });
     }
 });
 

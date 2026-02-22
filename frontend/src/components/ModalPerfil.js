@@ -4,6 +4,7 @@ import fotoPerfilDefault from './perfil.png';
 
 const ModalPerfil = ({ onClose, onSave, darkMode }) => {
   
+  // Mantenemos tus URLs exactamente como pediste
   const API_BASE_URL = window.location.hostname === 'localhost' 
     ? 'http://localhost:5000' 
     : 'https://sistema-planificaciones-educativas.vercel.app';
@@ -52,12 +53,11 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
     setPerfil({ ...perfil, [e.target.name]: e.target.value });
   };
 
-  // --- CONVERSIÓN A BASE64 PARA EVITAR ERROR 405 Y 404 EN VERCEL ---
+  // --- SOLUCIÓN PARA VERCEL: CONVERTIR A BASE64 ---
   const handleFotoChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Límite de 2MB para asegurar que el JSON no sea excesivo
     if (file.size > 2 * 1024 * 1024) {
       alert("La imagen es muy pesada. Máximo 2MB.");
       return;
@@ -66,7 +66,7 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
     const reader = new FileReader();
     reader.onloadend = () => {
       const base64String = reader.result;
-      // Cambiamos la vista previa localmente de inmediato
+      // Actualizamos la vista previa local inmediatamente
       setPerfil(prev => ({ ...prev, userFoto: base64String }));
     };
     reader.readAsDataURL(file);
@@ -85,7 +85,7 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
         municipio: perfil.userMunicipio,
         departamento: perfil.userDepartamento,
         direccion: perfil.userDireccion,
-        foto: perfil.userFoto // Enviamos el Base64 directamente
+        foto: perfil.userFoto // Enviamos el Base64
       };
 
       const response = await fetch(`${API_BASE_URL}/api/usuario/perfil`, {
@@ -97,21 +97,24 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
       const data = await response.json();
 
       if (response.ok) {
-        // 1. Sincronizar LocalStorage con la respuesta del servidor
+        // ACTUALIZACIÓN CRÍTICA: Guardamos lo que el servidor devuelve
+        // Si el servidor devuelve la imagen procesada, la usamos; si no, la que ya tenemos en Base64
+        const nuevaFoto = data.userFoto || perfil.userFoto;
+
         localStorage.setItem('userName', data.userName || perfil.userName);
-        localStorage.setItem('userFoto', data.userFoto || perfil.userFoto);
+        localStorage.setItem('userFoto', nuevaFoto);
         localStorage.setItem('userCelular', data.userCelular || perfil.userCelular);
         localStorage.setItem('userMunicipio', data.userMunicipio || perfil.userMunicipio);
         localStorage.setItem('userDepartamento', data.userDepartamento || perfil.userDepartamento);
         localStorage.setItem('userDireccion', data.userDireccion || perfil.userDireccion);
         
-        // 2. Actualizar el estado para que se refleje en el modal sin cerrarlo
+        // Actualizar el estado del componente para que la foto cambie en el modal
         setPerfil(prev => ({
           ...prev,
-          userFoto: data.userFoto || prev.userFoto
+          userFoto: nuevaFoto
         }));
 
-        // 3. Notificar a toda la aplicación (Navbar incluido)
+        // Avisar al Navbar que refresque
         window.dispatchEvent(new Event('perfilActualizado'));
         
         alert("¡Perfil actualizado con éxito!");
@@ -121,7 +124,7 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
         alert(`Error: ${data.error || 'No se pudo guardar'}`);
       }
     } catch (error) {
-      console.error("Error detallado:", error);
+      console.error("Error al guardar:", error);
       alert("Error de conexión con el servidor");
     } finally {
       setCargando(false);
@@ -141,12 +144,13 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
     const foto = perfil.userFoto;
     if (!foto) return fotoPerfilDefault;
     
-    // Prioridad para Base64 (data:), Blobs de vista previa o URLs externas
+    // Si la foto es Base64 (empieza con data:), la usamos directamente.
+    // Esto evita el 404 de la carpeta /uploads/
     if (foto.startsWith('data:') || foto.startsWith('blob:') || foto.startsWith('http')) {
       return foto;
     }
 
-    // Fallback para rutas de servidor antiguas
+    // Solo si es una ruta vieja intentamos concatenar la URL
     const rutaLimpia = foto.startsWith('/') ? foto : `/${foto}`;
     return `${API_BASE_URL}${rutaLimpia}?v=${version}`;
   };
@@ -162,7 +166,7 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
               src={getFotoUrl()} 
               alt="Perfil" 
               className={`modal-avatar ${cargando ? 'img-loading' : ''}`}
-              key={perfil.userFoto} // Fuerza re-render cuando cambia el string de la foto
+              key={perfil.userFoto} 
               onError={(e) => { e.target.src = fotoPerfilDefault; }}
             />
             <div className="avatar-overlay">
@@ -210,7 +214,7 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
         </div>
 
         <button className="save-btn" onClick={handleGuardarDatos} disabled={cargando}>
-          {cargando ? 'Procesand...' : 'Guardar Cambios'}
+          {cargando ? 'Procesando...' : 'Guardar Cambios'}
         </button>
       </div>
     </div>

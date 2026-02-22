@@ -16,12 +16,12 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
   
   const [usuario, setUsuario] = useState({
     nombre: localStorage.getItem('userName') || 'Invitado',
-    correo: '',
+    correo: localStorage.getItem('userEmail') || '',
     fotoUrl: localStorage.getItem('userFoto') || '',
-    celular: '',
-    municipio: '',
-    departamento: '',
-    direccion: ''
+    celular: localStorage.getItem('userCelular') || '',
+    municipio: localStorage.getItem('userMunicipio') || '',
+    departamento: localStorage.getItem('userDepartamento') || '',
+    direccion: localStorage.getItem('userDireccion') || ''
   });
 
   const userId = localStorage.getItem('userId');
@@ -30,16 +30,16 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
     ? "http://localhost:5000" 
     : "https://sistema-planificaciones-educativas-ten.vercel.app";
 
-  // --- FUNCIÓN ACTUALIZADA PARA SOPORTAR BASE64 EN VERCEL ---
+  // --- FUNCIÓN CORREGIDA: NO AÑADIR TIMESTAMP A BASE64 ---
   const obtenerUrlImagen = (url) => {
     if (!url) return fotoPerfil;
     
-    // Si la imagen es Base64 (data:), vista previa (blob:) o externa (http), se usa directamente
+    // Si la imagen es Base64, blob o externa, usar tal cual (SIN timestamp)
     if (url.startsWith('data:') || url.startsWith('blob:') || url.startsWith('http')) {
       return url;
     }
     
-    // Si es una ruta de archivo antigua, aseguramos la ruta y añadimos timestamp
+    // Solo si es una ruta de archivo antigua (/uploads/...) añadimos el timestamp para evitar caché
     const rutaBase = url.startsWith('/') ? url : `/${url}`;
     return `${API_BASE_URL}${rutaBase}?v=${Date.now()}`;
   };
@@ -55,11 +55,11 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
         return;
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/usuario/perfil?userId=${userId}&t=${new Date().getTime()}`);
+      // Añadimos timestamp a la petición API para bypass de caché del servidor
+      const response = await fetch(`${API_BASE_URL}/api/usuario/perfil?userId=${userId}&t=${Date.now()}`);
       if (response.ok) {
         const data = await response.json();
         
-        // Mapeo robusto de campos para asegurar compatibilidad
         const nombrePersistente = data.userName || data.nombre || data.name || 'Docente';
         const fotoPersistente = data.userFoto || data.fotoUrl || '';
         const correoPersistente = data.userEmail || data.email || data.correo || '';
@@ -74,7 +74,7 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
           direccion: data.userDireccion || data.direccion || ''
         });
 
-        // Sincronización completa con LocalStorage para que el Modal lea datos frescos
+        // Sincronizar LocalStorage
         localStorage.setItem('userName', nombrePersistente);
         localStorage.setItem('userFoto', fotoPersistente);
         localStorage.setItem('userEmail', correoPersistente);
@@ -94,15 +94,18 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
     cargarDatos();
 
     const manejarCambioPerfil = () => {
-      const nuevoNombre = localStorage.getItem('userName');
-      const nuevaFoto = localStorage.getItem('userFoto');
-      
-      setUsuario(prev => ({
-        ...prev,
-        nombre: nuevoNombre || prev.nombre,
-        fotoUrl: nuevaFoto || prev.fotoUrl
-      }));
+      // Forzamos la relectura total del LocalStorage
+      setUsuario({
+        nombre: localStorage.getItem('userName') || 'Docente',
+        correo: localStorage.getItem('userEmail') || '',
+        fotoUrl: localStorage.getItem('userFoto') || '',
+        celular: localStorage.getItem('userCelular') || '',
+        municipio: localStorage.getItem('userMunicipio') || '',
+        departamento: localStorage.getItem('userDepartamento') || '',
+        direccion: localStorage.getItem('userDireccion') || ''
+      });
 
+      const nuevoNombre = localStorage.getItem('userName');
       if (setNombreApp && nuevoNombre) setNombreApp(nuevoNombre);
     };
 
@@ -115,8 +118,8 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
     };
   }, [cargarDatos, setNombreApp]);
 
-  const handleSave = async (datosNuevos) => {
-    await cargarDatos();
+  const handleSave = () => {
+    // Al guardar en el modal, esto gatilla el evento que el useEffect escucha arriba
     window.dispatchEvent(new Event('perfilActualizado'));
     setModalAbierta(false);
   };
@@ -153,7 +156,7 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
               src={obtenerUrlImagen(usuario.fotoUrl)} 
               alt="Perfil" 
               className="avatar-img" 
-              key={`trigger-${usuario.fotoUrl}`} 
+              key={`nav-trigger-${usuario.fotoUrl}`} // Key única para forzar refresco visual
               onError={(e) => { e.target.src = fotoPerfil; }} 
             />
           </div>
@@ -164,7 +167,7 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
                 <img 
                   src={obtenerUrlImagen(usuario.fotoUrl)} 
                   alt="User" 
-                  key={`header-${usuario.fotoUrl}`}
+                  key={`nav-header-${usuario.fotoUrl}`}
                   onError={(e) => { e.target.src = fotoPerfil; }} 
                 />
                 <div className="perfil-user-info">
