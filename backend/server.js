@@ -116,7 +116,7 @@ app.post('/api/generar-plan-completa', async (req, res) => {
     return res.status(500).json({ error: "Falta la clave GEMINI_KEY en el servidor" });
   }
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
   const peticionDocente = data.sugerencias ? `PETICIÓN ESPECÍFICA DEL DOCENTE: "${data.sugerencias}".` : "";
   const contextoEdicion = planActual
     ? `MODO EDICIÓN: JSON previo: ${JSON.stringify(planActual)}. Modifica según: "${data.sugerencias}".`
@@ -171,7 +171,7 @@ app.post('/api/generar-plan-modulo3', async (req, res) => {
   const { materia, tema, grado, dificultad, sugerencias, enfoque } = req.body;
   if (!materia || !tema) return res.status(400).json({ error: "Faltan campos." });
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
   const prompt = `Estructura JSON pedagógica para: ${materia}, Tema: ${tema}, Grado: ${grado}, Dificultad: ${dificultad}. Enfoque: ${enfoque}. Sugerencias: ${sugerencias}`;
   try {
     const result = await model.generateContent(prompt);
@@ -187,7 +187,7 @@ app.post('/api/generar-recurso-ia', async (req, res) => {
   const { materia, tema, tipoRecurso } = req.body;
   try {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
     const result = await model.generateContent(`Genera un recurso educativo de tipo ${tipoRecurso} sobre el tema ${tema} para la materia ${materia}.`);
     res.json({ contenido: result.response.text() });
   } catch (error) {
