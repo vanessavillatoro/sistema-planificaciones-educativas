@@ -55,7 +55,7 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use(express.json());
+app.use(express.json({ limit: '10mb' })); // Aumentado para soportar Base64
 app.use('/uploads', express.static(uploadsDir));
 
 app.get('/api/test', (req, res) => {
@@ -63,7 +63,7 @@ app.get('/api/test', (req, res) => {
 });
 
 app.get('/', (req, res) => {
-    res.send('🚀 VERSION 5.0 - PERFIL FIX');
+    res.send('🚀 VERSION 5.0 - PERFIL FIX BASE64');
 });
 
 // --- CONFIGURACIÓN PARA SUBIDA DE IMÁGENES ---
@@ -321,7 +321,7 @@ app.delete('/api/papelera/permanente/:id', async (req, res) => {
     }
 });
 
-// --- GESTIÓN DE PERFIL ---
+// --- GESTIÓN DE PERFIL CON FIX PARA VERCEL (BASE64) ---
 app.get('/api/usuario/perfil', async (req, res) => {
     try {
         const { userId } = req.query;
@@ -343,21 +343,29 @@ app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
 
         let datosAActualizar = { ...req.body };
 
+        // Limpieza de campos sensibles
         delete datosAActualizar.email;
         delete datosAActualizar.userEmail;
         delete datosAActualizar.correo;
 
         if (datosAActualizar.nombre) datosAActualizar.name = datosAActualizar.nombre;
 
+        // --- FIX VERCEL: CONVERTIR IMAGEN A BASE64 ---
+        if (req.file) { 
+            const imgPath = req.file.path;
+            const buffer = fs.readFileSync(imgPath);
+            const base64Image = `data:${req.file.mimetype};base64,${buffer.toString('base64')}`;
+            datosAActualizar.fotoUrl = base64Image;
+            
+            // Eliminar archivo temporal
+            if (fs.existsSync(imgPath)) fs.unlinkSync(imgPath);
+        }
+
         Object.keys(datosAActualizar).forEach(key => {
             if (datosAActualizar[key] === "" || datosAActualizar[key] === null || datosAActualizar[key] === "undefined") {
                 delete datosAActualizar[key];
             }
         });
-
-        if (req.file) { 
-            datosAActualizar.fotoUrl = `/uploads/${req.file.filename}`; 
-        }
 
         delete datosAActualizar.userId;
         delete datosAActualizar.nombre;
@@ -387,14 +395,21 @@ app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
     }
 });
 
+// Ruta simplificada para solo foto
 app.post('/api/usuario/foto', upload.single('foto'), async (req, res) => {
     try {
         if (!req.file) return res.status(400).json({ error: "No hay imagen" });
+        
+        const buffer = fs.readFileSync(req.file.path);
+        const base64Image = `data:${req.file.mimetype};base64,${buffer.toString('base64')}`;
+        
         const userId = req.body.userId;
-        const urlFoto = `/uploads/${req.file.filename}`;
         const usuarioActualizado = await User.findByIdAndUpdate(
-            userId, { $set: { fotoUrl: urlFoto } }, { new: true }
+            userId, { $set: { fotoUrl: base64Image } }, { new: true }
         );
+        
+        if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+        
         res.status(200).json({ userFoto: usuarioActualizado.fotoUrl });
     } catch (error) {
         res.status(500).json({ error: "Error interno" });
@@ -427,7 +442,7 @@ app.post('/api/auth/google', async (req, res) => {
             userId: usuario._id, 
             userName: usuario.name, 
             email: usuario.email, 
-            userFoto: usuario.fotoUrl, // <--- ACTUALIZADO
+            userFoto: usuario.fotoUrl,
             celular: usuario.celular || '',
             municipio: usuario.municipio || '',
             departamento: usuario.departamento || '',
@@ -453,7 +468,7 @@ app.post('/api/auth/register', async (req, res) => {
         userId: usuarioGuardado._id, 
         userName: usuarioGuardado.name, 
         email: usuarioGuardado.email, 
-        userFoto: usuarioGuardado.fotoUrl // <--- ACTUALIZADO
+        userFoto: usuarioGuardado.fotoUrl 
     });
   } catch (error) {
     res.status(500).json({ error: "Error" });
@@ -468,7 +483,7 @@ app.post('/api/auth/login', async (req, res) => {
         userId: usuario._id, 
         userName: usuario.name, 
         email: usuario.email, 
-        userFoto: usuario.fotoUrl, // <--- ACTUALIZADO
+        userFoto: usuario.fotoUrl,
         celular: usuario.celular || '',
         municipio: usuario.municipio || '',
         departamento: usuario.departamento || '',
