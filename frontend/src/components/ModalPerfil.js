@@ -6,7 +6,7 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
   
   const API_BASE_URL = window.location.hostname === 'localhost' 
     ? 'http://localhost:5000' 
-    : 'https://sistema-planificaciones-educativas.vercel.app';
+    : 'https://sistema-planificaciones-educativas-ten.vercel.app';
 
   const [perfil, setPerfil] = useState({
     userName: localStorage.getItem('userName') || '',
@@ -152,18 +152,23 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
     { label: 'Direccion', name: 'userDireccion' }
   ];
 
+  // --- FUNCIÓN ACTUALIZADA PARA BASE64 ---
   const getFotoUrl = () => {
     if (!perfil.userFoto) return fotoPerfilDefault;
     
-    let urlBase = "";
-    if (perfil.userFoto.startsWith('blob:') || perfil.userFoto.startsWith('http')) {
-      urlBase = perfil.userFoto;
-    } else {
-      urlBase = `${API_BASE_URL}${perfil.userFoto}`;
+    // Si es Base64 (data:), vista previa (blob:) o externa (http), se usa directo
+    if (
+      perfil.userFoto.startsWith('data:') || 
+      perfil.userFoto.startsWith('blob:') || 
+      perfil.userFoto.startsWith('http')
+    ) {
+      return perfil.userFoto;
     }
 
-    // Cache Busting con v=
-    return `${urlBase}${urlBase.includes('?') ? '&' : '?'}v=${version}`;
+    // Solo para rutas antiguas (/uploads/...)
+    const rutaLimpia = perfil.userFoto.replace(/^\/+/, '');
+    const urlFinal = `${API_BASE_URL}/${rutaLimpia}`;
+    return `${urlFinal}${urlFinal.includes('?') ? '&' : '?'}v=${version}`;
   };
 
   return (
@@ -177,6 +182,7 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
               src={getFotoUrl()} 
               alt="Perfil" 
               className={`modal-avatar ${cargando ? 'img-loading' : ''}`}
+              key={`modal-img-${perfil.userFoto}`}
               onError={(e) => {
                 e.target.onerror = null; 
                 e.target.src = fotoPerfilDefault;

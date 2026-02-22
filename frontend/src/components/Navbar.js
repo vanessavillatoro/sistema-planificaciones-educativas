@@ -30,13 +30,16 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
     ? "http://localhost:5000" 
     : "https://sistema-planificaciones-educativas-ten.vercel.app";
 
-  // --- FUNCIÓN ACTUALIZADA ---
+  // --- FUNCIÓN ACTUALIZADA PARA SOPORTAR BASE64 EN VERCEL ---
   const obtenerUrlImagen = (url) => {
     if (!url) return fotoPerfil;
-    // Si es blob (preview) o externa (google), se usa directo
-    if (url.startsWith('blob:') || url.startsWith('http')) return url;
     
-    // Si es del servidor, aseguramos la ruta y añadimos timestamp para refrescar
+    // Si la imagen es Base64 (data:), vista previa (blob:) o externa (http), se usa directamente
+    if (url.startsWith('data:') || url.startsWith('blob:') || url.startsWith('http')) {
+      return url;
+    }
+    
+    // Si es una ruta de archivo antigua, aseguramos la ruta y añadimos timestamp
     const rutaBase = url.startsWith('/') ? url : `/${url}`;
     return `${API_BASE_URL}${rutaBase}?v=${Date.now()}`;
   };
@@ -140,7 +143,6 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
               src={obtenerUrlImagen(usuario.fotoUrl)} 
               alt="Perfil" 
               className="avatar-img" 
-              // La key dinámica fuerza a React a redibujar la imagen si la URL cambia
               key={`trigger-${usuario.fotoUrl}`} 
               onError={(e) => { e.target.src = fotoPerfil; }} 
             />
