@@ -52,12 +52,12 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
     setPerfil({ ...perfil, [e.target.name]: e.target.value });
   };
 
-  // --- NUEVA FUNCIÓN: CONVIERTE IMAGEN A BASE64 ---
+  // --- NUEVA LÓGICA DE FOTO: CONVERSIÓN A BASE64 ---
   const handleFotoChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Validación de tamaño (2MB recomendado para Base64)
+    // Validación de tamaño (2MB máximo para Base64)
     if (file.size > 2 * 1024 * 1024) {
       alert("La imagen es muy pesada. Máximo 2MB.");
       return;
@@ -66,13 +66,13 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
     const reader = new FileReader();
     reader.onloadend = () => {
       const base64String = reader.result;
-      // Actualizamos el estado local para la vista previa
+      // Actualizamos solo el estado local para mostrar la previsualización
       setPerfil(prev => ({ ...prev, userFoto: base64String }));
     };
     reader.readAsDataURL(file);
   };
 
-  // --- NUEVA FUNCIÓN: ENVÍA TODO (DATOS + FOTO) EN JSON ---
+  // --- ENVÍO UNIFICADO (DATOS + FOTO EN JSON) ---
   const handleGuardarDatos = async () => {
     const userId = localStorage.getItem('userId');
     if (!userId) return alert("Sesión expirada");
@@ -86,7 +86,7 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
         municipio: perfil.userMunicipio,
         departamento: perfil.userDepartamento,
         direccion: perfil.userDireccion,
-        foto: perfil.userFoto // Ahora enviamos el string Base64 aquí
+        foto: perfil.userFoto // Se envía el Base64 aquí
       };
 
       const response = await fetch(`${API_BASE_URL}/api/usuario/perfil`, {
@@ -98,7 +98,7 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
       const data = await response.json();
 
       if (response.ok) {
-        // Actualizamos LocalStorage con la confirmación del servidor
+        // Actualizar LocalStorage con los datos confirmados
         localStorage.setItem('userName', data.userName || perfil.userName);
         localStorage.setItem('userFoto', data.userFoto || perfil.userFoto);
         localStorage.setItem('userCelular', data.userCelular || perfil.userCelular);
@@ -106,7 +106,6 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
         localStorage.setItem('userDepartamento', data.userDepartamento || perfil.userDepartamento);
         localStorage.setItem('userDireccion', data.userDireccion || perfil.userDireccion);
         
-        // Notificamos al resto de la app
         window.dispatchEvent(new Event('perfilActualizado'));
         
         alert("¡Perfil actualizado con éxito!");
@@ -116,7 +115,7 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
         alert(`Error: ${data.error || 'No se pudo guardar'}`);
       }
     } catch (error) {
-      console.error("Error al guardar:", error);
+      console.error("Error:", error);
       alert("Error de conexión con el servidor");
     } finally {
       setCargando(false);
@@ -135,9 +134,13 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
   const getFotoUrl = () => {
     const foto = perfil.userFoto;
     if (!foto) return fotoPerfilDefault;
+    
+    // Si ya es Base64 o URL externa, usar directo
     if (foto.startsWith('data:') || foto.startsWith('blob:') || foto.startsWith('http')) {
       return foto;
     }
+
+    // Ruta antigua de servidor (Fallback)
     const rutaLimpia = foto.startsWith('/') ? foto : `/${foto}`;
     return `${API_BASE_URL}${rutaLimpia}?v=${version}`;
   };
