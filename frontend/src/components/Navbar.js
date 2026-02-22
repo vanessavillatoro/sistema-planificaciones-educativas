@@ -30,10 +30,15 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
     ? "http://localhost:5000" 
     : "https://sistema-planificaciones-educativas-ten.vercel.app";
 
+  // --- FUNCIÓN ACTUALIZADA ---
   const obtenerUrlImagen = (url) => {
     if (!url) return fotoPerfil;
+    // Si es blob (preview) o externa (google), se usa directo
     if (url.startsWith('blob:') || url.startsWith('http')) return url;
-    return `${API_BASE_URL}${url.startsWith('/') ? '' : '/'}${url}?v=${Date.now()}`;
+    
+    // Si es del servidor, aseguramos la ruta y añadimos timestamp para refrescar
+    const rutaBase = url.startsWith('/') ? url : `/${url}`;
+    return `${API_BASE_URL}${rutaBase}?v=${Date.now()}`;
   };
 
   const toggleMenu = () => {
@@ -76,7 +81,6 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
     cargarDatos();
 
     const manejarCambioPerfil = () => {
-      // Al dispararse el evento, leemos directamente del localStorage actualizado
       const nuevoNombre = localStorage.getItem('userName');
       const nuevaFoto = localStorage.getItem('userFoto');
       
@@ -99,8 +103,6 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
   }, [cargarDatos, setNombreApp]);
 
   const handleSave = async (datosNuevos) => {
-    // La lógica de guardado ahora es manejada por el ModalPerfil directamente.
-    // Este handleSave se mantiene para cerrar el modal y refrescar la vista.
     await cargarDatos();
     window.dispatchEvent(new Event('perfilActualizado'));
     setModalAbierta(false);
@@ -138,7 +140,8 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
               src={obtenerUrlImagen(usuario.fotoUrl)} 
               alt="Perfil" 
               className="avatar-img" 
-              key={`${usuario.fotoUrl}-${Date.now()}`} 
+              // La key dinámica fuerza a React a redibujar la imagen si la URL cambia
+              key={`trigger-${usuario.fotoUrl}`} 
               onError={(e) => { e.target.src = fotoPerfil; }} 
             />
           </div>
@@ -146,7 +149,12 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
           {menuAbierto && (
             <div className="perfil-dropdown">
               <div className="perfil-header">
-                <img src={obtenerUrlImagen(usuario.fotoUrl)} alt="User" />
+                <img 
+                  src={obtenerUrlImagen(usuario.fotoUrl)} 
+                  alt="User" 
+                  key={`header-${usuario.fotoUrl}`}
+                  onError={(e) => { e.target.src = fotoPerfil; }} 
+                />
                 <div className="perfil-user-info">
                   <h4>{usuario.nombre}</h4>
                   <p className="user-email">{usuario.correo || 'Inicia sesión para ver datos'}</p>
