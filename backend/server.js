@@ -41,7 +41,7 @@ if (!fs.existsSync(uploadsDir)){
 // --- CORS ACTUALIZADO PARA EVITAR BLOQUEOS ---
 app.use(cors({
   origin: [
-    'https://sistema-planificaciones-educativas-ten.vercel.app',
+    'https://sistema-planificaciones-educativas.vercel.app',
     'http://localhost:3000',
     /\.vercel\.app$/ 
   ],
