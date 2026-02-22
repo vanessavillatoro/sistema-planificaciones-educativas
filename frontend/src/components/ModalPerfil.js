@@ -6,7 +6,7 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
   
   const API_BASE_URL = window.location.hostname === 'localhost' 
     ? 'http://localhost:5000' 
-    : 'https://sistema-planificaciones-educativas-ten.vercel.app';
+    : 'https://sistema-planificaciones-educativas.vercel.app';
 
   const [perfil, setPerfil] = useState({
     userName: localStorage.getItem('userName') || '',
@@ -107,27 +107,37 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
 
     setCargando(true);
     try {
+      // Creamos un objeto limpio para enviar, evitando enviar la foto pesada 
+      // si solo estamos editando texto, para no saturar la petición.
+      const datosParaEnviar = {
+        userId,
+        nombre: perfil.userName,
+        celular: perfil.userCelular,
+        municipio: perfil.userMunicipio,
+        departamento: perfil.userDepartamento,
+        direccion: perfil.userDireccion
+      };
+
       const response = await fetch(`${API_BASE_URL}/api/usuario/perfil`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId,
-          nombre: perfil.userName,
-          celular: perfil.userCelular,
-          municipio: perfil.userMunicipio,
-          departamento: perfil.userDepartamento,
-          direccion: perfil.userDireccion
-        }),
+        body: JSON.stringify(datosParaEnviar),
       });
 
       const data = await response.json();
 
       if (response.ok) {
+        // Actualizamos LocalStorage con lo que el servidor nos devuelve
         localStorage.setItem('userName', data.userName || perfil.userName);
         localStorage.setItem('userCelular', data.userCelular || perfil.userCelular);
         localStorage.setItem('userMunicipio', data.userMunicipio || perfil.userMunicipio);
         localStorage.setItem('userDepartamento', data.userDepartamento || perfil.userDepartamento);
         localStorage.setItem('userDireccion', data.userDireccion || perfil.userDireccion);
+        
+        // MUY IMPORTANTE: No sobrescribas la foto en LocalStorage si el servidor no mandó una nueva
+        if (data.userFoto) {
+            localStorage.setItem('userFoto', data.userFoto);
+        }
         
         // Sincronizar otros componentes
         window.dispatchEvent(new Event('perfilActualizado'));
@@ -135,9 +145,12 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
         alert("¡Datos guardados con éxito!");
         if (onSave) onSave(data);
         onClose();
+      } else {
+        alert(`Error del servidor: ${data.error || 'No se pudieron guardar los datos'}`);
       }
     } catch (error) {
-      alert("Error al guardar datos");
+      console.error("Error al guardar:", error);
+      alert("Error de conexión al intentar guardar datos");
     } finally {
       setCargando(false);
     }
@@ -152,23 +165,18 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
     { label: 'Direccion', name: 'userDireccion' }
   ];
 
-  // --- FUNCIÓN ACTUALIZADA PARA BASE64 ---
   const getFotoUrl = () => {
     if (!perfil.userFoto) return fotoPerfilDefault;
     
-    // Si es Base64 (data:), vista previa (blob:) o externa (http), se usa directo
-    if (
-      perfil.userFoto.startsWith('data:') || 
-      perfil.userFoto.startsWith('blob:') || 
-      perfil.userFoto.startsWith('http')
-    ) {
-      return perfil.userFoto;
+    let urlBase = "";
+    if (perfil.userFoto.startsWith('blob:') || perfil.userFoto.startsWith('http')) {
+      urlBase = perfil.userFoto;
+    } else {
+      urlBase = `${API_BASE_URL}${perfil.userFoto}`;
     }
 
-    // Solo para rutas antiguas (/uploads/...)
-    const rutaLimpia = perfil.userFoto.replace(/^\/+/, '');
-    const urlFinal = `${API_BASE_URL}/${rutaLimpia}`;
-    return `${urlFinal}${urlFinal.includes('?') ? '&' : '?'}v=${version}`;
+    // Cache Busting con v=
+    return `${urlBase}${urlBase.includes('?') ? '&' : '?'}v=${version}`;
   };
 
   return (
@@ -182,7 +190,6 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
               src={getFotoUrl()} 
               alt="Perfil" 
               className={`modal-avatar ${cargando ? 'img-loading' : ''}`}
-              key={`modal-img-${perfil.userFoto}`}
               onError={(e) => {
                 e.target.onerror = null; 
                 e.target.src = fotoPerfilDefault;
