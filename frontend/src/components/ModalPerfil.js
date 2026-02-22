@@ -6,7 +6,7 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
   
   const API_BASE_URL = window.location.hostname === 'localhost' 
     ? 'http://localhost:5000' 
-    : 'https://sistema-planificaciones-educativas-ten.vercel.app';
+    : 'https://sistema-planificaciones-educativas.vercel.app';
 
   const [perfil, setPerfil] = useState({
     userName: localStorage.getItem('userName') || '',
