@@ -188,7 +188,7 @@ app.post('/api/generar-recurso-ia', async (req, res) => {
   try {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
     const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-    const result = await model.generateContent(`Genera un recurso educativo de tipo ${tipoRecurso} sobre el tema ${tema} para la materia ${materia}.`);
+    const result = await model.generateContent(`Genera un recurso educativ de tipo ${tipoRecurso} sobre el tema ${tema} para la materia ${materia}.`);
     res.json({ contenido: result.response.text() });
   } catch (error) {
     res.status(500).json({ error: "Error al generar recurso." });
