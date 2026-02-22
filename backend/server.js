@@ -80,7 +80,7 @@ if (!fs.existsSync(uploadsDir)){
 
 app.use(cors({
 
-  origin: 'sistema-planificaciones-educativas-ten.vercel.app',
+  origin: 'sistema-planificaciones-educativas.vercel.app',
 
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
 
