@@ -58,21 +58,31 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
       const response = await fetch(`${API_BASE_URL}/api/usuario/perfil?userId=${userId}&t=${new Date().getTime()}`);
       if (response.ok) {
         const data = await response.json();
-        const nombrePersistente = data.name || data.nombre || 'Docente';
-        const fotoPersistente = data.fotoUrl || data.userFoto || '';
+        
+        // Mapeo robusto de campos para asegurar compatibilidad
+        const nombrePersistente = data.userName || data.nombre || data.name || 'Docente';
+        const fotoPersistente = data.userFoto || data.fotoUrl || '';
+        const correoPersistente = data.userEmail || data.email || data.correo || '';
         
         setUsuario({
           nombre: nombrePersistente,
-          correo: data.email || data.correo || '',
+          correo: correoPersistente,
           fotoUrl: fotoPersistente,
-          celular: data.celular || '',
-          municipio: data.municipio || '',
-          departamento: data.departamento || '',
-          direccion: data.direccion || ''
+          celular: data.userCelular || data.celular || '',
+          municipio: data.userMunicipio || data.municipio || '',
+          departamento: data.userDepartamento || data.departamento || '',
+          direccion: data.userDireccion || data.direccion || ''
         });
 
+        // Sincronización completa con LocalStorage para que el Modal lea datos frescos
         localStorage.setItem('userName', nombrePersistente);
         localStorage.setItem('userFoto', fotoPersistente);
+        localStorage.setItem('userEmail', correoPersistente);
+        localStorage.setItem('userCelular', data.userCelular || data.celular || '');
+        localStorage.setItem('userMunicipio', data.userMunicipio || data.municipio || '');
+        localStorage.setItem('userDepartamento', data.userDepartamento || data.departamento || '');
+        localStorage.setItem('userDireccion', data.userDireccion || data.direccion || '');
+
         if (setNombreApp) setNombreApp(nombrePersistente);
       }
     } catch (error) {
