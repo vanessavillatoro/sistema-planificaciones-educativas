@@ -4,7 +4,6 @@ import fotoPerfilDefault from './perfil.png';
 
 const ModalPerfil = ({ onClose, onSave, darkMode }) => {
   
-  // URL unificada (Asegúrate que termine igual que en Navbar)
   const API_BASE_URL = window.location.hostname === 'localhost' 
     ? 'http://localhost:5000' 
     : 'https://sistema-planificaciones-educativas-ten.vercel.app';
@@ -53,52 +52,27 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
     setPerfil({ ...perfil, [e.target.name]: e.target.value });
   };
 
-  const handleFotoChange = async (e) => {
+  // --- NUEVA FUNCIÓN: CONVIERTE IMAGEN A BASE64 ---
+  const handleFotoChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const previewUrl = URL.createObjectURL(file);
-    const antiguaFoto = perfil.userFoto;
-    setPerfil(prev => ({ ...prev, userFoto: previewUrl }));
-
-    const userId = localStorage.getItem('userId');
-    const formData = new FormData();
-    formData.append('userId', userId);
-    formData.append('foto', file); 
-
-    setCargando(true);
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/usuario/perfil`, {
-        method: 'PATCH',
-        body: formData, 
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        const nuevaFoto = data.userFoto || data.fotoUrl;
-        localStorage.setItem('userFoto', nuevaFoto);
-        
-        // Notificar al Navbar y otros componentes
-        window.dispatchEvent(new Event('perfilActualizado'));
-        
-        setPerfil(prev => ({ ...prev, userFoto: nuevaFoto }));
-        setVersion(Date.now()); 
-        
-        if (antiguaFoto && antiguaFoto.startsWith('blob:')) URL.revokeObjectURL(antiguaFoto);
-        
-        alert("Foto actualizada correctamente");
-      } else {
-        throw new Error("Error en servidor");
-      }
-    } catch (error) {
-      alert("Error al subir la foto");
-      setPerfil(prev => ({ ...prev, userFoto: localStorage.getItem('userFoto') || '' }));
-    } finally {
-      setCargando(false);
+    // Validación de tamaño (2MB recomendado para Base64)
+    if (file.size > 2 * 1024 * 1024) {
+      alert("La imagen es muy pesada. Máximo 2MB.");
+      return;
     }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64String = reader.result;
+      // Actualizamos el estado local para la vista previa
+      setPerfil(prev => ({ ...prev, userFoto: base64String }));
+    };
+    reader.readAsDataURL(file);
   };
 
+  // --- NUEVA FUNCIÓN: ENVÍA TODO (DATOS + FOTO) EN JSON ---
   const handleGuardarDatos = async () => {
     const userId = localStorage.getItem('userId');
     if (!userId) return alert("Sesión expirada");
@@ -111,7 +85,8 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
         celular: perfil.userCelular,
         municipio: perfil.userMunicipio,
         departamento: perfil.userDepartamento,
-        direccion: perfil.userDireccion
+        direccion: perfil.userDireccion,
+        foto: perfil.userFoto // Ahora enviamos el string Base64 aquí
       };
 
       const response = await fetch(`${API_BASE_URL}/api/usuario/perfil`, {
@@ -123,23 +98,26 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
       const data = await response.json();
 
       if (response.ok) {
-        // Guardar en LocalStorage lo que el servidor confirmó
+        // Actualizamos LocalStorage con la confirmación del servidor
         localStorage.setItem('userName', data.userName || perfil.userName);
+        localStorage.setItem('userFoto', data.userFoto || perfil.userFoto);
         localStorage.setItem('userCelular', data.userCelular || perfil.userCelular);
         localStorage.setItem('userMunicipio', data.userMunicipio || perfil.userMunicipio);
         localStorage.setItem('userDepartamento', data.userDepartamento || perfil.userDepartamento);
         localStorage.setItem('userDireccion', data.userDireccion || perfil.userDireccion);
         
+        // Notificamos al resto de la app
         window.dispatchEvent(new Event('perfilActualizado'));
         
-        alert("¡Datos guardados con éxito!");
+        alert("¡Perfil actualizado con éxito!");
         if (onSave) onSave(data);
         onClose();
       } else {
         alert(`Error: ${data.error || 'No se pudo guardar'}`);
       }
     } catch (error) {
-      alert("Error de conexión");
+      console.error("Error al guardar:", error);
+      alert("Error de conexión con el servidor");
     } finally {
       setCargando(false);
     }
@@ -154,17 +132,12 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
     { label: 'Direccion', name: 'userDireccion' }
   ];
 
-  // --- FUNCIÓN CORREGIDA PARA VERCEL (BASE64) ---
   const getFotoUrl = () => {
     const foto = perfil.userFoto;
     if (!foto) return fotoPerfilDefault;
-    
-    // Si es Base64, Blob o Externa, usar directo
     if (foto.startsWith('data:') || foto.startsWith('blob:') || foto.startsWith('http')) {
       return foto;
     }
-
-    // Si es ruta de servidor
     const rutaLimpia = foto.startsWith('/') ? foto : `/${foto}`;
     return `${API_BASE_URL}${rutaLimpia}?v=${version}`;
   };
@@ -180,7 +153,7 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
               src={getFotoUrl()} 
               alt="Perfil" 
               className={`modal-avatar ${cargando ? 'img-loading' : ''}`}
-              key={perfil.userFoto} // Clave para forzar re-render
+              key={perfil.userFoto}
               onError={(e) => { e.target.src = fotoPerfilDefault; }}
             />
             <div className="avatar-overlay">
