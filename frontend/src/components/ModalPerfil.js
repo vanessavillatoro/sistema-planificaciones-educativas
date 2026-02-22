@@ -214,7 +214,7 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
         </div>
 
         <button className="save-btn" onClick={handleGuardarDatos} disabled={cargando}>
-          {cargando ? 'Procesando...' : 'Guardar Cambios'}
+          {cargando ? 'Procesand...' : 'Guardar Cambios'}
         </button>
       </div>
     </div>
