@@ -38,14 +38,20 @@ if (!fs.existsSync(uploadsDir)){
     fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
+// --- CORS ACTUALIZADO PARA EVITAR BLOQUEOS ---
 app.use(cors({
-  origin: 'sistema-planificaciones-educativas-ten.vercel.app', 
+  origin: [
+    'https://sistema-planificaciones-educativas-ten.vercel.app',
+    'http://localhost:3000',
+    /\.vercel\.app$/ 
+  ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 }));
 
 app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Origin', req.headers.origin);
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     
@@ -55,7 +61,7 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use(express.json({ limit: '10mb' })); // Aumentado para soportar Base64
+app.use(express.json({ limit: '10mb' })); 
 app.use('/uploads', express.static(uploadsDir));
 
 app.get('/api/test', (req, res) => {
@@ -63,7 +69,7 @@ app.get('/api/test', (req, res) => {
 });
 
 app.get('/', (req, res) => {
-    res.send('🚀 VERSION 5.0 - PERFIL FIX BASE64');
+    res.send('🚀 VERSION 5.1 - FIX CORS & GEMINI MODEL');
 });
 
 // --- CONFIGURACIÓN PARA SUBIDA DE IMÁGENES ---
@@ -116,7 +122,8 @@ app.post('/api/generar-plan-completa', async (req, res) => {
     return res.status(500).json({ error: "Falta la clave GEMINI_KEY en el servidor" });
   }
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+  // MODELO ACTUALIZADO A 1.5-FLASH PARA ESTABILIDAD
+  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
   const peticionDocente = data.sugerencias ? `PETICIÓN ESPECÍFICA DEL DOCENTE: "${data.sugerencias}".` : "";
   const contextoEdicion = planActual
     ? `MODO EDICIÓN: JSON previo: ${JSON.stringify(planActual)}. Modifica según: "${data.sugerencias}".`
@@ -171,7 +178,7 @@ app.post('/api/generar-plan-modulo3', async (req, res) => {
   const { materia, tema, grado, dificultad, sugerencias, enfoque } = req.body;
   if (!materia || !tema) return res.status(400).json({ error: "Faltan campos." });
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
   const prompt = `Estructura JSON pedagógica para: ${materia}, Tema: ${tema}, Grado: ${grado}, Dificultad: ${dificultad}. Enfoque: ${enfoque}. Sugerencias: ${sugerencias}`;
   try {
     const result = await model.generateContent(prompt);
@@ -187,7 +194,7 @@ app.post('/api/generar-recurso-ia', async (req, res) => {
   const { materia, tema, tipoRecurso } = req.body;
   try {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
     const result = await model.generateContent(`Genera un recurso educativ de tipo ${tipoRecurso} sobre el tema ${tema} para la materia ${materia}.`);
     res.json({ contenido: result.response.text() });
   } catch (error) {
@@ -321,7 +328,7 @@ app.delete('/api/papelera/permanente/:id', async (req, res) => {
     }
 });
 
-// --- GESTIÓN DE PERFIL CON FIX PARA VERCEL (BASE64) ---
+// --- GESTIÓN DE PERFIL ---
 app.get('/api/usuario/perfil', async (req, res) => {
     try {
         const { userId } = req.query;
@@ -334,25 +341,20 @@ app.get('/api/usuario/perfil', async (req, res) => {
     }
 });
 
-// --- GESTIÓN DE PERFIL ACTUALIZADA (CORRECCIÓN DE SEGURIDAD) ---
 app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
     try {
-        // 1. Verificación de seguridad para evitar que el server se caiga
         const userId = req.body.userId;
         if (!userId || userId === "undefined" || userId === "null") {
             return res.status(400).json({ error: "ID de usuario no proporcionado" });
         }
 
         let datosAActualizar = { ...req.body };
-
-        // Limpieza de campos que no deben sobrescribirse
         delete datosAActualizar.email;
         delete datosAActualizar.userEmail;
         delete datosAActualizar.correo;
 
         if (datosAActualizar.nombre) datosAActualizar.name = datosAActualizar.nombre;
 
-        // 2. Lógica de Foto (Si falla la foto, que no falle el resto)
         if (req.file) { 
             try {
                 const imgPath = req.file.path;
@@ -367,7 +369,6 @@ app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
             datosAActualizar.fotoUrl = req.body.foto;
         }
 
-        // 3. Limpiar el objeto antes de ir a MongoDB
         Object.keys(datosAActualizar).forEach(key => {
             if (datosAActualizar[key] === "" || datosAActualizar[key] === null || datosAActualizar[key] === "undefined") {
                 delete datosAActualizar[key];
@@ -378,7 +379,6 @@ app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
         delete datosAActualizar.nombre;
         delete datosAActualizar.foto; 
 
-        // 4. Actualización en Base de Datos
         const usuarioActualizado = await User.findByIdAndUpdate(
             userId,
             { $set: datosAActualizar },
@@ -387,7 +387,6 @@ app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
 
         if (!usuarioActualizado) return res.status(404).json({ error: "Usuario no encontrado" });
 
-        // 5. Respuesta idéntica a la que espera tu Frontend
         res.status(200).json({
             userId: usuarioActualizado._id,
             userName: usuarioActualizado.name,
@@ -404,28 +403,24 @@ app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
         res.status(500).json({ error: "Error interno del servidor" });
     }
 });
-// Ruta simplificada para solo foto
+
 app.post('/api/usuario/foto', upload.single('foto'), async (req, res) => {
     try {
         if (!req.file) return res.status(400).json({ error: "No hay imagen" });
-        
         const buffer = fs.readFileSync(req.file.path);
         const base64Image = `data:${req.file.mimetype};base64,${buffer.toString('base64')}`;
-        
         const userId = req.body.userId;
         const usuarioActualizado = await User.findByIdAndUpdate(
             userId, { $set: { fotoUrl: base64Image } }, { new: true }
         );
-        
         if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
-        
         res.status(200).json({ userFoto: usuarioActualizado.fotoUrl });
     } catch (error) {
         res.status(500).json({ error: "Error interno" });
     }
 });
 
-// --- AUTENTICACIÓN ACTUALIZADA ---
+// --- AUTENTICACIÓN ---
 app.post('/api/auth/google', async (req, res) => {
     try {
         const { token } = req.body;
