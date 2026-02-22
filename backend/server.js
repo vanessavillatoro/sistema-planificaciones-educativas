@@ -39,7 +39,7 @@ if (!fs.existsSync(uploadsDir)){
 }
 
 app.use(cors({
-  origin: '*', 
+  origin: 'sistema-planificaciones-educativas-ten.vercel.app', 
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
