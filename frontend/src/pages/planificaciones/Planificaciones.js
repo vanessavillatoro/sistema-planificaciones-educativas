@@ -191,6 +191,7 @@ const Planificaciones = ({ darkMode, API_BASE_URL }) => {
   const generarConAPI = async () => {
     const camposObligatorios = ['nombre', 'apellido', 'edad', 'seccion', 'municipio', 'departamento', 'duracion', 'nivel', 'materia', 'nombreUnidad', 'numUnidad', 'tema', 'grado', 'dificultad', 'centroEscolar', 'fecha'];
     const vacios = camposObligatorios.filter(campo => !formData[campo] || formData[campo].trim() === '');
+    
     if (vacios.length > 0) {
       alert(`Por favor, completa todos los campos`);
       return;
@@ -198,17 +199,37 @@ const Planificaciones = ({ darkMode, API_BASE_URL }) => {
 
     setLoading(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/api/generar-plan-completa`, {
+      // 1. LIMPIEZA DE URL: Evitamos que la URL se rompa si API_BASE_URL trae barras extra
+      const base = API_BASE_URL ? API_BASE_URL.replace(/\/$/, '') : '';
+      const urlFinal = `${base}/api/generar-plan-completa`;
+      
+      console.log("Intentando conectar a:", urlFinal); // Para que verifiques en consola
+
+      const response = await fetch(urlFinal, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, userId, planActual: resultado }),
+        headers: { 
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ 
+          ...formData, 
+          userId, 
+          planActual: resultado 
+        }),
       });
-      if (!response.ok) throw new Error('Error en la respuesta del servidor');
+
+      // 2. CAPTURA DE ERROR DETALLADO: Si el server responde con error, leemos qué dice
+      if (!response.ok) {
+        const errorText = await response.text(); // Leemos el texto del error
+        throw new Error(`Servidor: ${response.status} - ${errorText}`);
+      }
+
       const data = await response.json();
       setResultado(data);
     } catch (error) {
-      console.error("Error al generar:", error);
-      alert("Error al procesar la planificación.");
+      console.error("Error detallado al generar:", error);
+      // 3. ALERT INFORMATIVO: Ya no dirá solo "Error al procesar", dirá el motivo real
+      alert(`No se pudo generar: ${error.message}`);
     } finally {
       setLoading(false);
     }
