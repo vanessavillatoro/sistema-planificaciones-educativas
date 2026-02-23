@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react'; // Se agregó useCallback
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown'; 
 import remarkMath from 'remark-math';
@@ -90,13 +90,12 @@ const Recursos = ({ darkMode }) => {
     }
   }, [location, API_BASE_URL]);
 
-  // Se envuelve en useCallback para solucionar el error de dependencias de la imagen
+  // --- FUNCIÓN CARGAR DATOS ESTABILIZADA ---
   const cargarDatos = useCallback(async () => {
     try {
       setLoading(true);
       const userId = localStorage.getItem('userId'); 
 
-      // NUEVO: Intentar recuperar plan recien generado del Módulo 1 vía LocalStorage
       const planReciente = localStorage.getItem('planificacionReciente');
       if (planReciente) {
         const p = JSON.parse(planReciente);
@@ -109,7 +108,7 @@ const Recursos = ({ darkMode }) => {
           indicadores: formatearTextoPorLineas(p.indicadoresLogro || p.indicadores || '')
         }));
         ajustarAlturaTextareas();
-        localStorage.removeItem('planificacionReciente'); // Limpiamos tras usar
+        localStorage.removeItem('planificacionReciente'); 
       }
 
       if (!userId) {
@@ -117,17 +116,21 @@ const Recursos = ({ darkMode }) => {
         return;
       }
 
-      const response = await fetch(`${API_BASE_URL}/api/gestion?userId=${userId}&t=${new Date().getTime()}`);
+      const response = await fetch(`${API_BASE_URL}/api/gestion?userId=${userId}&t=${new Date().getTime()}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      });
       
       if (!response.ok) throw new Error("Error en la respuesta del servidor");
       
       const data = await response.json();
       
       if (Array.isArray(data)) {
-        // Mantenemos el filtro pero nos aseguramos de que los planes sin tipo 'recurso' pasen
         const soloPlanes = data.filter(item => item.tipo !== 'recurso');
         setPlanificaciones(soloPlanes);
-        console.log("✅ Datos de gestión cargados:", soloPlanes.length);
       } else {
         setPlanificaciones([]);
       }
@@ -145,7 +148,7 @@ const Recursos = ({ darkMode }) => {
     }, 100);
     
     return () => clearTimeout(timer);
-  }, [cargarDatos]); // Ahora cargarDatos es una dependencia segura
+  }, [cargarDatos]);
 
   const formatearContenidoIA = (texto) => {
     if (!texto) return '';
@@ -158,12 +161,14 @@ const Recursos = ({ darkMode }) => {
       .trim();
   };
 
+  // --- MANEJAR GENERAR ACTUALIZADO PARA USAR EL ENDPOINT CORRECTO ---
   const manejarGenerar = async () => {
     if (loading || !formData.tipoRecurso) return;
     setLoading(true);
     setResultado(''); 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/generar-recurso-ia`, {
+      // Usamos el endpoint v2 que creamos en el server.js para mayor compatibilidad
+      const response = await fetch(`${API_BASE_URL}/api/generar-recurso-v2`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -181,13 +186,18 @@ const Recursos = ({ darkMode }) => {
             - Asegúrate de que cada ejercicio esté bien separado.`
         }),
       });
-      if (!response.ok) throw new Error("Error en el servidor");
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Error en el servidor");
+      }
+
       const data = await response.json();
       const contenidoProcesado = formatearContenidoIA(data.contenido);
       setResultado(contenidoProcesado); 
     } catch (error) {
       console.error("❌ Error:", error);
-      alert("Hubo un error al conectar con la IA.");
+      alert(`Error: ${error.message}`);
     } finally {
       setLoading(false);
     }
