@@ -122,67 +122,82 @@ const procesarRespuestaIA = (text) => {
 
 // --- RUTA: GENERACIÓN ESTRUCTURADA (MÓDULO 1) ---
 app.post('/api/generar-plan-completa', async (req, res) => {
-  const { planActual, ...data } = req.body;
-  const camposRequeridos = ['materia', 'tema', 'grado', 'dificultad', 'nombreUnidad'];
-  for (const campo of camposRequeridos) {
-    if (!data[campo] || data[campo].trim() === '') {
-      return res.status(400).json({ error: `El campo ${campo} es obligatorio.` });
-    }
-  }
-  if (!process.env.GEMINI_KEY) {
-    return res.status(500).json({ error: "Falta la clave GEMINI_KEY en el servidor" });
-  }
-  const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-  const peticionDocente = data.sugerencias ? `PETICIÓN ESPECÍFICA DEL DOCENTE: "${data.sugerencias}".` : "";
-  const contextoEdicion = planActual
-    ? `MODO EDICIÓN: JSON previo: ${JSON.stringify(planActual)}. Modifica según: "${data.sugerencias}".`
-    : `MODO CREACIÓN: Materia: ${data.materia}, Tema: ${data.tema}, Grado: ${data.grado}, Dificultad: ${data.dificultad}. ${peticionDocente}`;
-
-  const prompt = `
-    Eres un experto pedagogo. Genera una planificación educativa en JSON estrictamente válido.
-    CONTEXTO: ${contextoEdicion}
-    REGLAS DE ORO (OBLIGATORIAS):
-      1. PRIORIDAD TOTAL: Si en la PETICIÓN ESPECÍFICA el docente solicita una cantidad determinada de objetivos, indicadores o actividades, ignora los valores por defecto y genera la cantidad exacta pedida.
-      2. OBJETIVOS: Por defecto genera 3. Formato: "* Obj 1\\n* Obj 2". Si la petición pide más, agrégalos.
-      3. INDICADORES DE LOGRO: Por defecto genera 3. Formato: "* Ind 1\\n* Ind 2".
-      4. INDICADORES DE EVALUACIÓN: Por defecto genera 3. Formato: "* Eval 1\\n* Eval 2".
-      5. ACTIVIDADES COMPLEMENTARIAS: Por defecto genera 3. Formato: "* Act 1\\n* Act 2".
-      6. MATERIALES: Array de EXACTAMENTE 8 elementos. Inicialmente, CADA uno de los 8 elementos del array DEBE contener EXACTAMENTE 3 materiales distintos (a menos que el docente pida más). Los materiales deben separarse por un salto de línea y un asterisco (*).
-      8. No uses markdown ni texto fuera del JSON.
-    ESTRUCTURA REQUERIDA:
-    {
-      "objetivos": "...",
-      "indicadoresLogro": "...",
-      "materiales": ["...", "...", "...", "...", "...", "...", "...", "..."],
-      "indicadoresEvaluacion": "...",
-      "actividadesComplementarias": "...",
-      "tiempos": [
-        {"inicio": "...", "desarrollo": "...", "cierre": "..."},
-        {"inicio": "...", "desarrollo": "...", "cierre": "..."},
-        {"inicio": "...", "desarrollo": "...", "cierre": "..."},
-        {"inicio": "...", "desarrollo": "...", "cierre": "..."},
-        {"inicio": "...", "desarrollo": "...", "cierre": "..."},
-        {"inicio": "...", "desarrollo": "...", "cierre": "..."},
-        {"inicio": "...", "desarrollo": "...", "cierre": "..."},
-        {"inicio": "...", "desarrollo": "...", "cierre": "..."}
-      ]
-    }
-  `;
-
+  // 1. Envolvemos TODO en un try-catch para evitar que el servidor muera
   try {
+    // Reemplaza las líneas 116 a 122 por esto:
+
+    const { planActual, ...data } = req.body;
+const camposRequeridos = ['materia', 'tema', 'grado', 'dificultad', 'nombreUnidad'];
+
+for (const campo of camposRequeridos) {
+  const valor = data[campo];
+  // Usamos String(valor) para que, si es undefined o null, no rompa el .trim()
+  if (!valor || String(valor).trim() === '' || valor === 'Grado' || valor === 'Nivel de dificultad') {
+    return res.status(400).json({ error: `El campo ${campo} es obligatorio o no es válido.` });
+  }
+}
+
+    if (!process.env.GEMINI_KEY) {
+      return res.status(500).json({ error: "Falta la clave GEMINI_KEY en el servidor" });
+    }
+
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    
+    const peticionDocente = data.sugerencias ? `PETICIÓN ESPECÍFICA DEL DOCENTE: "${data.sugerencias}".` : "";
+    
+    const contextoEdicion = planActual
+      ? `MODO EDICIÓN: JSON previo: ${JSON.stringify(planActual)}. Modifica según: "${data.sugerencias}".`
+      : `MODO CREACIÓN: Materia: ${data.materia}, Tema: ${data.tema}, Grado: ${data.grado}, Dificultad: ${data.dificultad}. ${peticionDocente}`;
+
+    // TU PROMPT ORIGINAL (INTACTO)
+    const prompt = `
+      Eres un experto pedagogo. Genera una planificación educativa en JSON estrictamente válido.
+      CONTEXTO: ${contextoEdicion}
+      REGLAS DE ORO (OBLIGATORIAS):
+        1. PRIORIDAD TOTAL: Si en la PETICIÓN ESPECÍFICA el docente solicita una cantidad determinada de objetivos, indicadores o actividades, ignora los valores por defecto y genera la cantidad exacta pedida.
+        2. OBJETIVOS: Por defecto genera 3. Formato: "* Obj 1\\n* Obj 2". Si la petición pide más, agrégalos.
+        3. INDICADORES DE LOGRO: Por defecto genera 3. Formato: "* Ind 1\\n* Ind 2".
+        4. INDICADORES DE EVALUACIÓN: Por defecto genera 3. Formato: "* Eval 1\\n* Eval 2".
+        5. ACTIVIDADES COMPLEMENTARIAS: Por defecto genera 3. Formato: "* Act 1\\n* Act 2".
+        6. MATERIALES: Array de EXACTAMENTE 8 elementos. Inicialmente, CADA uno de los 8 elementos del array DEBE contener EXACTAMENTE 3 materiales distintos (a menos que el docente pida más). Los materiales deben separarse por un salto de línea y un asterisco (*).
+        8. No uses markdown ni texto fuera del JSON.
+      ESTRUCTURA REQUERIDA:
+      {
+        "objetivos": "...",
+        "indicadoresLogro": "...",
+        "materiales": ["...", "...", "...", "...", "...", "...", "...", "..."],
+        "indicadoresEvaluacion": "...",
+        "actividadesComplementarias": "...",
+        "tiempos": [
+          {"inicio": "...", "desarrollo": "...", "cierre": "..."},
+          {"inicio": "...", "desarrollo": "...", "cierre": "..."},
+          {"inicio": "...", "desarrollo": "...", "cierre": "..."},
+          {"inicio": "...", "desarrollo": "...", "cierre": "..."},
+          {"inicio": "...", "desarrollo": "...", "cierre": "..."},
+          {"inicio": "...", "desarrollo": "...", "cierre": "..."},
+          {"inicio": "...", "desarrollo": "...", "cierre": "..."},
+          {"inicio": "...", "desarrollo": "...", "cierre": "..."}
+        ]
+      }
+    `;
+
     const result = await model.generateContent(prompt);
     const jsonOutput = procesarRespuestaIA(result.response.text());
+
     if (jsonOutput.materiales && jsonOutput.materiales.length !== 8) {
-        while (jsonOutput.materiales.length < 8) jsonOutput.materiales.push("* Material 1\\n* Material 2\\n* Material 3");
-        jsonOutput.materiales = jsonOutput.materiales.slice(0, 8);
+      while (jsonOutput.materiales.length < 8) jsonOutput.materiales.push("* Material 1\\n* Material 2\\n* Material 3");
+      jsonOutput.materiales = jsonOutput.materiales.slice(0, 8);
     }
+
     res.json(jsonOutput);
+
   } catch (error) {
-    res.status(500).json({ error: "No se pudo conectar con el servicio de IA." });
+    // 3. Log detallado para que sepas qué falló (IA o Código)
+    console.error("ERROR EN GENERACIÓN:", error);
+    res.status(500).json({ error: "Ocurrió un error al generar el plan. Intenta de nuevo." });
   }
 });
-
 // --- RUTA: GENERACIÓN MÓDULO 3 ---
 app.post('/api/generar-plan-modulo3', async (req, res) => {
   const { materia, tema, grado, dificultad, sugerencias, enfoque } = req.body;

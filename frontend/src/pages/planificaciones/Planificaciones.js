@@ -200,37 +200,55 @@ const Planificaciones = ({ darkMode }) => {
   };
 
   const generarConAPI = async () => {
-    const camposObligatorios = [
-      'nombre', 'apellido', 'edad', 'seccion', 'municipio', 'departamento',
-      'duracion', 'nivel', 'materia', 'nombreUnidad', 'numUnidad', 'tema', 'grado', 
-      'dificultad', 'centroEscolar', 'fecha'
-    ];
+  const camposObligatorios = [
+    'nombre', 'apellido', 'edad', 'seccion', 'municipio', 'departamento',
+    'duracion', 'nivel', 'materia', 'nombreUnidad', 'numUnidad', 'tema', 'grado', 
+    'dificultad', 'centroEscolar', 'fecha'
+  ];
 
-    const vacios = camposObligatorios.filter(campo => !formData[campo] || formData[campo].trim() === '');
-    if (vacios.length > 0) {
-      alert(`Por favor, completa todos los campos`);
-      return;
+  // 1. Verificamos que no haya vacíos
+  const vacios = camposObligatorios.filter(campo => !formData[campo] || formData[campo].trim() === '');
+  
+  if (vacios.length > 0) {
+    alert(`Por favor, completa todos los campos obligatorios.`);
+    return;
+  }
+
+  setLoading(true);
+  try {
+    const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
+    // 2. REPARACIÓN CRÍTICA: 
+    // Creamos una copia de seguridad para que el Backend reciba texto real
+    // y no los nombres de los placeholders (como "Grado" o "Edad")
+    const datosParaEnviar = { ...formData };
+    
+    // Si el valor es igual al placeholder, lo enviamos vacío para que el backend lo detecte
+    if (datosParaEnviar.grado === 'Grado') datosParaEnviar.grado = '';
+    if (datosParaEnviar.dificultad === 'Nivel de dificultad') datosParaEnviar.dificultad = '';
+    if (datosParaEnviar.edad === 'Edad') datosParaEnviar.edad = '';
+
+    const response = await fetch(`${baseUrl}/api/generar-plan-completa`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...datosParaEnviar, userId, planActual: resultado }),
+    });
+
+    if (!response.ok) {
+      // Si el servidor responde con 400 o 500, capturamos el error
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Error en la respuesta del servidor');
     }
 
-    setLoading(true);
-    try {
-      const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-      const response = await fetch(`${baseUrl}/api/generar-plan-completa`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, userId, planActual: resultado }),
-      });
-
-      if (!response.ok) throw new Error('Error en la respuesta del servidor');
-      const data = await response.json();
-      setResultado(data);
-    } catch (error) {
-      console.error("Error al generar:", error);
-      alert("Error al procesar la planificación.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    const data = await response.json();
+    setResultado(data);
+  } catch (error) {
+    console.error("Error al generar:", error);
+    alert(`Error: ${error.message}`);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const guardarPlanificacion = async () => {
     if (!resultado) {
