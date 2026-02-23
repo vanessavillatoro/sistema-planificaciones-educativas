@@ -234,7 +234,6 @@ const Planificaciones = ({ darkMode, API_BASE_URL }) => {
       setLoading(false);
     }
   };
-
   const guardarPlanificacion = async () => {
     if (!resultado) { alert("Primero debes generar una planificación."); return; }
     setSaving(true);

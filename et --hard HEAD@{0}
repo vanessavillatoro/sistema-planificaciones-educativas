@@ -1,0 +1,184 @@
+[33mf3252a3[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{0}: commit: planificaciones.js
+[33mc2232c9[m HEAD@{1}: commit: auth.js con modificacion
+[33m1b2a739[m HEAD@{2}: commit: perfilmodal.js con modificacion
+[33m442dbb5[m HEAD@{3}: commit: server.js con modificacion
+[33m4542283[m HEAD@{4}: commit: server.js
+[33m2e106d1[m HEAD@{5}: commit: server.js restaurado
+[33m26a33ea[m HEAD@{6}: commit: server.js
+[33m40bfc06[m HEAD@{7}: commit: server.js restaurado
+[33m267a529[m HEAD@{8}: commit: server.js
+[33mdb7cbc5[m HEAD@{9}: commit: server.js
+[33m5a425ea[m HEAD@{10}: commit: server.js
+[33m3ee0378[m HEAD@{11}: commit: server.js
+[33mff89025[m HEAD@{12}: commit: server.js
+[33m6ddc116[m HEAD@{13}: commit: server.js
+[33m82085b8[m HEAD@{14}: commit: modalperfil.js y server.js y auth.js
+[33mcb5f49f[m HEAD@{15}: commit: server.js y modalperfil.js y navbar.js
+[33mfd7de11[m HEAD@{16}: commit: modalperfil.js
+[33m3727235[m HEAD@{17}: commit: modalperfil.js
+[33m71a5861[m HEAD@{18}: commit: modalperfil.js
+[33m2bc7d57[m HEAD@{19}: commit: modalperfil.js
+[33m1bd6cde[m HEAD@{20}: commit: modalperfil.js
+[33m5290a8a[m HEAD@{21}: commit: modalperfil.js
+[33m799ecb9[m HEAD@{22}: commit: modalperfil.js y navbar.js
+[33mf2569f3[m HEAD@{23}: commit: modalperfil.js
+[33m4d187f2[m HEAD@{24}: commit: modalperfil.js y navbar.js
+[33m95fc721[m HEAD@{25}: commit: server.js
+[33m2c02f38[m HEAD@{26}: commit: server.js
+[33m4ddefb9[m HEAD@{27}: commit: navbar.js
+[33m8333b03[m HEAD@{28}: commit: server.js y modalperfil.js y navbar.js
+[33ma062351[m HEAD@{29}: commit: server.js y sermodalperfil.js
+[33m2e03b8d[m HEAD@{30}: commit: server.js y sermodalperfil.js
+[33m12b697e[m HEAD@{31}: commit: server.js y sermodalperfil.js
+[33me73f641[m HEAD@{32}: commit: server.js
+[33m187acdb[m HEAD@{33}: commit: modalperfil.js y server.js
+[33mb3cc8ce[m HEAD@{34}: commit: modalperfil.js
+[33m25a237b[m HEAD@{35}: commit: modalperfil.js y server.js
+[33m691ee0f[m HEAD@{36}: commit: modalperfil.js y server.js
+[33m1e267d6[m HEAD@{37}: commit: modalperfil.js y server.js y auth.js
+[33m660a875[m HEAD@{38}: commit: server.js
+[33m41e75c1[m HEAD@{39}: commit: server.js
+[33m9399b12[m HEAD@{40}: commit: modalperfil.js y server.js y auth.js
+[33m5011620[m HEAD@{41}: commit: user.js
+[33ma2d1cf4[m HEAD@{42}: commit: user.js
+[33mcb194db[m HEAD@{43}: commit: modalperfil.js
+[33m0b6864b[m HEAD@{44}: commit: modalperfil.js y server.js y auth.js
+[33m3b25132[m HEAD@{45}: commit: modalperfil.js y server.js
+[33mfdb6ada[m HEAD@{46}: commit: User.js y modalperfil.js
+[33m898af83[m HEAD@{47}: commit: server.js y modalperfil.js
+[33m97cc907[m HEAD@{48}: commit: server.js
+[33m4cd7d71[m HEAD@{49}: commit: modalperfil.js y server.js
+[33mab0537f[m HEAD@{50}: commit: modalperfil.js y server.js
+[33m5bab277[m HEAD@{51}: commit: modalperfil.js
+[33madb29f6[m HEAD@{52}: commit: server.js
+[33m55cafe6[m HEAD@{53}: commit: server.js
+[33m975ab35[m HEAD@{54}: commit: server.js
+[33m207d849[m HEAD@{55}: commit: server.js
+[33ma7a85b8[m HEAD@{56}: commit: modalperfil.js
+[33md282c1d[m HEAD@{57}: commit: modalperfil.js
+[33me5d0332[m HEAD@{58}: commit: modalperfil.js
+[33m4e2f602[m HEAD@{59}: commit: auth.js
+[33mb5633d1[m HEAD@{60}: commit: auth.js
+[33me37fe31[m HEAD@{61}: commit: auth.js y server.js
+[33ma6d7cf5[m HEAD@{62}: commit: auth.js
+[33mb7e37ee[m HEAD@{63}: commit: navbar.js
+[33m40ecd69[m HEAD@{64}: commit: navbar.js
+[33mc43f338[m HEAD@{65}: commit: modal perfil.js
+[33maf44d3e[m HEAD@{66}: commit: server.js
+[33m03592a1[m HEAD@{67}: commit: auth.js y server.js
+[33mc9f08d0[m HEAD@{68}: commit: modalPerfil.js y server.js
+[33m2d87c5b[m HEAD@{69}: commit: modalPergil.js
+[33mc88d953[m HEAD@{70}: commit: server.js
+[33mbc856fb[m HEAD@{71}: commit: server.js
+[33m8b35329[m HEAD@{72}: commit: auth.js
+[33md284348[m HEAD@{73}: commit: server.js
+[33m7e0061b[m HEAD@{74}: commit: server.js
+[33m81e3367[m HEAD@{75}: commit: server.js
+[33mdd1b69e[m HEAD@{76}: commit: server.js
+[33mf6fda86[m HEAD@{77}: commit: auth.js
+[33m57d82c4[m HEAD@{78}: commit: auth.js
+[33mcc170bf[m HEAD@{79}: commit: server.js
+[33mcc6ef06[m HEAD@{80}: commit: server.js
+[33mceeaf2d[m HEAD@{81}: commit: server.js
+[33me403379[m HEAD@{82}: commit: server.js
+[33m05eb5cc[m HEAD@{83}: commit: server.js
+[33m8b496db[m HEAD@{84}: commit: server.js
+[33mdc852d3[m HEAD@{85}: commit: server.js
+[33mca67b20[m HEAD@{86}: commit: server.js
+[33m4dab147[m HEAD@{87}: commit: el modalperfil.js
+[33m71bb76d[m HEAD@{88}: commit: cambios backend
+[33m7859dc4[m HEAD@{89}: commit: cambios backend
+[33m88ba6b1[m HEAD@{90}: commit: cambios backend
+[33m2804339[m HEAD@{91}: commit: cambios en server.js y vercel.json
+[33m2b60b61[m HEAD@{92}: commit: cambios en server.js y vercel.json
+[33mcd04171[m HEAD@{93}: commit: cambios en server.js y vercel.json
+[33md05909b[m HEAD@{94}: commit: cambios en server.js y vercel.json
+[33m5567332[m HEAD@{95}: commit: cambios en server.js y vercel.json
+[33m4312e29[m HEAD@{96}: commit: cambios en server.js y vercel.json
+[33m6d2d879[m HEAD@{97}: commit: cambios en server.js y vercel.json
+[33meafe2c8[m HEAD@{98}: commit: cambios en server.js y vercel.json
+[33ma962079[m HEAD@{99}: commit: cambios en server.js y vercel.json
+[33mcd00942[m HEAD@{100}: commit: cambios en server.js y vercel.json
+[33m09bc0a8[m HEAD@{101}: commit: cambios en server.js y vercel.json
+[33m722daa6[m HEAD@{102}: commit: cambios en server.js y vercel.json
+[33md489a57[m HEAD@{103}: commit: cambios en server.js y vercel.json
+[33m7d18c16[m HEAD@{104}: commit: cambios en server.js y vercel.json
+[33m8bac2be[m HEAD@{105}: commit: cambios en server.js y vercel.json
+[33m4e32b46[m HEAD@{106}: commit: cambios en server.js y vercel.json
+[33m11d0546[m HEAD@{107}: commit: cambios en server.js y vercel.json
+[33m6663ec5[m HEAD@{108}: commit: cambios en server.js y vercel.json
+[33m203ba69[m HEAD@{109}: commit: cambios en server.js y vercel.json
+[33m5cfa410[m HEAD@{110}: commit: cambios en server.js y vercel.json
+[33mf7b75f4[m HEAD@{111}: commit: cambios en server.js y vercel.json
+[33m758631a[m HEAD@{112}: commit: cambios en server.js y vercel.json
+[33m57a4935[m HEAD@{113}: commit: cambios en server.js y vercel.json
+[33m965176d[m HEAD@{114}: commit: cambios en server.js y vercel.json
+[33mce21cb7[m HEAD@{115}: commit: cambios en server.js
+[33md7475e1[m HEAD@{116}: commit: cambios en server.js
+[33me05db66[m HEAD@{117}: commit: cambios en server.js
+[33meb2e6d5[m HEAD@{118}: commit: cambios en server.js
+[33m15ea90c[m HEAD@{119}: commit: cambios en server.js
+[33mb92e816[m HEAD@{120}: commit: cambios en vercel.js
+[33mf43dfa9[m HEAD@{121}: commit: cambios en server.js
+[33m42bca74[m HEAD@{122}: commit: cambios en server.js
+[33mc20c041[m HEAD@{123}: commit: cambios en server.js
+[33mcdd1c7b[m HEAD@{124}: commit: cambios en auth.js
+[33m30cae26[m HEAD@{125}: commit: cambios en el backend
+[33m3fd0d1d[m HEAD@{126}: commit: cambios en el backend
+[33m8921a2f[m HEAD@{127}: commit: cambios en el backend
+[33mac23e4e[m HEAD@{128}: commit: cambios en navbar
+[33m6e313c8[m HEAD@{129}: commit: cambios en navbar
+[33mfec37f8[m HEAD@{130}: commit: cambios en el backend
+[33ma68d027[m HEAD@{131}: commit: cambios en el backend
+[33m9613fd0[m HEAD@{132}: commit: cambios en el backend
+[33mab442a0[m HEAD@{133}: commit: cambios en el backend
+[33md157a99[m HEAD@{134}: commit: cambios en el backend
+[33m4a31ab7[m HEAD@{135}: commit: cambios en el backend
+[33m57abec1[m HEAD@{136}: commit: cambios en el backend
+[33m111d051[m HEAD@{137}: commit: cambios en el backend
+[33m4b596d8[m HEAD@{138}: commit: cambios en el backend
+[33m9e90da8[m HEAD@{139}: commit: cambios en el backend
+[33mc699076[m HEAD@{140}: commit: cambios en el backend
+[33m18f7e3e[m HEAD@{141}: commit: cambios en el backend
+[33m1d15843[m HEAD@{142}: commit: cambios en el backend
+[33m237f430[m HEAD@{143}: commit: cambios en navbar
+[33ma1217ed[m HEAD@{144}: commit: cambios en auth
+[33ma6bc0cf[m HEAD@{145}: commit: cambios en el backend
+[33mea877b3[m HEAD@{146}: commit: cambios en el backend
+[33m9700fa2[m HEAD@{147}: commit: cambios nuevos
+[33mb652f5c[m HEAD@{148}: commit: cambios nuevos
+[33m911ba5b[m HEAD@{149}: commit: cambios nuevos
+[33m61fb008[m HEAD@{150}: commit: cambios nuevos
+[33m863aa5d[m HEAD@{151}: commit (merge): cambios nuevos
+[33m0daaa97[m HEAD@{152}: commit: cambios nuevos
+[33m373ec7f[m HEAD@{153}: commit: apicontracts y readme.md
+[33mac1f86b[m HEAD@{154}: commit: apicontracts y readme.md
+[33m9c856dc[m HEAD@{155}: commit (merge): Merge branch 'main' of https://github.com/vanessavillatoro/sistema-planificaciones-educativas
+[33mb00d401[m HEAD@{156}: commit: manual usuario
+[33m287683b[m HEAD@{157}: commit (merge): Merge branch 'main' of https://github.com/vanessavillatoro/sistema-planificaciones-educativas
+[33m332f4f9[m HEAD@{158}: commit: cambios nuevos
+[33mf2c8ece[m HEAD@{159}: commit (merge): Merge branch 'main' of https://github.com/vanessavillatoro/sistema-planificaciones-educativas
+[33m0944b9d[m HEAD@{160}: commit: cambios nuevos
+[33m3543d22[m HEAD@{161}: commit (merge): Merge branch 'main' of https://github.com/vanessavillatoro/sistema-planificaciones-educativas
+[33mb541486[m HEAD@{162}: commit: cambios nuevos
+[33mbe1bd34[m HEAD@{163}: commit: cambios nuevos
+[33m0d777fb[m HEAD@{164}: commit: cambios nuevos
+[33m0b50910[m HEAD@{165}: commit: Nueva seccion acerca de nosotros, modificacion en navbar.js, en app.js
+[33m0ea62f3[m HEAD@{166}: commit: cambios en planificaciones.js
+[33m31bf53c[m HEAD@{167}: pull --tags origin main: Merge made by the 'ort' strategy.
+[33m55c5c8a[m HEAD@{168}: commit: cambios en todo el proyecto
+[33m933e7c3[m HEAD@{169}: commit: modificacion en el backend
+[33mb340bcd[m HEAD@{170}: commit: contrato de apis
+[33m1c9d210[m HEAD@{171}: commit: cambios en la carpeta backend
+[33m62b4cf0[m HEAD@{172}: commit: camnbios en el archivos server.js
+[33mf9e2768[m HEAD@{173}: commit: codigo nuevo
+[33mfa5a74d[m HEAD@{174}: commit: Pruebas en el archivi test.js
+[33m2f2ec2c[m HEAD@{175}: commit: subiendo cambios y nuevo codigo a github
+[33mdd2da56[m HEAD@{176}: commit: subiendo archivo Planificacion.js a github
+[33m7cfcb2a[m HEAD@{177}: commit: Agregando contenido de test al repositorio principal
+[33m25aa265[m HEAD@{178}: commit: Agregando contenido de test al repositorio principal
+[33m468e602[m HEAD@{179}: commit: Agregando contenido de test al repositorio principal
+[33mdf55498[m HEAD@{180}: commit: Agregando contenido de test al repositorio principal
+[33m83082c3[m HEAD@{181}: commit: Agregando contenido de test al repositorio principal
+[33mda16c03[m HEAD@{182}: commit: feat: configuracion de .gitignore y limpieza de repositorio anidado
+[33m3761e49[m HEAD@{183}: clone: from https://github.com/vanessavillatoro/sistema-planificaciones-educativas.git
