@@ -122,23 +122,17 @@ const procesarRespuestaIA = (text) => {
 
 // --- RUTA: GENERACIÓN ESTRUCTURADA (MÓDULO 1) ---
 app.post('/api/generar-plan-completa', async (req, res) => {
-  // 1. Envolvemos TODO en un try-catch para evitar que el servidor muera
   try {
-    // Reemplaza las líneas 116 a 122 por esto:
+    const { planActual, ...data } = req.body;
+    const camposRequeridos = ['materia', 'tema', 'grado', 'dificultad', 'nombreUnidad'];
 
-const { planActual, ...data } = req.body;
-const camposRequeridos = ['materia', 'tema', 'grado', 'dificultad', 'nombreUnidad'];
-
-for (const campo of camposRequeridos) {
-  // 1. Obtenemos el valor de forma segura
-  const valor = data[campo];
-  
-  // 2. Verificamos si es nulo, si está vacío o si es un placeholder del frontend
-  if (!valor || String(valor).trim() === '' || valor === 'Grado' || valor === 'Nivel de dificultad') {
-    // Esto devuelve un 400 (error del usuario) en lugar de un 500 (colapso del servidor)
-    return res.status(400).json({ error: `El campo ${campo} no es válido o está vacío.` });
-  }
-}
+    // VALIDACIÓN REFORZADA: Evita el crash del .trim() y filtra placeholders
+    for (const campo of camposRequeridos) {
+      const valor = data[campo];
+      if (!valor || String(valor).trim() === '' || valor === 'Grado' || valor === 'Nivel de dificultad') {
+        return res.status(400).json({ error: `El campo ${campo} es obligatorio y debe ser seleccionado.` });
+      }
+    }
 
     if (!process.env.GEMINI_KEY) {
       return res.status(500).json({ error: "Falta la clave GEMINI_KEY en el servidor" });
@@ -153,7 +147,6 @@ for (const campo of camposRequeridos) {
       ? `MODO EDICIÓN: JSON previo: ${JSON.stringify(planActual)}. Modifica según: "${data.sugerencias}".`
       : `MODO CREACIÓN: Materia: ${data.materia}, Tema: ${data.tema}, Grado: ${data.grado}, Dificultad: ${data.dificultad}. ${peticionDocente}`;
 
-    // TU PROMPT ORIGINAL (INTACTO)
     const prompt = `
       Eres un experto pedagogo. Genera una planificación educativa en JSON estrictamente válido.
       CONTEXTO: ${contextoEdicion}
@@ -186,6 +179,7 @@ for (const campo of camposRequeridos) {
     `;
 
     const result = await model.generateContent(prompt);
+    // Usamos el procesador robusto para evitar fallos de formato JSON
     const jsonOutput = procesarRespuestaIA(result.response.text());
 
     if (jsonOutput.materiales && jsonOutput.materiales.length !== 8) {
@@ -196,11 +190,12 @@ for (const campo of camposRequeridos) {
     res.json(jsonOutput);
 
   } catch (error) {
-    // 3. Log detallado para que sepas qué falló (IA o Código)
-    console.error("ERROR EN GENERACIÓN:", error);
-    res.status(500).json({ error: "Ocurrió un error al generar el plan. Intenta de nuevo." });
+    console.error("ERROR REAL EN SERVIDOR:", error);
+    // Devolvemos el mensaje de error para que el frontend no se quede "colgado"
+    res.status(500).json({ error: "Error interno: " + error.message });
   }
 });
+
 // --- RUTA: GENERACIÓN MÓDULO 3 ---
 app.post('/api/generar-plan-modulo3', async (req, res) => {
   const { materia, tema, grado, dificultad, sugerencias, enfoque } = req.body;
@@ -462,7 +457,6 @@ app.post('/api/auth/google', async (req, res) => {
         let usuario = await User.findOne({ email });
         
         if (!usuario) {
-            // Solo si es nuevo, guardamos la de Google
             usuario = new User({
                 name: name,
                 apellido: family_name || '',
@@ -474,12 +468,11 @@ app.post('/api/auth/google', async (req, res) => {
             await usuario.save();
         }
 
-        // Devolvemos lo que esté en la DB (si subió una foto propia, se devolverá esa)
         res.status(200).json({ 
             userId: usuario._id, 
             userName: usuario.name, 
             email: usuario.email, 
-            userFoto: usuario.fotoUrl, // <--- Devuelve la foto de MongoDB
+            userFoto: usuario.fotoUrl,
             celular: usuario.celular || '',
             municipio: usuario.municipio || '',
             departamento: usuario.departamento || '',
