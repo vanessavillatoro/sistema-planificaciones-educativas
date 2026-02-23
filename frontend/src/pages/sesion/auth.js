@@ -47,8 +47,11 @@ const AuthContent = () => {
         localStorage.clear();
         localStorage.setItem('userId', data.userId);
         localStorage.setItem('userName', data.userName); 
-        localStorage.setItem('userEmail', data.email || ''); // <-- NUEVO: Persistencia del correo
-        if (data.fotoUrl) localStorage.setItem('userFoto', data.fotoUrl);
+        localStorage.setItem('userEmail', data.email || ''); // Persistencia del correo
+        
+        // CORRECCIÓN: Usar data.userFoto que viene del servidor (Base64)
+        const fotoAGuardar = data.userFoto || data.fotoUrl || '';
+        localStorage.setItem('userFoto', fotoAGuardar);
         
         // --- GUARDADO DE DATOS ADICIONALES ---
         localStorage.setItem('userCelular', data.celular || '');
@@ -103,8 +106,11 @@ const AuthContent = () => {
         localStorage.clear();
         localStorage.setItem('userId', data.userId);
         localStorage.setItem('userName', data.userName); 
-        localStorage.setItem('userEmail', data.email || ''); // <-- NUEVO: Persistencia del correo
-        if (data.fotoUrl) localStorage.setItem('userFoto', data.fotoUrl);
+        localStorage.setItem('userEmail', data.email || ''); // Persistencia del correo
+        
+        // CORRECCIÓN: Usar data.userFoto para consistencia con el servidor
+        const fotoAGuardar = data.userFoto || data.fotoUrl || '';
+        localStorage.setItem('userFoto', fotoAGuardar);
         
         localStorage.setItem('userCelular', data.celular || '');
         localStorage.setItem('userMunicipio', data.municipio || '');
