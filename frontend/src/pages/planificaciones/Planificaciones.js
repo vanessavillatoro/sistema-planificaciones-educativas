@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './Planificaciones.css';
 
-// Agregamos API_BASE_URL a las props para que el celular sepa dónde está el servidor
-const Planificaciones = ({ darkMode, API_BASE_URL }) => {
+const Planificaciones = ({ darkMode }) => {
   const estadoInicial = {
     nombre: '', apellido: '', edad: '', seccion: '', municipio: '', departamento: '',
     celular: '', duracion: '', nivel: '', materia: '', nombreUnidad: '',
@@ -20,6 +19,7 @@ const Planificaciones = ({ darkMode, API_BASE_URL }) => {
   const dropdownRef = useRef(null);
   const [planId, setPlanId] = useState(null); 
 
+  // --- OBTENER EL ID DEL USUARIO ---
   const userId = localStorage.getItem('userId');
 
   useEffect(() => {
@@ -27,7 +27,12 @@ const Planificaciones = ({ darkMode, API_BASE_URL }) => {
     if (datosParaEditar) {
       try {
         const item = JSON.parse(datosParaEditar);
-        if (item._id) setPlanId(item._id);
+        console.log("Datos recuperados con éxito:", item);
+        
+        // Guardamos el ID del plan que se está editando
+        if (item._id) {
+          setPlanId(item._id);
+        }
 
         setFormData(prev => ({
           ...prev,
@@ -78,8 +83,10 @@ const Planificaciones = ({ darkMode, API_BASE_URL }) => {
       return;
     }
     try {
+      const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
       const identificador = formData.tema || formData.nombreUnidad;
-      const response = await fetch(`${API_BASE_URL}/api/planificaciones-por-tema/${encodeURIComponent(identificador)}?userId=${userId}`, {
+      
+      const response = await fetch(`${baseUrl}/api/planificaciones-por-tema/${encodeURIComponent(identificador)}?userId=${userId}`, {
         method: 'DELETE',
       });
 
@@ -98,7 +105,9 @@ const Planificaciones = ({ darkMode, API_BASE_URL }) => {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const editId = params.get('edit');
-    if (editId) console.log("Modo edición activado para ID:", editId);
+    if (editId) {
+      console.log("Modo edición activado para ID:", editId);
+    }
   }, []);
 
   const listaEdades = ['Edad', ...Array.from({ length: 51 }, (_, i) => `${i + 20} años`)];
@@ -174,7 +183,9 @@ const Planificaciones = ({ darkMode, API_BASE_URL }) => {
             tr { mso-shading: windowtext; } 
           </style>
         </head>
-        <body>${clon.outerHTML}</body>
+        <body>
+          ${clon.outerHTML}
+        </body>
         </html>
       `;
 
@@ -189,9 +200,13 @@ const Planificaciones = ({ darkMode, API_BASE_URL }) => {
   };
 
   const generarConAPI = async () => {
-    const camposObligatorios = ['nombre', 'apellido', 'edad', 'seccion', 'municipio', 'departamento', 'duracion', 'nivel', 'materia', 'nombreUnidad', 'numUnidad', 'tema', 'grado', 'dificultad', 'centroEscolar', 'fecha'];
+    const camposObligatorios = [
+      'nombre', 'apellido', 'edad', 'seccion', 'municipio', 'departamento',
+      'duracion', 'nivel', 'materia', 'nombreUnidad', 'numUnidad', 'tema', 'grado', 
+      'dificultad', 'centroEscolar', 'fecha'
+    ];
+
     const vacios = camposObligatorios.filter(campo => !formData[campo] || formData[campo].trim() === '');
-    
     if (vacios.length > 0) {
       alert(`Por favor, completa todos los campos`);
       return;
@@ -199,45 +214,32 @@ const Planificaciones = ({ darkMode, API_BASE_URL }) => {
 
     setLoading(true);
     try {
-      // 1. LIMPIEZA DE URL: Evitamos que la URL se rompa si API_BASE_URL trae barras extra
-      const base = API_BASE_URL ? API_BASE_URL.replace(/\/$/, '') : '';
-      const urlFinal = `${base}/api/generar-plan-completa`;
-      
-      console.log("Intentando conectar a:", urlFinal); // Para que verifiques en consola
-
-      const response = await fetch(urlFinal, {
+      const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${baseUrl}/api/generar-plan-completa`, {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify({ 
-          ...formData, 
-          userId, 
-          planActual: resultado 
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...formData, userId, planActual: resultado }),
       });
 
-      // 2. CAPTURA DE ERROR DETALLADO: Si el server responde con error, leemos qué dice
-      if (!response.ok) {
-        const errorText = await response.text(); // Leemos el texto del error
-        throw new Error(`Servidor: ${response.status} - ${errorText}`);
-      }
-
+      if (!response.ok) throw new Error('Error en la respuesta del servidor');
       const data = await response.json();
       setResultado(data);
     } catch (error) {
-      console.error("Error detallado al generar:", error);
-      // 3. ALERT INFORMATIVO: Ya no dirá solo "Error al procesar", dirá el motivo real
-      alert(`No se pudo generar: ${error.message}`);
+      console.error("Error al generar:", error);
+      alert("Error al procesar la planificación.");
     } finally {
       setLoading(false);
     }
   };
+
   const guardarPlanificacion = async () => {
-    if (!resultado) { alert("Primero debes generar una planificación."); return; }
+    if (!resultado) {
+      alert("Primero debes generar una planificación.");
+      return;
+    }
     setSaving(true);
     try {
+      const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
       const datosParaGuardar = {
         ...formData,
         userId, 
@@ -252,7 +254,7 @@ const Planificaciones = ({ darkMode, API_BASE_URL }) => {
         actividadesComplementarias: resultado.actividadesComplementarias
       };
 
-      const response = await fetch(`${API_BASE_URL}/api/save-plan`, {
+      const response = await fetch(`${baseUrl}/api/save-plan`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(datosParaGuardar),
@@ -271,54 +273,60 @@ const Planificaciones = ({ darkMode, API_BASE_URL }) => {
     }
   };
 
-  const exportarAGestion = async () => {
-    if (!resultado) { alert("Primero debes generar una planificación."); return; }
-    setSaving(true);
-    try {
-      const actividadesEstructuradas = (resultado.tiempos || []).slice(0, 8).map(t => ({
-        inicio: t.inicio || '',
-        desarrollo: t.desarrollo || '',
-        cierre: t.cierre || ''
-      }));
+const exportarAGestion = async () => {
+  if (!resultado) {
+    alert("Primero debes generar una planificación.");
+    return;
+  }
+  setSaving(true);
 
-      const datosGestion = {
-        ...formData,
-        userId, 
-        idActualizar: planId || null, 
-        tipo: 'Planificación',
-        objetivos: resultado.objetivos,
-        indicadoresLogro: resultado.indicadoresLogro,
-        indicadoresEvaluacion: resultado.indicadoresEvaluacion,
-        actividadesComplementarias: resultado.actividadesComplementarias,
-        tiempos: actividadesEstructuradas, 
-        actividades: actividadesEstructuradas, 
-        materiales: (resultado.materiales || []).slice(0, 8),
-        listaMateriales: (resultado.materiales || []).slice(0, 8),
-        inicios: actividadesEstructuradas.map(a => a.inicio),
-        desarrollos: actividadesEstructuradas.map(a => a.desarrollo),
-        cierres: actividadesEstructuradas.map(a => a.cierre),
-        fechaExportacion: new Date()
-      };
+  try {
+    const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+    
+    const actividadesEstructuradas = (resultado.tiempos || []).slice(0, 8).map(t => ({
+      inicio: t.inicio || '',
+      desarrollo: t.desarrollo || '',
+      cierre: t.cierre || ''
+    }));
 
-      const response = await fetch(`${API_BASE_URL}/api/exportar-gestion`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(datosGestion),
-      });
+    const datosGestion = {
+      ...formData,
+      userId, 
+      idActualizar: planId || null, 
+      tipo: 'Planificación',
+      objetivos: resultado.objetivos,
+      indicadoresLogro: resultado.indicadoresLogro,
+      indicadoresEvaluacion: resultado.indicadoresEvaluacion,
+      actividadesComplementarias: resultado.actividadesComplementarias,
+      tiempos: actividadesEstructuradas, 
+      actividades: actividadesEstructuradas, 
+      materiales: (resultado.materiales || []).slice(0, 8),
+      listaMateriales: (resultado.materiales || []).slice(0, 8),
+      inicios: actividadesEstructuradas.map(a => a.inicio),
+      desarrollos: actividadesEstructuradas.map(a => a.desarrollo),
+      cierres: actividadesEstructuradas.map(a => a.cierre),
+      fechaExportacion: new Date()
+    };
 
-      if (response.ok) {
-        alert("✅ ¡Guardado con éxito! Los cambios ya están en Gestión.");
-        setPlanId(null);
-      } else {
-        throw new Error("Respuesta no exitosa");
-      }
-    } catch (error) {
-      console.error("Error detallado:", error);
-      alert("❌ No se pudo guardar. Revisa la conexión.");
-    } finally {
-      setSaving(false);
+    const response = await fetch(`${baseUrl}/api/exportar-gestion`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(datosGestion),
+    });
+
+    if (response.ok) {
+      alert("✅ ¡Guardado con éxito! Los cambios ya están en Gestión.");
+      setPlanId(null);
+    } else {
+      throw new Error("Respuesta no exitosa");
     }
-  };
+  } catch (error) {
+    console.error("Error detallado:", error);
+    alert("❌ No se pudo guardar. Revisa que el servidor esté encendido.");
+  } finally {
+    setSaving(false);
+  }
+};
 
   const limpiarFormulario = () => {
     setFormData(estadoInicial);
@@ -339,12 +347,17 @@ const Planificaciones = ({ darkMode, API_BASE_URL }) => {
     const valorLimpio = valor.includes('años') ? valor.replace(' años', '') : valor;
     const esPlaceholder = ['Edad', 'Seccion', 'Departamento', 'Nivel educativo', 'n° unidad', 'Grado', 'Nivel de dificultad', 'Duracion semanal', 'Municipio'].some(p => valor === p) || valor.includes('Municipio (Selecciona');
     const finalValue = esPlaceholder ? '' : valorLimpio;
+    
     setFormData(prev => {
       const nuevoEstado = { ...prev, [campo]: finalValue };
       if (campo === 'departamento') nuevoEstado.municipio = '';
       return nuevoEstado;
     });
-    if (cerrar) { setOpenDropdown(null); setHighlightedIndex(-1); }
+    
+    if (cerrar) {
+      setOpenDropdown(null);
+      setHighlightedIndex(-1);
+    }
   };
 
   const manejarTeclado = (e, campo, lista) => {
@@ -359,10 +372,12 @@ const Planificaciones = ({ darkMode, API_BASE_URL }) => {
     if (openDropdown !== campo) {
       if (e.key === 'ArrowDown') {
         e.preventDefault();
-        seleccionarOpcion(campo, lista[Math.min(currentIndex + 1, lista.length - 1)], false);
+        const next = Math.min(currentIndex + 1, lista.length - 1);
+        seleccionarOpcion(campo, lista[next], false);
       } else if (e.key === 'ArrowUp') {
         e.preventDefault();
-        seleccionarOpcion(campo, lista[Math.max(currentIndex - 1, 0)], false);
+        const prev = Math.max(currentIndex - 1, 0);
+        seleccionarOpcion(campo, lista[prev], false);
       } else if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
         setOpenDropdown(campo);
@@ -370,6 +385,7 @@ const Planificaciones = ({ darkMode, API_BASE_URL }) => {
       }
       return;
     }
+
     if (e.key === 'ArrowDown') {
       e.preventDefault();
       setHighlightedIndex(prev => Math.min(prev + 1, lista.length - 1));
@@ -458,7 +474,7 @@ const Planificaciones = ({ darkMode, API_BASE_URL }) => {
 
         <textarea
           className="objetivos-area"
-          placeholder="Escriba los cambios que desea realizar..."
+          placeholder="Escriba los cambios que desea realizar a su planificacion, (por ejemplo, agregar 4 indicadores de logro en lugar de 3)"
           value={formData.sugerencias}
           onChange={(e) => setFormData({...formData, sugerencias: e.target.value})}
         ></textarea>
@@ -470,17 +486,34 @@ const Planificaciones = ({ darkMode, API_BASE_URL }) => {
           
           {resultado && (
             <>
-              <button className="btn-primary" onClick={guardarPlanificacion} disabled={saving} style={{ backgroundColor: ' #003366', marginLeft: '10px' }}>
+              <button 
+                className="btn-primary" 
+                onClick={guardarPlanificacion} 
+                disabled={saving}
+                style={{ backgroundColor: ' #003366', marginLeft: '10px' }}
+              >
                 {saving ? "Guardando..." : "Exportar a recursos"}
               </button>
-              <button className="btn-primary" onClick={exportarAGestion} disabled={saving} style={{ backgroundColor: ' #003366', marginLeft: '10px' }}>
+
+              <button 
+                className="btn-primary" 
+                onClick={exportarAGestion} 
+                disabled={saving}
+                style={{ backgroundColor: ' #003366', marginLeft: '10px' }}
+              >
                 {saving ? "Exportando..." : "Exportar a gestión"}
               </button>
-              <button className="btn-primary" onClick={copiarPlanificacion} style={{ backgroundColor: ' #003366', marginLeft: '10px' }}>
+
+              <button 
+                className="btn-primary" 
+                onClick={copiarPlanificacion}
+                style={{ backgroundColor: ' #003366', marginLeft: '10px' }}
+              >
                 Copiar planificación
               </button>
             </>
           )}
+
           <button className="btn-secondary" onClick={moverAPapelera}>Limpiar campos</button>
         </div>
 
@@ -499,7 +532,6 @@ const Planificaciones = ({ darkMode, API_BASE_URL }) => {
                    <td className="label-blue">Seccion:</td>
                   <td colSpan="1" className="white-cell">{formData.seccion}</td>
                 </tr>
-                {/* ... Resto de la tabla intacto ... */}
                 <tr>
                   <td colSpan="2" className="label-blue">municipio:</td>
                   <td colSpan="2" className="white-cell">{formData.municipio}</td>
