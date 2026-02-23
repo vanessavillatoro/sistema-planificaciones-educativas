@@ -243,9 +243,9 @@ const Planificaciones = ({ darkMode }) => {
     const data = await response.json();
     setResultado(data);
   } catch (error) {
-    console.error("Error al generar:", error);
-    alert(`Error: ${error.message}`);
-  } finally {
+  console.error("DETALLE DEL ERROR:", error); // Esto te dirá en la consola si es un error de red o de código
+  alert(`Error al procesar: ${error.message}`);
+} finally {
     setLoading(false);
   }
 };
