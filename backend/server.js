@@ -126,7 +126,6 @@ app.post('/api/generar-plan-completa', async (req, res) => {
     const { planActual, ...data } = req.body;
     const camposRequeridos = ['materia', 'tema', 'grado', 'dificultad', 'nombreUnidad'];
 
-    // VALIDACIÓN REFORZADA: Evita el crash del .trim() y filtra placeholders
     for (const campo of camposRequeridos) {
       const valor = data[campo];
       if (!valor || String(valor).trim() === '' || valor === 'Grado' || valor === 'Nivel de dificultad') {
@@ -139,7 +138,7 @@ app.post('/api/generar-plan-completa', async (req, res) => {
     }
 
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
     
     const peticionDocente = data.sugerencias ? `PETICIÓN ESPECÍFICA DEL DOCENTE: "${data.sugerencias}".` : "";
     
@@ -152,11 +151,11 @@ app.post('/api/generar-plan-completa', async (req, res) => {
       CONTEXTO: ${contextoEdicion}
       REGLAS DE ORO (OBLIGATORIAS):
         1. PRIORIDAD TOTAL: Si en la PETICIÓN ESPECÍFICA el docente solicita una cantidad determinada de objetivos, indicadores o actividades, ignora los valores por defecto y genera la cantidad exacta pedida.
-        2. OBJETIVOS: Por defecto genera 3. Formato: "* Obj 1\\n* Obj 2". Si la petición pide más, agrégalos.
+        2. OBJETIVOS: Por defecto genera 3. Formato: "* Obj 1\\n* Obj 2".
         3. INDICADORES DE LOGRO: Por defecto genera 3. Formato: "* Ind 1\\n* Ind 2".
         4. INDICADORES DE EVALUACIÓN: Por defecto genera 3. Formato: "* Eval 1\\n* Eval 2".
         5. ACTIVIDADES COMPLEMENTARIAS: Por defecto genera 3. Formato: "* Act 1\\n* Act 2".
-        6. MATERIALES: Array de EXACTAMENTE 8 elementos. Inicialmente, CADA uno de los 8 elementos del array DEBE contener EXACTAMENTE 3 materiales distintos (a menos que el docente pida más). Los materiales deben separarse por un salto de línea y un asterisco (*).
+        6. MATERIALES: Array de EXACTAMENTE 8 elementos.
         8. No uses markdown ni texto fuera del JSON.
       ESTRUCTURA REQUERIDA:
       {
@@ -179,7 +178,6 @@ app.post('/api/generar-plan-completa', async (req, res) => {
     `;
 
     const result = await model.generateContent(prompt);
-    // Usamos el procesador robusto para evitar fallos de formato JSON
     const jsonOutput = procesarRespuestaIA(result.response.text());
 
     if (jsonOutput.materiales && jsonOutput.materiales.length !== 8) {
@@ -188,12 +186,46 @@ app.post('/api/generar-plan-completa', async (req, res) => {
     }
 
     res.json(jsonOutput);
-
   } catch (error) {
     console.error("ERROR REAL EN SERVIDOR:", error);
-    // Devolvemos el mensaje de error para que el frontend no se quede "colgado"
     res.status(500).json({ error: "Error interno: " + error.message });
   }
+});
+
+// --- NUEVA RUTA: GENERACIÓN DE RECURSOS (MÓDULO 2 - RECURSOS) ---
+app.post('/api/generar-recurso-v2', async (req, res) => {
+    try {
+        const { materia, tema, tipoRecurso, objetivos, indicadores, sugerencias } = req.body;
+        
+        if (!process.env.GEMINI_KEY) return res.status(500).json({ error: "Falta API Key" });
+
+        const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+
+        const prompt = `
+            Actúa como un experto en diseño curricular. 
+            Genera un recurso educativo de tipo: ${tipoRecurso}.
+            Materia: ${materia}
+            Tema: ${tema}
+            Objetivos a cubrir: ${objetivos}
+            Indicadores de logro: ${indicadores}
+            Sugerencias adicionales: ${sugerencias || "Ninguna"}
+
+            REQUERIMIENTOS:
+            - Si es un EXAMEN: Incluye 5-10 preguntas de opción múltiple con sus respuestas.
+            - Si es una GUÍA: Incluye teoría breve y 5 ejercicios prácticos.
+            - Si es un LABORATORIO: Incluye materiales, procedimiento y preguntas de análisis.
+            - Formato: Markdown claro y profesional.
+            
+            Responde ÚNICAMENTE con el contenido del recurso, sin saludos ni explicaciones.
+        `;
+
+        const result = await model.generateContent(prompt);
+        res.json({ contenido: result.response.text() });
+    } catch (error) {
+        console.error("Error en Módulo Recursos:", error);
+        res.status(500).json({ error: "Error al generar el recurso" });
+    }
 });
 
 // --- RUTA: GENERACIÓN MÓDULO 3 ---
@@ -201,7 +233,7 @@ app.post('/api/generar-plan-modulo3', async (req, res) => {
   const { materia, tema, grado, dificultad, sugerencias, enfoque } = req.body;
   if (!materia || !tema) return res.status(400).json({ error: "Faltan campos." });
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
-  const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
   const prompt = `Estructura JSON pedagógica para: ${materia}, Tema: ${tema}, Grado: ${grado}, Dificultad: ${dificultad}. Enfoque: ${enfoque}. Sugerencias: ${sugerencias}`;
   try {
     const result = await model.generateContent(prompt);
@@ -212,12 +244,12 @@ app.post('/api/generar-plan-modulo3', async (req, res) => {
   }
 });
 
-// --- RUTA: GENERACIÓN DE RECURSOS (MÓDULO 2) ---
+// --- RUTA: GENERACIÓN DE RECURSOS (MÓDULO 2 - ANTIGUO) ---
 app.post('/api/generar-recurso-ia', async (req, res) => {
   const { materia, tema, tipoRecurso } = req.body;
   try {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_KEY);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
     const result = await model.generateContent(`Genera un recurso educativ de tipo ${tipoRecurso} sobre el tema ${tema} para la materia ${materia}.`);
     res.json({ contenido: result.response.text() });
   } catch (error) {
@@ -443,7 +475,7 @@ app.post('/api/usuario/foto', upload.single('foto'), async (req, res) => {
     }
 });
 
-// --- AUTENTICACIÓN (REPARADO: Persistencia de foto) ---
+// --- AUTENTICACIÓN ---
 app.post('/api/auth/google', async (req, res) => {
     try {
         const { token } = req.body;

@@ -206,7 +206,6 @@ const Planificaciones = ({ darkMode }) => {
     'dificultad', 'centroEscolar', 'fecha'
   ];
 
-  // 1. Verificamos que no haya vacíos
   const vacios = camposObligatorios.filter(campo => !formData[campo] || formData[campo].trim() === '');
   
   if (vacios.length > 0) {
@@ -217,13 +216,8 @@ const Planificaciones = ({ darkMode }) => {
   setLoading(true);
   try {
     const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-
-    // 2. REPARACIÓN CRÍTICA: 
-    // Creamos una copia de seguridad para que el Backend reciba texto real
-    // y no los nombres de los placeholders (como "Grado" o "Edad")
     const datosParaEnviar = { ...formData };
     
-    // Si el valor es igual al placeholder, lo enviamos vacío para que el backend lo detecte
     if (datosParaEnviar.grado === 'Grado') datosParaEnviar.grado = '';
     if (datosParaEnviar.dificultad === 'Nivel de dificultad') datosParaEnviar.dificultad = '';
     if (datosParaEnviar.edad === 'Edad') datosParaEnviar.edad = '';
@@ -235,17 +229,26 @@ const Planificaciones = ({ darkMode }) => {
     });
 
     if (!response.ok) {
-      // Si el servidor responde con 400 o 500, capturamos el error
       const errorData = await response.json();
       throw new Error(errorData.error || 'Error en la respuesta del servidor');
     }
 
     const data = await response.json();
     setResultado(data);
+
+    // --- NUEVO: GUARDAR EN LOCALSTORAGE PARA EL MÓDULO DE RECURSOS ---
+    localStorage.setItem('planificacionReciente', JSON.stringify({
+      tema: formData.tema || formData.nombreUnidad,
+      materia: formData.materia,
+      dificultad: formData.dificultad,
+      objetivos: data.objetivos,
+      indicadores: data.indicadoresLogro || data.indicadoresEvaluacion
+    }));
+
   } catch (error) {
-  console.error("DETALLE DEL ERROR:", error); // Esto te dirá en la consola si es un error de red o de código
-  alert(`Error al procesar: ${error.message}`);
-} finally {
+    console.error("DETALLE DEL ERROR:", error);
+    alert(`Error al procesar: ${error.message}`);
+  } finally {
     setLoading(false);
   }
 };
@@ -261,6 +264,7 @@ const Planificaciones = ({ darkMode }) => {
       const datosParaGuardar = {
         ...formData,
         userId, 
+        tipo: 'planificacion', // Ajustado a minúsculas para coincidir con el filtro de Recursos
         tema: (formData.tema || formData.nombreUnidad || "Sin Título").trim(),
         nombreUnidad: (formData.nombreUnidad || formData.tema || "Sin Unidad").trim(),
         objetivos: resultado.objetivos,
@@ -279,6 +283,14 @@ const Planificaciones = ({ darkMode }) => {
       });
 
       if (response.ok) {
+        // --- NUEVO: ASEGURAR QUE EL LOCALSTORAGE ESTÉ ACTUALIZADO AL GUARDAR ---
+        localStorage.setItem('planificacionReciente', JSON.stringify({
+          tema: datosParaGuardar.tema,
+          materia: datosParaGuardar.materia,
+          dificultad: datosParaGuardar.dificultad,
+          objetivos: datosParaGuardar.objetivos,
+          indicadores: datosParaGuardar.indicadores
+        }));
         alert("✅ ¡Sincronizado! Ahora puedes usar esta planificación en el Módulo de Recursos.");
       } else {
         throw new Error("Error al guardar");
@@ -311,7 +323,7 @@ const exportarAGestion = async () => {
       ...formData,
       userId, 
       idActualizar: planId || null, 
-      tipo: 'Planificación',
+      tipo: 'planificacion', // Ajustado para consistencia
       objetivos: resultado.objetivos,
       indicadoresLogro: resultado.indicadoresLogro,
       indicadoresEvaluacion: resultado.indicadoresEvaluacion,

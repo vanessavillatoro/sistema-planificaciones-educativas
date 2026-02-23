@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react'; // Se agregó useCallback
 import { useLocation, useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown'; 
 import remarkMath from 'remark-math';
@@ -88,12 +88,29 @@ const Recursos = ({ darkMode }) => {
         })
         .catch(err => console.error("Error al cargar datos de edición:", err));
     }
-  }, [location]);
+  }, [location, API_BASE_URL]);
 
-const cargarDatos = async () => {
+  // Se envuelve en useCallback para solucionar el error de dependencias de la imagen
+  const cargarDatos = useCallback(async () => {
     try {
       setLoading(true);
       const userId = localStorage.getItem('userId'); 
+
+      // NUEVO: Intentar recuperar plan recien generado del Módulo 1 vía LocalStorage
+      const planReciente = localStorage.getItem('planificacionReciente');
+      if (planReciente) {
+        const p = JSON.parse(planReciente);
+        setFormData(prev => ({
+          ...prev,
+          nombreUnidad: p.tema || p.nombreUnidad || '',
+          materia: p.materia || '',
+          dificultad: p.dificultad || '',
+          objetivos: formatearTextoPorLineas(p.objetivos || ''),
+          indicadores: formatearTextoPorLineas(p.indicadoresLogro || p.indicadores || '')
+        }));
+        ajustarAlturaTextareas();
+        localStorage.removeItem('planificacionReciente'); // Limpiamos tras usar
+      }
 
       if (!userId) {
         setPlanificaciones([]);
@@ -107,6 +124,7 @@ const cargarDatos = async () => {
       const data = await response.json();
       
       if (Array.isArray(data)) {
+        // Mantenemos el filtro pero nos aseguramos de que los planes sin tipo 'recurso' pasen
         const soloPlanes = data.filter(item => item.tipo !== 'recurso');
         setPlanificaciones(soloPlanes);
         console.log("✅ Datos de gestión cargados:", soloPlanes.length);
@@ -119,7 +137,7 @@ const cargarDatos = async () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [API_BASE_URL]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -127,7 +145,7 @@ const cargarDatos = async () => {
     }, 100);
     
     return () => clearTimeout(timer);
-  }, []);
+  }, [cargarDatos]); // Ahora cargarDatos es una dependencia segura
 
   const formatearContenidoIA = (texto) => {
     if (!texto) return '';
