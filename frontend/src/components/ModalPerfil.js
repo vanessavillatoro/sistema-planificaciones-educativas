@@ -26,20 +26,22 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
   const inputRefs = useRef({});
   const fileInputRef = useRef(null);
 
-  useEffect(() => {
-    const cargarDatos = () => {
-      setPerfil({
-        userName: localStorage.getItem('userName') || '',
-        userEmail: localStorage.getItem('userEmail') || '',
-        userCelular: localStorage.getItem('userCelular') || '',
-        userMunicipio: localStorage.getItem('userMunicipio') || '',
-        userDepartamento: localStorage.getItem('userDepartamento') || '',
-        userDireccion: localStorage.getItem('userDireccion') || '',
-        userFoto: localStorage.getItem('userFoto') || ''
-      });
-      setVersion(Date.now());
-    };
+  // Función para sincronizar con LocalStorage
+  const cargarDatos = () => {
+    setPerfil({
+      userName: localStorage.getItem('userName') || '',
+      userEmail: localStorage.getItem('userEmail') || '',
+      userCelular: localStorage.getItem('userCelular') || '',
+      userMunicipio: localStorage.getItem('userMunicipio') || '',
+      userDepartamento: localStorage.getItem('userDepartamento') || '',
+      userDireccion: localStorage.getItem('userDireccion') || '',
+      userFoto: localStorage.getItem('userFoto') || ''
+    });
+    setVersion(Date.now());
+  };
 
+  useEffect(() => {
+    cargarDatos();
     window.addEventListener('storage', cargarDatos);
     window.addEventListener('perfilActualizado', cargarDatos);
     
@@ -97,8 +99,7 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
       const data = await response.json();
 
       if (response.ok) {
-        // ACTUALIZACIÓN CRÍTICA: Guardamos lo que el servidor devuelve
-        // Si el servidor devuelve la imagen procesada, la usamos; si no, la que ya tenemos en Base64
+        // Usamos la foto que devuelve el server (que ya es el base64 guardado en MongoDB)
         const nuevaFoto = data.userFoto || perfil.userFoto;
 
         localStorage.setItem('userName', data.userName || perfil.userName);
@@ -108,13 +109,9 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
         localStorage.setItem('userDepartamento', data.userDepartamento || perfil.userDepartamento);
         localStorage.setItem('userDireccion', data.userDireccion || perfil.userDireccion);
         
-        // Actualizar el estado del componente para que la foto cambie en el modal
-        setPerfil(prev => ({
-          ...prev,
-          userFoto: nuevaFoto
-        }));
+        setPerfil(prev => ({ ...prev, userFoto: nuevaFoto }));
 
-        // Avisar al Navbar que refresque
+        // Notificar a otros componentes (Navbar)
         window.dispatchEvent(new Event('perfilActualizado'));
         
         alert("¡Perfil actualizado con éxito!");
@@ -131,6 +128,20 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
     }
   };
 
+  const getFotoUrl = () => {
+    const foto = perfil.userFoto;
+    if (!foto) return fotoPerfilDefault;
+    
+    // Si es Base64 o URL externa, retornar directo
+    if (foto.startsWith('data:') || foto.startsWith('blob:') || foto.startsWith('http')) {
+      return foto;
+    }
+
+    // Fallback para rutas de servidor
+    const rutaLimpia = foto.startsWith('/') ? foto : `/${foto}`;
+    return `${API_BASE_URL}${rutaLimpia}?v=${version}`;
+  };
+
   const campos = [
     { label: 'Nombre', name: 'userName' },
     { label: 'Correo', name: 'userEmail', noEditable: true },
@@ -139,21 +150,6 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
     { label: 'Departamento', name: 'userDepartamento' },
     { label: 'Direccion', name: 'userDireccion' }
   ];
-
-  const getFotoUrl = () => {
-    const foto = perfil.userFoto;
-    if (!foto) return fotoPerfilDefault;
-    
-    // Si la foto es Base64 (empieza con data:), la usamos directamente.
-    // Esto evita el 404 de la carpeta /uploads/
-    if (foto.startsWith('data:') || foto.startsWith('blob:') || foto.startsWith('http')) {
-      return foto;
-    }
-
-    // Solo si es una ruta vieja intentamos concatenar la URL
-    const rutaLimpia = foto.startsWith('/') ? foto : `/${foto}`;
-    return `${API_BASE_URL}${rutaLimpia}?v=${version}`;
-  };
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -166,7 +162,6 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
               src={getFotoUrl()} 
               alt="Perfil" 
               className={`modal-avatar ${cargando ? 'img-loading' : ''}`}
-              key={perfil.userFoto} 
               onError={(e) => { e.target.src = fotoPerfilDefault; }}
             />
             <div className="avatar-overlay">
@@ -214,7 +209,7 @@ const ModalPerfil = ({ onClose, onSave, darkMode }) => {
         </div>
 
         <button className="save-btn" onClick={handleGuardarDatos} disabled={cargando}>
-          {cargando ? 'Procesand...' : 'Guardar Cambios'}
+          {cargando ? 'Procesando...' : 'Guardar Cambios'}
         </button>
       </div>
     </div>
