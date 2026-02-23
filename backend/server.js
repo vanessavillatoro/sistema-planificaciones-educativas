@@ -126,14 +126,17 @@ app.post('/api/generar-plan-completa', async (req, res) => {
   try {
     // Reemplaza las líneas 116 a 122 por esto:
 
-    const { planActual, ...data } = req.body;
+const { planActual, ...data } = req.body;
 const camposRequeridos = ['materia', 'tema', 'grado', 'dificultad', 'nombreUnidad'];
 
 for (const campo of camposRequeridos) {
+  // 1. Obtenemos el valor de forma segura
   const valor = data[campo];
-  // Usamos String(valor) para que, si es undefined o null, no rompa el .trim()
+  
+  // 2. Verificamos si es nulo, si está vacío o si es un placeholder del frontend
   if (!valor || String(valor).trim() === '' || valor === 'Grado' || valor === 'Nivel de dificultad') {
-    return res.status(400).json({ error: `El campo ${campo} es obligatorio o no es válido.` });
+    // Esto devuelve un 400 (error del usuario) en lugar de un 500 (colapso del servidor)
+    return res.status(400).json({ error: `El campo ${campo} no es válido o está vacío.` });
   }
 }
 
