@@ -60,6 +60,50 @@ const Recursos = ({ darkMode }) => {
     }
   };
 
+  const formatearTextoPorLineas = (texto) => {
+    if (!texto) return '';
+    return texto.replace(/\*/g, '').split(/(?<=[.!?])\s+/).map(frase => frase.trim()).filter(frase => frase.length > 3).join('\n');
+  };
+
+  // --- CARGAR DATOS CORREGIDO ---
+  const cargarDatos = useCallback(async () => {
+    const userId = localStorage.getItem('userId'); 
+    if (!userId) {
+      console.warn("⚠️ No se encontró userId en localStorage");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      // Usamos una URL limpia y verificamos que el servidor responda
+      const response = await fetch(`${API_BASE_URL}/api/gestion?userId=${userId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+      
+      const data = await response.json();
+      
+      if (Array.isArray(data)) {
+        // Filtramos para obtener solo las planificaciones (tipo !== recurso)
+        const soloPlanes = data.filter(item => item.tipo !== 'recurso');
+        setPlanificaciones(soloPlanes);
+      }
+    } catch (error) {
+      // Línea 119 original: Manejo del error de conexión
+      console.error("❌ Error al conectar con el servidor:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [API_BASE_URL]);
+
+  useEffect(() => {
+    cargarDatos();
+  }, [cargarDatos]); // Se añade cargarDatos para eliminar el warning de la consola
+
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
     const editId = queryParams.get('edit');
@@ -89,43 +133,6 @@ const Recursos = ({ darkMode }) => {
     }
   }, [location, API_BASE_URL]);
 
-  const cargarDatos = useCallback(async () => {
-    try {
-      setLoading(true);
-      const userId = localStorage.getItem('userId'); 
-
-      if (!userId) {
-        setPlanificaciones([]);
-        return;
-      }
-
-      const response = await fetch(`${API_BASE_URL}/api/gestion?userId=${userId}&t=${new Date().getTime()}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        }
-      });
-      
-      if (!response.ok) throw new Error("Error en el servidor");
-      
-      const data = await response.json();
-      
-      if (Array.isArray(data)) {
-        const soloPlanes = data.filter(item => item.tipo !== 'recurso');
-        setPlanificaciones(soloPlanes);
-      }
-    } catch (error) {
-      console.error("❌ Error al conectar:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [API_BASE_URL]);
-
-  useEffect(() => {
-    cargarDatos();
-  }, [cargarDatos]);
-
   const formatearContenidoIA = (texto) => {
     if (!texto) return '';
     return texto
@@ -144,7 +151,7 @@ const Recursos = ({ darkMode }) => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/generar-recurso-v2`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json' }, // Línea 147 original
         body: JSON.stringify({
           materia: formData.materia,
           tema: formData.nombreUnidad, 
@@ -152,15 +159,16 @@ const Recursos = ({ darkMode }) => {
           dificultad: formData.dificultad,
           objetivos: formData.objetivos,
           indicadores: formData.indicadores,
-          sugerencias: `IMPORTANTE: Tablas en Markdown, matemáticas con frac.`
+          sugerencias: `IMPORTANTE: Tablas en Markdown y operaciones matemáticas en LaTeX.`
         }),
       });
 
-      if (!response.ok) throw new Error("Error en el servidor");
+      if (!response.ok) throw new Error("Error en el servidor al generar");
 
       const data = await response.json();
       setResultado(formatearContenidoIA(data.contenido)); 
     } catch (error) {
+      console.error("❌ Error:", error);
       alert(`Error: ${error.message}`);
     } finally {
       setLoading(false);
@@ -168,7 +176,10 @@ const Recursos = ({ darkMode }) => {
   };
 
   const exportarAGestion = async () => {
-    if (!resultado) return;
+    if (!resultado) {
+      alert("Primero debes generar un recurso.");
+      return;
+    }
     setSaving(true);
     try {
       const queryParams = new URLSearchParams(location.search);
@@ -181,22 +192,28 @@ const Recursos = ({ darkMode }) => {
         tipo: 'recurso',
         tema: formData.nombreUnidad,
         contenido: resultado,
+        datos: { contenido: resultado },
         fechaExportacion: new Date()
       };
 
       const url = editId ? `${API_BASE_URL}/api/gestion/${editId}` : `${API_BASE_URL}/api/exportar-gestion`;
+      const metodo = editId ? 'PUT' : 'POST';
+
       const response = await fetch(url, {
-        method: editId ? 'PUT' : 'POST',
+        method: metodo,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(datosGestion),
       });
 
       if (response.ok) {
-        alert("¡Éxito!");
+        alert(editId ? "¡Recurso actualizado con éxito!" : "¡Recurso enviado al Módulo de Gestión!");
         if (editId) navigate('/gestion'); 
+      } else {
+        throw new Error("Error en la operación");
       }
     } catch (error) {
-      alert("❌ Error al procesar.");
+      console.error("Error al exportar:", error);
+      alert("❌ Error al procesar en el módulo de Gestión.");
     } finally {
       setSaving(false);
     }
@@ -205,21 +222,37 @@ const Recursos = ({ darkMode }) => {
   const copiarConFormato = async () => {
     const elemento = document.querySelector('.markdown-body');
     if (!elemento) return;
+
     try {
-        alert("Recurso copiado");
-    } catch (err) { alert("Error al copiar"); }
+      const clono = elemento.cloneNode(true);
+      const ruidos = clono.querySelectorAll('.katex-html, [aria-hidden="true"]');
+      ruidos.forEach(r => r.remove());
+
+      const todos = clono.querySelectorAll('*');
+      todos.forEach(el => {
+        el.removeAttribute('class');
+        el.removeAttribute('id');
+        el.style.fontFamily = "Arial, sans-serif";
+      });
+
+      const htmlFinal = `<div style="font-family: Arial;">${clono.innerHTML}</div>`;
+      const blobHTML = new Blob([htmlFinal], { type: "text/html" });
+      const blobText = new Blob([elemento.innerText], { type: "text/plain" });
+
+      const data = [new ClipboardItem({ "text/html": blobHTML, "text/plain": blobText })];
+      await navigator.clipboard.write(data);
+      alert("Recurso copiado");
+    } catch (err) {
+      console.error("Error al copiar:", err);
+      alert("Error al copiar formato.");
+    }
   };
 
   const limpiarTodo = () => {
     setFormData({ nombreUnidad: '', numUnidad: '', materia: '', dificultad: '', tipoRecurso: '', objetivos: '', indicadores: '' });
     setResultado('');
     setOpenDropdown(null);
-  };
-
-  const formatearTextoPorLineas = (texto) => {
-    if (!texto) return '';
-    if (Array.isArray(texto)) return texto.join('\n');
-    return texto.replace(/\*/g, '').split('\n').map(f => f.trim()).filter(f => f.length > 2).join('\n');
+    if (location.search) navigate('/recursos');
   };
 
   const manejarSeleccion = (campo, valor) => {
@@ -233,24 +266,21 @@ const Recursos = ({ darkMode }) => {
           materia: plan.materia || '',
           dificultad: plan.dificultad || '',
           objetivos: formatearTextoPorLineas(plan.objetivos),
-          indicadores: formatearTextoPorLineas(plan.indicadoresLogro || plan.indicadores),
+          indicadores: formatearTextoPorLineas(plan.indicadores || plan.indicadoresLogro),
         });
-        ajustarAlturaTextareas();
+        ajustarAlturaTextareas(); 
         setOpenDropdown(null);
         return;
       }
     }
-    
     setFormData(prev => ({ ...prev, [campo]: valor }));
     setOpenDropdown(null);
   };
 
-  // --- CORRECCIÓN AQUÍ: LISTAS DINÁMICAS ---
-  const obtenerListaCampo = (campo) => {
-    if (campo === 'nombreUnidad') {
-        return [...new Set(planificaciones.map(p => p.tema || p.nombreUnidad))].filter(Boolean);
-    }
-    return [...new Set(planificaciones.map(p => p[campo]))].filter(Boolean);
+  const obtenerListaFiltrada = (campo) => {
+    if (!formData.nombreUnidad) return [];
+    const planActual = planificaciones.find(p => (p.tema || p.nombreUnidad) === formData.nombreUnidad);
+    return planActual && planActual[campo] ? [planActual[campo]] : [];
   };
 
   const procesarListaIA = (campo) => {
@@ -258,9 +288,7 @@ const Recursos = ({ darkMode }) => {
     const planActual = planificaciones.find(p => (p.tema || p.nombreUnidad) === formData.nombreUnidad);
     if (!planActual) return [];
     const texto = campo === 'indicadores' ? (planActual.indicadoresLogro || planActual.indicadores) : planActual.objetivos;
-    if (!texto) return [];
-    const lineas = Array.isArray(texto) ? texto : texto.split('\n');
-    return [...new Set(lineas.map(i => i.replace(/\*/g, '').trim()).filter(i => i.length > 5))];
+    return texto ? [...new Set(texto.replace(/\*/g, '\n').split('\n').map(i => i.trim()).filter(i => i.length > 5))] : [];
   };
 
   const RenderDropdown = (campo, lista, placeholder, isFullWidth = false) => {
@@ -275,9 +303,16 @@ const Recursos = ({ darkMode }) => {
               className="dropdown-textarea-header"
               value={formData[campo]}
               placeholder={placeholder}
-              readOnly
-              onClick={(e) => { e.stopPropagation(); setOpenDropdown(isOpen ? null : campo); }}
-              style={{ width: '100%', background: 'transparent', border: 'none', outline: 'none', resize: 'none', overflow: 'hidden', minHeight: '24px' }}
+              onChange={(e) => {
+                setFormData({ ...formData, [campo]: e.target.value });
+                e.target.style.height = 'auto';
+                e.target.style.height = e.target.scrollHeight + 'px';
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                setOpenDropdown(isOpen ? null : campo);
+              }}
+              style={{ width: '100%', background: 'transparent', border: 'none', color: 'inherit', resize: 'none', outline: 'none', minHeight: '24px', overflow: 'hidden' }}
             />
           ) : (
             <span className="selected-text-content">{formData[campo] || placeholder}</span>
@@ -286,7 +321,7 @@ const Recursos = ({ darkMode }) => {
         </div>
         {isOpen && (
           <ul className="dropdown-list">
-            <li className="placeholder-option" onClick={() => { setFormData({...formData, [campo]: ''}); setOpenDropdown(null); }}>-- Limpiar --</li>
+            <li className="placeholder-option" onClick={() => { setFormData({...formData, [campo]: ''}); setOpenDropdown(null); }}>-- Limpiar selección --</li>
             {lista.map((opcion, index) => (
               <li key={index} onClick={() => manejarSeleccion(campo, opcion)} className="dropdown-option-item">
                 <span className="option-text">{opcion}</span>
@@ -307,24 +342,22 @@ const Recursos = ({ darkMode }) => {
       <div className="recursos-card" ref={dropdownRef}>
         <div className="header-centered">
             <h1>Crear Recursos Didácticos</h1>
-            <p className="subtitle-ia">Vincule su planificación para autocompletar</p>
+            <p className="subtitle-ia">Generado con Inteligencia Artificial</p>
         </div>
         <div className="recursos-grid">
-          {RenderDropdown('nombreUnidad', obtenerListaCampo('nombreUnidad'), 'Seleccionar Planificación')}
-          {RenderDropdown('numUnidad', obtenerListaCampo('numUnidad'), 'N° Unidad')}
-          {RenderDropdown('materia', obtenerListaCampo('materia'), 'Materia')}
-          {RenderDropdown('dificultad', obtenerListaCampo('dificultad'), 'Dificultad')}
-          
+          {RenderDropdown('nombreUnidad', [...new Set(planificaciones.map(p => p.tema || p.nombreUnidad))].filter(Boolean), 'Seleccionar Planificación')}
+          {RenderDropdown('numUnidad', obtenerListaFiltrada('numUnidad'), 'N° Unidad')}
+          {RenderDropdown('materia', obtenerListaFiltrada('materia'), 'Materia')}
+          {RenderDropdown('dificultad', obtenerListaFiltrada('dificultad'), 'Dificultad')}
           <input className="full-width-input" type="text" placeholder="Tipo de recurso (ej: Guía de ejercicios)" value={formData.tipoRecurso} onChange={(e) => setFormData({...formData, tipoRecurso: e.target.value})} />
-          
-          {RenderDropdown('objetivos', procesarListaIA('objetivos'), 'Objetivos de la planificación', true)}
-          {RenderDropdown('indicadores', procesarListaIA('indicadores'), 'Indicadores de la planificación', true)}
+          {RenderDropdown('objetivos', procesarListaIA('objetivos'), 'Añadir Objetivos', true)}
+          {RenderDropdown('indicadores', procesarListaIA('indicadores'), 'Añadir Indicadores', true)}
         </div>
 
         <div className="form-footer">
             <div className="footer-buttons-container">
                 <button onClick={limpiarTodo} className="btn-footer btn-clear">Limpiar</button>
-                <button onClick={cargarDatos} className="btn-footer btn-sync-white">Sincronizar</button>
+                <button onClick={cargarDatos} className="btn-footer btn-sync-white"> Sincronizar</button>
                 <button className="btn-footer btn-generate-main-small" onClick={manejarGenerar} disabled={loading || !formData.tipoRecurso}>
                   {loading ? "Procesando..." : "Generar recurso"}
                 </button>
@@ -333,15 +366,16 @@ const Recursos = ({ darkMode }) => {
 
         {resultado && (
           <div className="resultado-container">
+            <h3 className="resultado-titulo">Contenido del Recurso:</h3>
             <div className="resultado-texto markdown-body styled-math">
               <ReactMarkdown remarkPlugins={[remarkMath, remarkGfm]} rehypePlugins={[rehypeKatex]}>
                 {resultado}
               </ReactMarkdown>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px', gap: '15px' }}>
-              <button className="btn-footer btn-sync-white" onClick={copiarConFormato}>Copiar recurso</button>
-              <button className="btn-footer" onClick={exportarAGestion} disabled={saving} style={{ backgroundColor: '#003366', color: 'white' }}>
-                {saving ? "Guardand..." : "Exportar a Gestión"}
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px', gap: '15px', flexWrap: 'wrap' }}>
+              <button className="btn-footer btn-sync-white" onClick={copiarConFormato} style={{ maxWidth: '320px' }}>Copiar recurso</button>
+              <button className="btn-footer" onClick={exportarAGestion} disabled={saving} style={{ backgroundColor: ' #003366', color: 'white', maxWidth: '320px' }}>
+                {saving ? " Procesando..." : (new URLSearchParams(location.search).get('edit') ? " Guardar Cambios" : " Exportar a Gestión")}
               </button>
             </div>
           </div>
