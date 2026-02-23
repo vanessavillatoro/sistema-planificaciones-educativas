@@ -38,7 +38,7 @@ if (!fs.existsSync(uploadsDir)){
     fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
-// --- CONFIGURACIÓN DE CORS REFORZADA (FIX PARA ERROR EN CONSOLA) ---
+// --- CONFIGURACIÓN DE CORS REFORZADA ---
 const allowedOrigins = [
   'https://sistema-planificaciones-educativas-ten.vercel.app',
   'http://localhost:3000'
@@ -430,7 +430,7 @@ app.post('/api/usuario/foto', upload.single('foto'), async (req, res) => {
     }
 });
 
-// --- AUTENTICACIÓN ---
+// --- AUTENTICACIÓN (REPARADO: Persistencia de foto) ---
 app.post('/api/auth/google', async (req, res) => {
     try {
         const { token } = req.body;
@@ -440,23 +440,28 @@ app.post('/api/auth/google', async (req, res) => {
             clockSkewInSeconds: 600,
         });
         const { email, name, family_name, picture, sub } = ticket.getPayload();
+        
         let usuario = await User.findOne({ email });
+        
         if (!usuario) {
+            // Solo si es nuevo, guardamos la de Google
             usuario = new User({
                 name: name,
                 apellido: family_name || '',
                 email: email,
-                fotoUrl: picture,
+                fotoUrl: picture, 
                 googleId: sub,
                 role: 'docente'
             });
             await usuario.save();
         }
+
+        // Devolvemos lo que esté en la DB (si subió una foto propia, se devolverá esa)
         res.status(200).json({ 
             userId: usuario._id, 
             userName: usuario.name, 
             email: usuario.email, 
-            userFoto: usuario.fotoUrl,
+            userFoto: usuario.fotoUrl, // <--- Devuelve la foto de MongoDB
             celular: usuario.celular || '',
             municipio: usuario.municipio || '',
             departamento: usuario.departamento || '',
