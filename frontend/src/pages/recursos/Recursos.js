@@ -341,7 +341,7 @@ const Recursos = ({ darkMode }) => {
             <div style={{ display: 'flex', justifyContent: 'center', marginTop: '20px', gap: '15px' }}>
               <button className="btn-footer btn-sync-white" onClick={copiarConFormato}>Copiar recurso</button>
               <button className="btn-footer" onClick={exportarAGestion} disabled={saving} style={{ backgroundColor: '#003366', color: 'white' }}>
-                {saving ? "Guardando..." : "Exportar a Gestión"}
+                {saving ? "Guardand..." : "Exportar a Gestión"}
               </button>
             </div>
           </div>
