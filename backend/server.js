@@ -40,7 +40,7 @@ if (!fs.existsSync(uploadsDir)){
 
 // --- CONFIGURACIÓN DE CORS REFORZADA ---
 const allowedOrigins = [
-  'https://sistema-planificaciones-educativas-ten.vercel.app',
+  'https://sistema-planificaciones-educativas.vercel.app',
   'http://localhost:3000'
 ];
 
