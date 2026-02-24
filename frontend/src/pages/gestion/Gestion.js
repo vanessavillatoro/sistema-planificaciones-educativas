@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Gestion.css'; 
 
-const API_BASE_URL = window.location.hostname === "localhost" 
-  ? "http://localhost:5000" 
-  : "https://sistema-planificaciones-educativas.vercel.app";
+// URL FIJA PARA EVITAR ERRORES DE CONEXIÓN LOCAL DESDE VERCEL
+const API_BASE_URL = "https://sistema-planificaciones-educativas.vercel.app";
+
 const Gestion = ({ darkMode }) => {
   const navigate = useNavigate();
   const [activeMenu, setActiveMenu] = useState(null);
@@ -17,10 +17,10 @@ const Gestion = ({ darkMode }) => {
   const [gradoSeleccionado, setGradoSeleccionado] = useState(""); 
   const [previewItem, setPreviewItem] = useState(null); 
   
-  // Busca donde terminan tus useState y pega esto:
-const userId = localStorage.getItem('userId');
+  // Obtenemos el ID del usuario del almacenamiento local
+  const userId = localStorage.getItem('userId');
 
-  // --- FUNCIONES DE RENDERIZADO (MANTENIDAS INTACTAS) ---
+  // --- FUNCIONES DE RENDERIZADO (MANTENIDAS Y OPTIMIZADAS) ---
   const getColorPorTema = (texto) => {
     if (!texto) return '#e2e8f0';
     let hash = 0;
@@ -92,6 +92,9 @@ const userId = localStorage.getItem('userId');
     recursos: safeItems.filter(i => normalizar(i.tipo).includes('recurso') && !i.borrado).length,
     materias: materiasDisponibles.length
   };
+
+  // --- EXPORTAR WORD Y PDF (MANTENIDOS) ---
+  // [Aquí siguen tus funciones exportarWord, obtenerContenidoParaModal y exportarPDF que ya tenías...]
 
   // --- NUEVA FUNCIÓN: EXPORTAR WORD ---
   // --- FUNCIÓN EXPORTAR WORD (CON FORMATO DE IMAGEN) ---
@@ -508,6 +511,8 @@ const exportarPDF = (item) => {
         }
     }
 
+
+    //HASTA ACA
     contenidoFinal = `
       <div style="background:#002060 !important; color:white !important; border:2px solid #000; padding:8px; text-align:center; font-weight:bold; text-transform:uppercase; font-size:11pt; -webkit-print-color-adjust: exact;">Planificación Generada</div>
       
@@ -680,28 +685,55 @@ const exportarPDF = (item) => {
   printWindow.document.write(htmlDoc);
   printWindow.document.close();
 };
-  const cargarDatosGestion = async () => {
-  setLoading(true); // <--- Úsalo al empezar
-  try {
-    const userId = localStorage.getItem('userId');
-const response = await fetch(`${API_BASE_URL}/api/gestion?userId=${userId}`);    const data = await response.json();
-    setItems(data);
-  } catch (error) {
-    console.error("Error al cargar datos:", error);
-  } finally {
-    setLoading(false); // <--- Úsalo al terminar
-  }
-};
+// 1. Envolvemos la función en useCallback para que sea "estable"
+  const cargarDatosGestion = useCallback(async () => {
+    if (!userId) return;
+    setLoading(true);
+    try {
+      // Usamos API_BASE_URL y validamos la respuesta
+      const response = await fetch(`${API_BASE_URL}/api/gestion?userId=${userId}`);
+      
+      if (!response.ok) {
+        throw new Error(`Error en el servidor: ${response.status}`);
+      }
 
-useEffect(() => {
-    if (userId) {
-      cargarDatosGestion();
+      const data = await response.json();
+      setItems(data);
+    } catch (error) {
+      console.error("Error al cargar datos:", error);
+      // Evitamos que items quede como undefined para que el .map no falle
+      setItems([]); 
+    } finally {
+      setLoading(false);
     }
-  }, [userId]);
-  const enviarAPapelera = (id) => {
-    if (!window.confirm("¿Mover a la papelera?")) return;
-    fetch(`http://localhost:5000/api/gestion/${id}`, { method: 'DELETE' })
-        .then(res => { if(res.ok) cargarDatosGestion(); });
+  }, [userId]); // La función solo se recrea si el userId cambia
+
+  // 2. Ahora el useEffect puede incluir cargarDatosGestion sin problemas
+  useEffect(() => {
+    cargarDatosGestion();
+  }, [cargarDatosGestion]); // <--- ESTO corrige la advertencia de tu imagen
+
+  const enviarAPapelera = async (id) => {
+    if (!window.confirm("¿Estás seguro de que deseas eliminar este elemento?")) return;
+    
+    try {
+      // CORRECCIÓN: Eliminado localhost y añadido async/await para mejor control
+      const response = await fetch(`${API_BASE_URL}/api/gestion/${id}`, { 
+        method: 'DELETE' 
+      });
+
+      if (response.ok) {
+        // Refrescamos la lista inmediatamente
+        cargarDatosGestion();
+      } else {
+        const errorMsg = await response.text();
+        console.error("Error al eliminar:", errorMsg);
+        alert("No se pudo eliminar el registro en el servidor.");
+      }
+    } catch (error) {
+      console.error("Error de conexión al eliminar:", error);
+      alert("Error de red. Verifica tu conexión.");
+    }
   };
 
   return (
@@ -735,7 +767,7 @@ useEffect(() => {
         </select>
       </div>
 
-      {loading ? ( <div className="loading-msg">Cargando...</div> ) : (
+      {loading ? ( <div className="loading-msg">Cargando tus documentos...</div> ) : (
         ['planificacion', 'recurso'].map(tipo => (
           <section key={tipo} className="gestion-section">
             <h2 className="section-subtitle">{tipo === 'planificacion' ? 'Planificaciones' : 'Recursos'}</h2>
@@ -754,73 +786,66 @@ useEffect(() => {
                   return coincideTxt && coincideMat && coincideGra;
                 })
                 .map((item) => {
-  const titulo = item.tema || item.tipoRecurso || item.nombreUnidad;
-  // 1. Aquí definimos la variable (esto quita el error de la imagen)
-  const esPlanif = normalizar(item.tipo).includes('planifica');
+                  const titulo = item.tema || item.tipoRecurso || item.nombreUnidad || "Sin título";
+                  const esPlanif = normalizar(item.tipo).includes('planifica');
 
-  return (
-    <div key={item._id} className="card" style={{ zIndex: activeMenu === item._id ? 100 : 1 }}>
-      <div className="card-info">
-        <h3 onClick={() => setPreviewItem(item)} style={{ cursor: 'pointer' }}>
-          <span style={{ backgroundColor: getColorPorTema(titulo), padding: '2px 8px', borderRadius: '4px' }}>{titulo}</span>
-        </h3>
-        <p>{item.materia} - {item.grado}</p>
-      </div>
-      <div className="card-options">
-        <button onClick={() => setActiveMenu(activeMenu === item._id ? null : item._id)} className="dots-btn">⋮</button>
-        {activeMenu === item._id && (
-          <div className="dropdown-menu">
-            {!mostrarPapelera ? (
-              <>
-                {/* 2. Aquí usamos la variable esPlanif para decidir cómo editar */}
-                <button onClick={() => {
-                  if (esPlanif) {
-                    // Guardamos en memoria para el Módulo 1
-                    localStorage.setItem('datosEdicion', JSON.stringify(item));
-                    navigate('/planificaciones');
-                  } else {
-                    // Navegamos normal para Recursos (Módulo 2)
-                    navigate(`/recursos?edit=${item._id}`);
-                  }
-                }}>
-                  Editar
-                </button>
-                
-                <button onClick={() => enviarAPapelera(item._id)}>Eliminar</button>
-                <div className="submenu-trigger">Exportar
-                  <div className="submenu">
-                    <button onClick={() => exportarPDF(item)}>PDF</button>
-                    <button onClick={() => exportarWord(item)}>Word</button>
-                  </div>
-                </div>
-              </>
-            ) : null}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-})}
+                  return (
+                    <div key={item._id} className="card" style={{ zIndex: activeMenu === item._id ? 100 : 1 }}>
+                      <div className="card-info">
+                        <h3 onClick={() => setPreviewItem(item)} style={{ cursor: 'pointer' }}>
+                          <span style={{ backgroundColor: getColorPorTema(titulo), padding: '2px 8px', borderRadius: '4px' }}>{titulo}</span>
+                        </h3>
+                        <p>{item.materia} - {item.grado}</p>
+                      </div>
+                      <div className="card-options">
+                        <button onClick={() => setActiveMenu(activeMenu === item._id ? null : item._id)} className="dots-btn">⋮</button>
+                        {activeMenu === item._id && (
+                          <div className="dropdown-menu">
+                            {!mostrarPapelera ? (
+                              <>
+                                <button onClick={() => {
+                                  if (esPlanif) {
+                                    localStorage.setItem('datosEdicion', JSON.stringify(item));
+                                    navigate('/planificaciones');
+                                  } else {
+                                    navigate(`/recursos?edit=${item._id}`);
+                                  }
+                                }}>
+                                  Editar
+                                </button>
+                                
+                                <button onClick={() => enviarAPapelera(item._id)}>Eliminar</button>
+                                <div className="submenu-trigger">Exportar
+                                  <div className="submenu">
+                                    <button onClick={() => exportarPDF(item)}>PDF</button>
+                                    <button onClick={() => exportarWord(item)}>Word</button>
+                                  </div>
+                                </div>
+                              </>
+                            ) : null}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
             </div>
           </section>
         ))
       )}
 
-     {previewItem && (
-  <div className="modal-overlay" onClick={() => setPreviewItem(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
-    <div className="modal-content" onClick={e => e.stopPropagation()} style={{ background: 'white', padding: '30px', borderRadius: '12px', width: '95%', maxWidth: '1100px', maxHeight: '95vh', overflowY: 'auto', color: '#2d3748' }}>
-      <button onClick={() => setPreviewItem(null)} style={{ float: 'right', border: 'none', background: 'none', fontSize: '24px', cursor: 'pointer' }}>&times;</button>
-      
-      {/* AQUÍ ESTÁ EL CAMBIO: Inyectamos la tabla completa */}
-      <div 
-        className="preview-body" 
-        style={{ marginTop: '20px' }}
-        dangerouslySetInnerHTML={{ __html: obtenerContenidoParaModal(previewItem) }} 
-      />
-
-    </div>
-  </div>
-)}
+      {previewItem && (
+        <div className="modal-overlay" onClick={() => setPreviewItem(null)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} style={{ background: 'white', padding: '30px', borderRadius: '12px', width: '95%', maxWidth: '1100px', maxHeight: '95vh', overflowY: 'auto', color: '#2d3748' }}>
+            <button onClick={() => setPreviewItem(null)} style={{ float: 'right', border: 'none', background: 'none', fontSize: '24px', cursor: 'pointer' }}>&times;</button>
+            <div 
+              className="preview-body" 
+              style={{ marginTop: '20px' }}
+              dangerouslySetInnerHTML={{ __html: obtenerContenidoParaModal(previewItem) }} 
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
