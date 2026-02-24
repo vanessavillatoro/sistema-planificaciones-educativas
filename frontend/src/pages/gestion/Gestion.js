@@ -700,7 +700,7 @@ useEffect(() => {
   }, [userId]);
   const enviarAPapelera = (id) => {
     if (!window.confirm("¿Mover a la papelera?")) return;
-    fetch(`http://localhost:5000/api/gestion/${id}`, { method: 'DELETE' })
+    fetch(`${API_BASE_URL}/api/gestion/${id}`, { method: 'DELETE' })
         .then(res => { if(res.ok) cargarDatosGestion(); });
   };
 
