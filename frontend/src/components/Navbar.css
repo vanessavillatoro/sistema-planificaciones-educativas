@@ -160,11 +160,10 @@
   border: 2px solid #ddd;
 }
 
-/* NUEVO: Contenedor de info para evitar desbordamiento */
 .perfil-user-info {
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* Evita que el contenido empuje el cuadro */
+  overflow: hidden;
   flex: 1; 
 }
 
@@ -176,16 +175,15 @@
   text-overflow: ellipsis;
 }
 
-/* NUEVO: Estilo para truncar el correo */
 .user-email {
   margin: 0;
   font-size: 12px;
   opacity: 0.7;
-  white-space: nowrap;      /* No permite saltos de línea */
-  overflow: hidden;         /* Oculta el exceso */
-  text-overflow: ellipsis;  /* Agrega los "..." */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   display: block;
-  max-width: 170px;         /* Limita el ancho máximo del texto */
+  max-width: 170px;
 }
 
 .close-btn {
@@ -236,23 +234,77 @@
   text-align: center;
 }
 
-/* --- ADAPTACIÓN RESPONSIVA --- */
+/* --- NUEVO: BOTÓN HAMBURGUESA --- */
+.menu-hamburguesa {
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 30px;
+  height: 20px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  z-index: 2100;
+}
+
+.menu-hamburguesa .bar {
+  width: 100%;
+  height: 3px;
+  background-color: var(--nav-text);
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+/* --- ADAPTACIÓN RESPONSIVA ACTUALIZADA --- */
 @media (max-width: 850px) {
     .brand-text {
         display: none; 
+    }
+
+    .menu-hamburguesa {
+        display: flex;
+    }
+
+    .nav-menu {
+        position: fixed;
+        top: 0;
+        right: -100%; /* Oculto a la derecha */
+        width: 250px;
+        height: 100vh;
+        background-color: var(--nav-bg);
+        flex-direction: column;
+        justify-content: flex-start;
+        padding: 100px 20px;
+        gap: 20px;
+        transition: right 0.4s ease;
+        box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+        z-index: 2050;
+    }
+
+    .nav-menu.active {
+        right: 0; /* Aparece al estar activo */
+    }
+
+    /* Animación X de hamburguesa */
+    .menu-hamburguesa.active .bar:nth-child(1) {
+        transform: translateY(8px) rotate(45deg);
+    }
+    .menu-hamburguesa.active .bar:nth-child(2) {
+        opacity: 0;
+    }
+    .menu-hamburguesa.active .bar:nth-child(3) {
+        transform: translateY(-9px) rotate(-45deg);
     }
 }
 
 @media (max-width: 600px) {
     .navbar {
         padding: 10px 15px;
-        height: 70px; /* Reducción ligera de altura para pantallas pequeñas */
-    }
-    .nav-menu {
-        gap: 15px;
+        height: 70px;
     }
     .navbar a, .nav-menu a, .nav-dropbtn {
-        font-size: 0.9rem !important;
+        font-size: 1rem !important; /* Ajustado para mejor legibilidad en menú lateral */
     }
     .logo-img, .avatar-img {
         width: 40px;
@@ -269,11 +321,8 @@
 }
 
 @media (max-width: 400px) {
-    .nav-menu {
-        gap: 8px;
-    }
     .perfil-dropdown {
-        width: 90vw; /* El dropdown ocupa casi todo el ancho en móviles muy pequeños */
+        width: 90vw;
         right: 5vw;
     }
 }
