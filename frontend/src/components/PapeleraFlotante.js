@@ -7,23 +7,27 @@ const PapeleraFlotante = ({ darkMode }) => {
     const [loading, setLoading] = useState(false);
     const modalRef = useRef();
 
-    // 1. Usamos useCallback para que la función sea estable y no cree bucles infinitos
+    // URL ÚNICA DE PRODUCCIÓN
+    const API_BASE_URL = 'https://sistema-planificaciones-educativas.vercel.app';
+
+    // 1. Fetch de la papelera con la URL correcta
     const fetchPapelera = useCallback(async () => {
-        const uId = localStorage.getItem('userId'); // Obtenemos el ID actualizado aquí
+        const uId = localStorage.getItem('userId'); 
         if (!uId) return; 
 
         setLoading(true);
         try {
-            const res = await fetch(`http://localhost:5000/api/papelera?userId=${uId}`);
+            // Cambio de localhost a API_BASE_URL
+            const res = await fetch(`${API_BASE_URL}/api/papelera?userId=${uId}`);
             if (!res.ok) throw new Error("Error en la respuesta del servidor");
             const data = await res.json();
-            setItems(Array.isArray(data) ? data : []); // Nos aseguramos de que sea un array
+            setItems(Array.isArray(data) ? data : []); 
         } catch (error) {
             console.error("Error cargando papelera:", error);
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [API_BASE_URL]);
 
     // 2. Efecto para carga inicial y polling
     useEffect(() => {
@@ -39,7 +43,8 @@ const PapeleraFlotante = ({ darkMode }) => {
     const restaurar = async (id) => {
         if (!window.confirm("¿Deseas restaurar este elemento?")) return;
         try {
-            await fetch(`http://localhost:5000/api/papelera/restaurar/${id}`, { 
+            // Cambio de localhost a API_BASE_URL
+            await fetch(`${API_BASE_URL}/api/papelera/restaurar/${id}`, { 
                 method: 'PATCH' 
             });
             fetchPapelera();
@@ -51,7 +56,8 @@ const PapeleraFlotante = ({ darkMode }) => {
     const eliminarPermanente = async (id) => {
         if (!window.confirm("⚠️ ¿Eliminar permanentemente? Esta acción no se puede deshacer.")) return;
         try {
-            await fetch(`http://localhost:5000/api/papelera/permanente/${id}`, { 
+            // Cambio de localhost a API_BASE_URL
+            await fetch(`${API_BASE_URL}/api/papelera/permanente/${id}`, { 
                 method: 'DELETE' 
             });
             fetchPapelera();
