@@ -1,77 +1,131 @@
+/* --- VARIABLES DE TEMA (DISEÑO ATÓMICO) --- */
 .app.light {
-  --bg-color: #ffffff; 
-  --card-bg: #f1eaea; 
-  --nav-bg: #ffffff;
-  --text-color: #000000; 
-  --input-border: #4a5568;
-  --btn-grad: #003366; 
-  --nav-text: #4a5568;
+    --bg-color: #ffffff; 
+    --card-bg: #f8f9fa; 
+    --nav-bg: #ffffff;
+    --text-color: #1a202c; 
+    --text-muted: #718096;
+    --input-border: #cbd5e0;
+    --btn-primary-bg: #003366; 
+    --btn-primary-text: #ffffff;
+    --nav-text: #2d3748;
 }
+
 .app.dark {
-  --bg-color: #2d3748; 
-  --card-bg: #4a5568; 
-  --nav-bg: #1a202c;
-  --text-color: #ffffff;
-   --input-border: #cbd5e0;
-  --btn-grad: linear-gradient(90deg, #ffffff, #edf2f7); 
-  --nav-text: #e2e8f0;
-  
+    --bg-color: #1a202c; /* Negro azulado profundo */
+    --card-bg: #2d3748; 
+    --nav-bg: #111827;
+    --text-color: #f7fafc;
+    --text-muted: #a0aec0;
+    --input-border: #4a5568;
+    --btn-primary-bg: #ffffff; 
+    --btn-primary-text: #1a202c;
+    --nav-text: #e2e8f0;
 }
-.app { min-height: 100vh; width: 100%; background-color: var(--bg-color); 
-color: var(--text-color); font-family: sans-serif; display: flex; flex-direction: column; }
 
-/* --- CORRECCIÓN DEFINITIVA DE NIVELACIÓN --- */
+/* --- RESET Y BASE --- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
+.app { 
+    min-height: 100vh; 
+    width: 100%; 
+    background-color: var(--bg-color); 
+    color: var(--text-color); 
+    font-family: 'Inter', -apple-system, system-ui, sans-serif; 
+    display: flex; 
+    flex-direction: column; 
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* --- GRUPO DE BOTONES MAESTRO --- */
 .button-group {
-    display: flex !important;
-    justify-content: center !important; 
-    /* Esta es la clave: alinea los centros de los contenedores */
-    align-items: stretch !important;    
-    gap: 15px !important; 
-    margin: 30px auto !important;      
-    width: 100% !important;            
+    display: flex;
+    justify-content: center; 
+    align-items: center;    
+    gap: 15px; 
+    margin: 30px auto;    
+    width: 100%;
+    max-width: 600px; /* Evita que los botones se separen demasiado en monitores grandes */
+    padding: 0 20px;
 }
 
 .btn-primary, .btn-secondary {
-    /* Dimensiones idénticas */
-    width: 200px !important; 
-    height: 50px !important;
+    /* Dimensiones consistentes */
+    flex: 1;
+    max-width: 220px;
+    height: 52px;
     
-    /* Forzar alineación interna */
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     
-    /* Eliminar cualquier margen que los empuje */
-    margin: 0 !important;
-    padding: 0 10px !important;
-    
-    border-radius: 10px;
-    font-size: 0.95rem;
-    border: none;
+    border-radius: 12px;
+    font-size: 1rem;
     font-weight: 700;
     cursor: pointer;
-    background: var(--btn-grad);
-    color: white;
-    box-sizing: border-box !important;
+    border: none;
+    transition: all 0.2s ease;
+    text-decoration: none;
 }
 
-.app.dark .btn-primary, 
-.app.dark .btn-secondary {
-    background: #ffffff !important; 
-    color: #000000 !important;      
+/* Estilo para Light Mode */
+.app.light .btn-primary {
+    background-color: var(--btn-primary-bg);
+    color: var(--btn-primary-text);
 }
+
+.app.light .btn-secondary {
+    background-color: transparent;
+    border: 2px solid var(--btn-primary-bg);
+    color: var(--btn-primary-bg);
+}
+
+/* Estilo para Dark Mode */
+.app.dark .btn-primary {
+    background-color: #ffffff; 
+    color: #000000;      
+}
+
+.app.dark .btn-secondary {
+    background-color: transparent;
+    border: 2px solid #ffffff;
+    color: #ffffff;
+}
+
+/* Efectos de interacción */
+.btn-primary:hover, .btn-secondary:hover {
+    transform: translateY(-2px);
+    opacity: 0.9;
+}
+
+.btn-primary:active, .btn-secondary:active {
+    transform: translateY(0);
+}
+
+/* --- RESPONSIVIDAD --- */
 @media (max-width: 600px) {
     .button-group {
-        flex-direction: column !important; 
-        gap: 15px !important;
-        padding: 0 20px;
-        box-sizing: border-box;
+        flex-direction: column; 
+        gap: 12px;
+        padding: 0 25px;
     }
 
     .btn-primary, .btn-secondary {
         width: 100% !important; 
-        padding: 15px; 
+        max-width: none;
+        height: 55px; /* Más alto en móvil para facilitar el toque */
         font-size: 1.1rem;
     }
+}
+
+/* --- UTILIDADES --- */
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
 }

@@ -1,196 +1,93 @@
-/* --- TU CÓDIGO ORIGINAL (CONSERVADO INTEGRAMENTE) --- */
+/* --- VARIABLES UNIFICADAS --- */
 :root {
     --azul-oscuro: #0b0948;
+    --azul-planificacion: #002060;
     --gris-borde: #333;
     --blanco: #ffffff;
-}
-
-:root {
-    --azul-planificacion: #002060;
     --blanco-celda: #ffffff;
     --borde-tabla: #000000;
+    --input-height: 55px;
 }
 
-.planning-table {
-    width: 100%;
-    border-collapse: collapse;
-    border: 2px solid var(--borde-tabla);
-    background-color: var(--blanco-celda);
-    font-family: Arial, sans-serif;
+/* --- CONTENEDOR PRINCIPAL --- */
+.form-container {
+    max-width: 1200px;
+    width: 95%;
+    margin: 20px auto;
+    background-color: var(--card-bg);
+    padding: clamp(15px, 4vw, 40px);
+    border-radius: 25px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    position: relative;
 }
 
-.header-blue, .label-blue, .sub-header-blue {
-    background-color: var(--azul-planificacion) !important;
-    color: white !important;
-    font-weight: bold;
-    text-align: left;
-    padding: 8px;
-    border: 1px solid var(--blanco-celda);
-    font-size: 0.9rem;
+/* --- GRID DE INPUTS (AJUSTE RESPONSIVO) --- */
+.input-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 20px !important;
+    margin-bottom: 30px;
+    align-items: center !important; 
 }
 
-.header-blue {
-    text-align: center;
-    text-transform: uppercase;
-}
-
-.white-cell {
-    background-color: var(--blanco-celda);
-    color: black;
-    border: 1px solid var(--borde-tabla);
-    padding: 8px;
-    font-size: 0.85rem;
-    vertical-align: top;
-    font-size: 0.9rem;
-}
-
-.small-text {
-    font-size: 0.9rem;
-    line-height: 1.2;
-}
-
-/* --- 3. ESTILO DE LOS INPUTS (EXCEPTO TEXT AREA) --- */
+/* --- ESTILO DE INPUTS Y SELECTS --- */
 input, .dropdown-header {
-  padding: 0 15px; 
-  border-radius: 12px;
-  font-size: 1.1rem !important; 
-  width: 100%;
-  height: 55px !important; /* Altura unificada */
-  min-height: 55px !important;
-  box-sizing: border-box !important;
-  border: 1px solid #000000 !important; /* Borde negro delgado */
-  color: #000000;
+    padding: 0 15px; 
+    border-radius: 12px;
+    font-size: 16px !important; /* Mínimo 16px para evitar zoom en iOS */
+    width: 100%;
+    height: var(--input-height) !important;
+    min-height: var(--input-height) !important;
+    box-sizing: border-box !important;
+    border: 1px solid #000000 !important;
+    background-color: #ffffff;
+    color: #000000;
+    transition: border-color 0.2s;
 }
 
-/* --- TEXT AREA (RESTAURADO A TU ORIGINAL) --- */
-/* --- TEXT AREA (ALTURA REDUCIDA Y TEXTO GRANDE) --- */
+/* --- TEXT AREA (OBJETIVOS) --- */
 .objetivos-area {
-    width: 100% ; 
+    width: 100%; 
     max-width: 100%; 
-    height: 300px; 
+    height: 250px; /* Reducido ligeramente para pantallas medianas */
     box-sizing: border-box; 
-    padding: 15px 20px; /* Ajuste ligero de padding */
+    padding: 15px;
     border-radius: 12px;
-    border: 1.5px solid var(--input-border);
+    border: 1.5px solid #000;
     margin-top: 20px;
     resize: none; 
     display: block;
     font-family: inherit;
-    font-size: 1.1rem; /* Texto más grande para coincidir con los inputs */
-    line-height: 1.5;   /* Mejor espacio entre líneas al escribir */
+    font-size: 1rem;
+    line-height: 1.5;
 }
 
-.app.light input::placeholder,
-.app.light .dropdown-header span {
-  font-size: 1.1rem !important;
-  color: #000000;
-  opacity: 1;
-}
-
-.app.dark input::placeholder,
-.app.dark .dropdown-header span {
-  font-size: 1.1rem !important;
-  color: #ffffff;
+/* --- TABLA DE PLANIFICACIÓN (RESPONSIVA) --- */
+.table-wrapper {
+    overflow-x: auto; /* Fundamental para que la tabla no rompa el diseño */
+    margin-top: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    -webkit-overflow-scrolling: touch;
 }
 
 .planning-table {
     width: 100%;
+    min-width: 800px; /* Garantiza que la tabla mantenga forma de "documento" */
     border-collapse: collapse;
-    margin-top: 30px;
-    background-color: var(--blanco);
-    border: 2px solid var(--azul-oscuro);
+    border: 2px solid var(--borde-tabla);
 }
 
-.main-header {
-    background-color: var(--azul-oscuro);
-    color: white;
+.planning-table td, .planning-table th {
+    border: 1.5px solid var(--borde-tabla);
     padding: 12px;
-    font-size: 1.2rem;
-    text-transform: uppercase;
-    border: 1px solid var(--blanco);
-}
-
-.sub-header {
-    background-color: var(--azul-oscuro);
-    color: white;
-    padding: 8px;
-    font-weight: bold;
-    text-align: center;
-    border: 1px solid white;
-}
-
-.cell-label {
-    background-color: var(--azul-oscuro);
-    color: white;
-    font-weight: bold;
-    padding: 10px;
-    border: 1px solid #ddd;
-    text-align: left;
     font-size: 0.9rem;
 }
 
-.cell-content {
-    background-color: white;
-    color: black;
-    padding: 10px;
-    border: 1px solid var(--azul-oscuro);
-    vertical-align: top;
-    font-size: 0.9rem;
-}
-
-.tiny-text { font-size: 0.7rem; line-height: 1.2; }
-.text-justify { text-align: justify; }
-
-.table-wrapper {
-    overflow-x: auto;
-    border-radius: 8px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-}
-
-.theme-toggle-btn {
-    background: transparent !important;
-    border: none !important;
-    outline: none !important;
-    cursor: pointer;
-    padding: 5px;
-}
-
-.form-container {
-  max-width: 1200px;
-  width: 95%;
-  margin: 40px auto;
-  background-color: var(--card-bg);
-  padding: 40px;
-  border-radius: 25px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-  position: relative;
-}
-
-.input-grid {
-  display: grid !important;
-  grid-template-columns: repeat(3, 1fr) !important;
-  gap: 20px !important;
-  margin-bottom: 30px;
-  align-items: center !important; 
-}
-
+/* --- DROPDOWN PERSONALIZADO --- */
 .custom-dropdown {
-  position: relative;
-  width: 100%;
-  border: none ; 
-  background: transparent ;
-}
-
-.dropdown-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  cursor: pointer;
-}
-
-.custom-dropdown.is-open .dropdown-header {
-    border-radius: 12px 12px 0 0 !important;
-    border-bottom: none !important; 
+    position: relative;
+    width: 100%;
 }
 
 .dropdown-list {
@@ -200,114 +97,64 @@ input, .dropdown-header {
     right: 0;
     background-color: #ffffff;
     border: 1px solid #000000;
-    border-top: none !important; 
     border-radius: 0 0 12px 12px;
     z-index: 1000;
-    margin-top: -1px !important; 
     max-height: 200px; 
     overflow-y: auto; 
     box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-    padding: 0;
-    margin: 0;
-    list-style: none !important; 
 }
 
-.dropdown-list li {
-   padding: 12px 15px;
-    color: #000000;
-    cursor: pointer;
-    font-size: 1.1rem !important; 
-    list-style: none !important;
-}
-
-.app.dark .dropdown-list li {
-    color: #000000; 
-}
-
-.full-width-input-container {
-    display: flex;
-    gap: 20px; 
-    width: 100%;
+/* --- MODO OSCURO --- */
+.app.dark {
+    background-color: #0f172a;
 }
 
 .app.dark input, 
 .app.dark .dropdown-header, 
 .app.dark .objetivos-area {
-  color: #000000 ;
-  opacity: 1; 
-  background: transparent ;
-  border-color: #ffffff !important; 
-  color: #ffffff;
-}
-
-.app.dark input::placeholder,
-.app.dark textarea::placeholder {
-color: #ffffff;
-}
-
-.planning-table td, .planning-table th {
-  border: 1.5px solid #000000 ;
-  padding: 12px;
-}
-
-.app.light input::placeholder,
-.app.light textarea::placeholder {
-  color: #000000 ;
-  opacity: 1; 
-}
-
-.dropdown-list::-webkit-scrollbar { width: 6px; }
-.dropdown-list::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 0 0 12px 0; }
-.dropdown-list::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
-.dropdown-list::-webkit-scrollbar-thumb:hover { background: #ff0000; }
-
-.dropdown-list li:hover {
-    background-color: #f1efef; 
-    color: #1a365d; 
+    background-color: #1e293b;
+    border-color: #ffffff !important; 
+    color: #ffffff;
 }
 
 .app.dark .dropdown-list {
-    background-color: #e4dfdf ; 
-    border-color: #ffffff ;
+    background-color: #334155;
+    border-color: #ffffff;
 }
 
-.dropdown-header, .custom-dropdown, .custom-dropdown *:focus {
-    outline: none;
-    box-shadow: none ;
+.app.dark .dropdown-list li {
+    color: #ffffff;
 }
 
-.main-title, h2{ text-align: center; }
-
-button.theme-toggle, .theme-toggle-btn, [role="button"] {
-    background: transparent;
-    border: none;
-}
+/* --- MEDIA QUERIES --- */
 
 @media (max-width: 992px) {
     .input-grid {
-        grid-template-columns: repeat(2, 1fr); 
+        grid-template-columns: repeat(2, 1fr) !important;
     }
 }
 
-@media (max-width: 1000px) {
+@media (max-width: 600px) {
     .form-container {
-        padding: 20px;
-    }
-    .input-grid {
-        grid-template-columns: 1fr; 
-    }
-    .footer-buttons-container {
-        flex-direction: column;
-        gap: 12px;
-    }
-    .btn-footer {
+        padding: 20px 15px;
         width: 100%;
+        border-radius: 0; /* En móviles muy pequeños, mejor sin bordes curvos externos */
     }
-    .recursos-grid {
-        grid-template-columns: 1fr;
+
+    .input-grid {
+        grid-template-columns: 1fr !important; /* Todo en una columna */
+        gap: 15px !important;
     }
-    .full-width-input { grid-column: span 1; }
+
+    .main-title {
+        font-size: 1.5rem;
+    }
+
     .full-width-input-container {
         flex-direction: column;
+    }
+    
+    .objetivos-area {
+        height: 200px;
     }
 }

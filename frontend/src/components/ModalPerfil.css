@@ -1,364 +1,159 @@
+/* --- BASE DEL MODAL --- */
 .modal-overlay {
   position: fixed;
-  top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex; align-items: center; justify-content: center;
+  top: 0; 
+  left: 0; 
+  width: 100%; 
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex; 
+  align-items: center; 
+  justify-content: center;
   z-index: 2000;
+  padding: 20px; /* Espacio de seguridad para móviles */
 }
 
 .modal-content {
-  width: 450px;
+  width: 100%;
+  max-width: 450px; /* Ancho máximo en escritorio */
   border-radius: 20px;
   padding: 30px;
   position: relative;
   box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  transition: all 0.3s ease;
 }
 
 /* Colores Dinámicos */
 .modal-content.light { background: white; color: #333; }
 .modal-content.dark { background: #2c3444; color: white; }
 
-.modal-header { display: flex; align-items: center; gap: 20px; margin-bottom: 20px; }
-.profile-img-container { position: relative; }
-.profile-img-container img { width: 80px; height: 80px; border-radius: 50%; }
-
-.edit-badge {
-  position: absolute; bottom: 0; right: 0;
-  background: white; border-radius: 50%; padding: 5px;
-  font-size: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-}
-
-/* --- AJUSTE PARA ICONO A LA IZQUIERDA --- */
-.input-group {
+/* --- HEADER RESPONSIVO --- */
+.modal-header { 
   display: flex; 
-  justify-content: space-between; 
-  align-items: center;
-  margin-bottom: 15px; 
-  border-bottom: 1px solid rgba(128,128,128,0.1);
-  padding-bottom: 10px;
+  align-items: center; 
+  gap: 20px; 
+  margin-bottom: 20px; 
 }
 
-/* Contenedor que agrupa el icono y el texto (Nombre, Correo, etc) */
-.label-section {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-/* Recuadro del lápiz individual a la izquierda */
-.individual-edit-icon {
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid #7c3aed; /* El color morado del diseño */
-  border-radius: 4px;
-  font-size: 10px;
-  color: #7c3aed;
+/* --- SECCIÓN DE FOTO --- */
+.profile-img-container {
+  position: relative;
   cursor: pointer;
+  display: inline-block;
   flex-shrink: 0;
 }
 
-.input-group label { 
-  font-size: 14px; 
+.modal-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #7c3aed;
+}
+
+/* --- GRUPOS DE INPUTS (RESPONSIVOS) --- */
+.input-group {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 0;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.1);
+  gap: 10px;
+}
+
+.label-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.btn-edit-small {
+  width: 26px;
+  height: 26px;
+  border: 1px solid #7c3aed;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #7c3aed;
+  background: transparent;
+  cursor: pointer;
+}
+
+.input-group label {
+  font-size: 14px;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .input-group input {
-  border: none; 
-  background: transparent; 
+  border: none;
+  background: transparent;
   color: inherit;
-  text-align: right; 
-  font-size: 14px; 
-  width: 55%;
+  text-align: right;
+  font-size: 14px;
+  width: 60%;
   outline: none;
+  opacity: 0.8;
+  overflow: hidden;
+  text-overflow: ellipsis; /* Evita que correos largos rompan el diseño */
 }
 
+/* --- BOTONES --- */
 .save-btn {
-  width: 100%; padding: 12px; border: none; border-radius: 8px;
-  background: #2563eb; color: white; font-weight: bold;
-  cursor: pointer; margin-top: 20px;
+  width: 100%; 
+  padding: 14px; 
+  border: none; 
+  border-radius: 12px;
+  font-weight: bold;
+  cursor: pointer; 
+  margin-top: 20px;
+  font-size: 16px;
+  transition: transform 0.2s;
 }
 
-.close-x {
-  position: absolute; top: 15px; right: 20px;
-  background: none; border: none; font-size: 24px;
-  cursor: pointer; color: inherit;
-}
-/* ... (tus otros estilos se mantienen igual) ... */
-
-.input-group {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px 0;
-  border-bottom: 1px solid rgba(128, 128, 128, 0.1);
+.save-btn:active {
+  transform: scale(0.98); /* Feedback táctil para móviles */
 }
 
-.label-section {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+/* --- MEDIA QUERIES PARA DISPOSITIVOS MÓVILES --- */
+
+@media (max-width: 480px) {
+  .modal-content {
+    padding: 20px; /* Menos padding en pantallas pequeñas */
+    border-radius: 15px;
+  }
+
+  .modal-header {
+    flex-direction: column; /* Foto arriba, nombre abajo en móviles */
+    text-align: center;
+    gap: 10px;
+  }
+
+  .input-group {
+    padding: 12px 0;
+  }
+
+  .input-group label {
+    font-size: 13px;
+  }
+
+  .input-group input {
+    font-size: 13px;
+    width: 50%;
+  }
+
+  .close-x {
+    top: 10px;
+    right: 15px;
+  }
 }
 
-/* El cuadrito del lápiz que pediste */
-.btn-edit-small {
-  width: 26px;
-  height: 26px;
-  border: 1px solid #7c3aed; /* Color morado de la imagen */
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #7c3aed;
-  background: transparent;
-  cursor: pointer;
-}
-
-.input-group label {
-  font-size: 14px;
-  color: inherit;
-  font-weight: 400;
-}
-
-.input-group input {
-  border: none;
-  background: transparent;
-  color: inherit;
-  text-align: right;
-  font-size: 14px;
-  width: 50%;
-  outline: none;
-  opacity: 0.8;
-}
-
-/* Estilo del botón de guardado según la imagen clara/oscura */
-.modal-content.light .save-btn {
-  background-color: #3b82f6; /* Azul brillante */
-  color: white;
-}
-
-.modal-content.dark .save-btn {
-  background-color: #ffffff; /* Blanco en modo oscuro */
-  color: #2c3444;
-}
-
-.modal-divider {
-  border: 0;
-  border-top: 1px solid rgba(128, 128, 128, 0.2);
-  margin: 10px 0 20px 0;
-}
-
-/* ... (Todo lo anterior se mantiene) ... */
-
-.input-group input {
-  border: none;
-  background: transparent;
-  color: inherit;
-  text-align: right;
-  font-size: 14px;
-  width: 55%;
-  outline: none;
-  cursor: default; /* Cursor normal cuando no es editable */
-  transition: all 0.2s ease;
-}
-
-/* Cuando el campo está habilitado para edición */
-.input-group.is-editing input {
-  cursor: text;
-  opacity: 1;
-  color: #7c3aed; /* El texto se resalta en morado al editar */
-}
-
-/* --- SECCIÓN UNIFICADA DE FOTO DE PERFIL --- */
-
-.profile-img-container {
-  position: relative;
-  cursor: pointer;
-  display: inline-block;
-  z-index: 10; /* Asegura que esté por encima de cualquier otro elemento del header */
-  transition: transform 0.2s ease;
-}
-
-.profile-img-container:hover {
-  transform: scale(1.02);
-}
-
-.modal-avatar {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  object-fit: cover;
-  display: block;
-  border: 2px solid #7c3aed;
-  transition: filter 0.3s ease;
-}
-
-.profile-img-container:hover .modal-avatar {
-  filter: brightness(0.8);
-}
-
-/* Ocultar el input por completo pero mantenerlo funcional */
-.file-input-hidden {
-  display: none !important;
-}
-
-.edit-badge {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  background: #7c3aed; /* Color morado consistente */
-  color: white;
-  border-radius: 50%;
-  padding: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-  border: 2px solid white;
-  pointer-events: none; /* VITAL: El clic "atraviesa" el icono y llega al contenedor */
-}
-
-/* Ajuste para modo oscuro */
-.modal-content.dark .edit-badge {
-  border-color: #2c3444;
-}
-/* ... (tus otros estilos se mantienen igual) ... */
-
-.input-group {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px 0;
-  border-bottom: 1px solid rgba(128, 128, 128, 0.1);
-}
-
-.label-section {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-/* El cuadrito del lápiz que pediste */
-.btn-edit-small {
-  width: 26px;
-  height: 26px;
-  border: 1px solid #7c3aed; /* Color morado de la imagen */
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #7c3aed;
-  background: transparent;
-  cursor: pointer;
-}
-
-.input-group label {
-  font-size: 14px;
-  color: inherit;
-  font-weight: 400;
-}
-
-.input-group input {
-  border: none;
-  background: transparent;
-  color: inherit;
-  text-align: right;
-  font-size: 14px;
-  width: 50%;
-  outline: none;
-  opacity: 0.8;
-}
-
-/* Estilo del botón de guardado según la imagen clara/oscura */
-.modal-content.light .save-btn {
-  background-color: #3b82f6; /* Azul brillante */
-  color: white;
-}
-
-.modal-content.dark .save-btn {
-  background-color: #ffffff; /* Blanco en modo oscuro */
-  color: #2c3444;
-}
-
-.modal-divider {
-  border: 0;
-  border-top: 1px solid rgba(128, 128, 128, 0.2);
-  margin: 10px 0 20px 0;
-}
-
-/* ... (Todo lo anterior se mantiene) ... */
-
-.input-group input {
-  border: none;
-  background: transparent;
-  color: inherit;
-  text-align: right;
-  font-size: 14px;
-  width: 55%;
-  outline: none;
-  cursor: default; /* Cursor normal cuando no es editable */
-  transition: all 0.2s ease;
-}
-
-/* Cuando el campo está habilitado para edición */
-.input-group.is-editing input {
-  cursor: text;
-  opacity: 1;
-  color: #7c3aed; /* El texto se resalta en morado al editar */
-}
-
-/* --- SECCIÓN UNIFICADA DE FOTO DE PERFIL --- */
-
-.profile-img-container {
-  position: relative;
-  cursor: pointer;
-  display: inline-block;
-  z-index: 10; /* Asegura que esté por encima de cualquier otro elemento del header */
-  transition: transform 0.2s ease;
-}
-
-.profile-img-container:hover {
-  transform: scale(1.02);
-}
-
-.modal-avatar {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  object-fit: cover;
-  display: block;
-  border: 2px solid #7c3aed;
-  transition: filter 0.3s ease;
-}
-
-.profile-img-container:hover .modal-avatar {
-  filter: brightness(0.8);
-}
-
-/* Ocultar el input por completo pero mantenerlo funcional */
-.file-input-hidden {
-  display: none !important;
-}
-
-.edit-badge {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  background: #7c3aed; /* Color morado consistente */
-  color: white;
-  border-radius: 50%;
-  padding: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-  border: 2px solid white;
-  pointer-events: none; /* VITAL: El clic "atraviesa" el icono y llega al contenedor */
-}
-
-/* Ajuste para modo oscuro */
-.modal-content.dark .edit-badge {
-  border-color: #2c3444;
+/* Para tablets o móviles en horizontal */
+@media (max-height: 500px) and (orientation: landscape) {
+  .modal-content {
+    max-height: 90vh;
+    overflow-y: auto; /* Permite scroll si el teclado del móvil tapa todo */
+  }
 }

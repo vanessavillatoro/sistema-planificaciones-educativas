@@ -1,435 +1,144 @@
-/* --- Estructura Base --- */
-
+/* --- ESTRUCTURA BASE --- */
 .recursos-page {
     display: flex;
     justify-content: center;
-    padding: 40px 20px;
+    padding: clamp(20px, 5vw, 40px) 15px;
     min-height: 100vh;
     transition: background 0.3s ease;
 }
 
-.recursos-page.light { background-color: #ffffff; }
-.recursos-page.dark { background-color: #2d3748; }
+.recursos-page.light { background-color: #f7fafc; } /* Gris muy tenue para contraste */
+.recursos-page.dark { background-color: #1a202c; }
 
 .recursos-card {
     width: 100%;
     max-width: 950px;
-    padding: 40px;
-    border-radius: 30px;
-    transition: all 0.3s ease;
+    padding: clamp(20px, 4vw, 40px);
+    border-radius: 25px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
 }
 
-.light .recursos-card { background: var(--card-bg); color: black; }
-.dark .recursos-card { background: #4a5568; color: white; }
+.light .recursos-card { background: #ffffff; color: #1a202c; }
+.dark .recursos-card { background: #2d3748; color: #ffffff; }
 
-/* --- BOTONES --- */
-
-.dark .btn-clear,
-.dark .btn-generate-main-small,
-.dark .btn-sync-white {
-    background: white !important;
-    color: black !important;
-    border: 1px solid #050505;
-}
-
-.light .btn-clear,
-.light .btn-generate-main-small,
-.light .btn-sync-white {
-    background: #003366;
-    color: #ffffff;
-    border: 1px solid #7a7a7a;
-}
-
-/* --- Header Centrado --- */
-
+/* --- HEADER --- */
 .header-centered {
     text-align: center;
-    margin-bottom: 40px;
+    margin-bottom: 35px;
 }
 
 .header-centered h1 {
-    margin: 0;
-    font-size: 2.5rem;
+    font-size: clamp(1.8rem, 5vw, 2.5rem);
     font-weight: 800;
+    line-height: 1.2;
 }
 
-.subtitle-ia {
-    margin-top: 10px;
-    font-size: 1.1rem;
-    font-style: italic;
-    opacity: 0.8;
-}
-
-/* --- Grid y Formulario --- */
-
+/* --- GRID Y FORMULARIO --- */
 .recursos-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 15px;
 }
 
-.full-width-input { grid-column: span 2; }
+.full-width-input { grid-column: 1 / -1; }
 
 .dropdown-header,
 .recursos-grid input {
     width: 100%;
     min-height: 55px;
-    height: auto;
-    padding: 12px 25px;
+    padding: 12px 20px;
     border-radius: 12px;
-    font-size: 1rem;
+    font-size: 16px !important; /* Evita zoom en iOS */
     background-color: white;
-    border: 1px solid #7a7a7a;
+    border: 1px solid #cbd5e0;
     box-sizing: border-box;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
     color: #333;
 }
 
-.selected-text-content {
-    white-space: pre-line !important;
-    text-align: left;
-    display: block;
-    width: 100%;
-    line-height: 1.5;
-    word-break: break-word;
-    flex: 1;
-}
-
-.dark .dropdown-header,
-.dark .recursos-grid input {
-    background-color: #4a5568;
-    border: 1px solid white;
-    color: white;
-}
-
 /* --- SECCIÓN DE BOTONES --- */
-
-.form-footer {
-    margin-top: 40px;
-    display: flex;
-    justify-content: center;
-}
-
 .footer-buttons-container {
     display: flex;
-    gap: 15px;
+    gap: 12px;
     width: 100%;
-    max-width: 850px;
+    margin-top: 30px;
 }
 
 .btn-footer {
     flex: 1;
-    height: 45px;
-    padding: 0 20px;
+    min-height: 50px;
     border-radius: 10px;
     font-weight: 700;
-    font-size: 1rem;
+    transition: all 0.2s ease;
     cursor: pointer;
     border: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-    white-space: nowrap;
 }
 
-/* --- ÁREA DE RESULTADO --- */
-
+/* --- ÁREA DE RESULTADO (IA) --- */
 .resultado-container {
     margin-top: 30px;
-    padding: 25px;
+    padding: clamp(10px, 3vw, 25px);
     border-radius: 20px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid #7a7a7a;
-    animation: fadeIn 0.5s ease;
+    background: rgba(66, 153, 225, 0.05); /* Azul muy tenue */
+    border: 1px solid #cbd5e0;
 }
 
 .resultado-texto {
     background: white;
-    color: #333;
-    padding: 25px;
+    color: #2d3748;
+    padding: clamp(15px, 3vw, 25px);
     border-radius: 15px;
-    max-height: 600px;
+    max-height: 70vh;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
-.dark .resultado-texto {
-    background: #2d3748;
-    color: white;
-    border: 1px solid #4a5568;
-}
+.dark .resultado-texto { background: #1a202c; color: #edf2f7; }
 
-/* --- ESTILOS MARKDOWN CON INTERLINEADO 1.5 --- */
-
+/* --- TABLAS GENERADAS POR IA (RESPONSIVIDAD) --- */
 .markdown-body {
-    text-align: left;
-    line-height: 1.5 !important;
-    font-size: 1.05rem;
+    overflow-x: auto;
 }
-
-.markdown-body p {
-    margin-top: 0;
-    margin-bottom: 1.2rem;
-}
-
-.markdown-body h1,
-.markdown-body h2,
-.markdown-body h3 {
-    margin-top: 1.5rem;
-    margin-bottom: 0.6rem;
-    color: #2c5282;
-    font-weight: 700;
-    line-height: 1.3;
-}
-
-.dark .markdown-body h1,
-.dark .markdown-body h2,
-.dark .markdown-body h3 {
-    color: #63b3ed;
-}
-
-.markdown-body ul,
-.markdown-body ol {
-    margin-top: 0;
-    margin-bottom: 1rem;
-    padding-left: 1.5rem;
-}
-
-.markdown-body li {
-    margin-bottom: 0.5rem;
-    line-height: 1.5;
-}
-
-.markdown-body hr {
-    margin: 20px 0;
-    height: 1px;
-    border: 0;
-    background: #cbd5e0;
-}
-
-/* Estilo para que las fracciones de KaTeX se vean grandes y claras */
-.styled-math .katex {
-    font-size: 1.25em; 
-    color: inherit; 
-}
-
-.styled-math p {
-    line-height: 2.2;   
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.styled-math .katex-html {
-    vertical-align: middle;
-}
-
-.styled-math .katex {
-    font-size: 1.3em !important; 
-}
-
-.styled-math p {
-    margin-bottom: 1.5rem;
-    line-height: 2; 
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-@media (max-width: 768px) {
-    .footer-buttons-container { flex-direction: column; }
-    .recursos-grid { grid-template-columns: 1fr; }
-    .full-width-input { grid-column: span 1; }
-}
-
-/* --- NUEVOS ESTILOS PARA ELIMINAR PLANIFICACIONES --- */
-
-.dropdown-option-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 15px !important;
-    transition: background 0.2s ease;
-    cursor: pointer;
-}
-
-.dropdown-option-item:hover {
-    background-color: rgba(66, 153, 225, 0.1);
-}
-
-.option-text {
-    flex: 1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin-right: 15px;
-    text-align: left;
-}
-
-.btn-delete-inline {
-    background: #fff5f5 !important;
-    border: 1px solid #feb2b2 !important;
-    cursor: pointer;
-    font-size: 0.9rem;
-    padding: 4px 8px;
-    border-radius: 6px;
-    transition: all 0.2s ease;
-    opacity: 0; 
-}
-
-.dropdown-option-item:hover .btn-delete-inline {
-    opacity: 1; 
-}
-
-.btn-delete-inline:hover {
-    background-color: #feb2b2;
-    color: #ffffff;
-    transform: scale(1.1);
-}
-
-.dark .btn-delete-inline {
-    background: #2d3748 ;
-}
-
-.dark .btn-delete-inline:hover {
-    background-color: #f56565;
-    color: white ;
-}
-
-.dropdown-list {
-    list-style: none;
-    padding: 0;
-    margin: 5px 0 0 0;
-    position: absolute;
-    width: 100%;
-    background: white;
-    border: 1px solid #cbd5e0;
-    border-radius: 12px;
-    z-index: 1000;
-    max-height: 250px;
-    overflow-y: auto;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
-
-.dark .dropdown-list {
-    background: #2d3748;
-    border-color: #4a5568;
-}
-
-.placeholder-option {
-    padding: 10px 15px;
-    color: #a0aec0;
-    font-style: italic;
-    border-bottom: 1px solid #edf2f7;
-    cursor: pointer;
-}
-
-.dark .placeholder-option {
-    border-bottom-color: #4a5568;
-}
-
-/* --- AJUSTES PARA CAMPOS DINÁMICOS (OBJETIVOS E INDICADORES) --- */
-
-.dropdown-header.dinamic-height {
-    height: auto !important;
-    min-height: 55px;
-    display: flex;
-    flex-direction: column; 
-    align-items: flex-start;
-    padding: 12px 25px;
-}
-
-.dropdown-textarea-header {
-    width: 100%;
-    background: transparent;
-    border: none;
-    color: inherit;
-    font-family: inherit;
-    font-size: 1rem;
-    resize: none;
-    padding: 0;
-    outline: none;
-    overflow: hidden; 
-    line-height: 1.5;
-    margin-top: 5px;
-    margin-bottom: 5px;
-}
-
-.dropdown-header.dinamic-height .icon-v {
-    align-self: flex-end; 
-    margin-top: -20px;
-    cursor: pointer;
-}
-
-.custom-dropdown.full-width-input {
-    height: auto !important;
-}
-
-.dark .dropdown-textarea-header {
-    color: white;
-}
-
-.light .dropdown-textarea-header {
-    color: #333;
-}
-
-/* --- LO NUEVO: AJUSTES ADICIONALES DE RESPONSIVIDAD (SIN TOCAR LO ANTERIOR) --- */
-
-@media (max-width: 600px) {
-    .recursos-page {
-        padding: 20px 10px;
-    }
-    .recursos-card {
-        padding: 20px;
-        border-radius: 20px;
-    }
-    .header-centered h1 {
-        font-size: 1.8rem;
-    }
-    .dropdown-header, .recursos-grid input {
-        padding: 10px 15px;
-        font-size: 0.9rem;
-    }
-    .resultado-container {
-        padding: 15px;
-    }
-    .btn-footer {
-        white-space: normal; /* Permite que el texto del botón baje de línea si es largo */
-        height: auto;
-        min-height: 45px;
-        padding: 10px;
-    }
-}
-/* Asegúrate de que estas reglas existan en tu Recursos.css */
 
 .markdown-body table {
     width: 100%;
+    min-width: 500px; /* Evita que las tablas de la IA se compriman demasiado */
     border-collapse: collapse;
-    margin: 20px 0;
-    background-color: transparent;
-    border: 1px solid #ccc; /* Borde exterior */
+    margin: 15px 0;
 }
 
-.markdown-body th, 
-.markdown-body td {
-    border: 1px solid #ccc !important; /* Borde de celdas */
+.markdown-body th, .markdown-body td {
+    border: 1px solid #cbd5e0 !important;
     padding: 10px;
-    text-align: left;
+    font-size: 0.95rem;
 }
 
-.markdown-body th {
-    background-color: rgba(0, 0, 0, 0.05); /* Fondo ligero para encabezados */
-    font-weight: bold;
+/* --- MATEMÁTICAS (KATEX) --- */
+.styled-math {
+    overflow-x: auto; /* Permite scroll lateral si la fórmula es muy larga */
+    padding: 10px 0;
 }
 
-/* Si usas modo oscuro, ajusta los colores */
-.recursos-page.dark .markdown-body table,
-.recursos-page.dark .markdown-body th,
-.recursos-page.dark .markdown-body td {
-    border-color: #444;
+.styled-math .katex {
+    font-size: 1.2rem !important;
+}
+
+/* --- MEDIA QUERIES --- */
+@media (max-width: 600px) {
+    .footer-buttons-container {
+        flex-direction: column;
+    }
+    
+    .btn-footer {
+        width: 100%;
+    }
+
+    .recursos-card {
+        padding: 20px 15px;
+    }
+
+    /* Ocultar botones de borrar en lista de dropdown para evitar toques accidentales en móvil */
+    .btn-delete-inline {
+        opacity: 1; /* Siempre visible en móvil ya que no hay hover */
+        transform: scale(0.9);
+    }
 }

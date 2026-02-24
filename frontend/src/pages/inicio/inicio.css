@@ -1,9 +1,11 @@
+/* --- WRAPPER Y CONTENEDOR --- */
 .inicio-wrapper {
+    /* Ajuste para evitar scroll innecesario en laptops pequeñas */
     min-height: calc(100vh - 80px);
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 20px 5%;
+    padding: 40px 5%; /* Aumentado el padding vertical */
 }
 
 .inicio-container {
@@ -13,11 +15,11 @@
     justify-content: space-between;
     width: 100%;
     max-width: 1400px;
-    gap: 40px;
+    gap: 60px; /* Un poco más de aire entre texto e imagen */
     flex-wrap: wrap;
 }
 
-/* Texto a la izquierda */
+/* --- TEXTO HERO --- */
 .inicio-content {
     flex: 1 1 500px;
     display: flex;
@@ -27,52 +29,63 @@
 }
 
 .inicio-title {
-    /* Aumentado: Mínimo 3rem, Máximo 5rem */
-    font-size: clamp(3rem, 6vw, 5rem); 
+    /* Mantengo tu clamp, es muy bueno para el impacto visual */
+    font-size: clamp(2.5rem, 6vw, 5rem); 
     font-weight: 800;
-    line-height: 1.1;
-    margin-bottom: 15px;
-    color: black;
-    display: block;
-    width: 100%;
+    line-height: 1.05;
+    margin-bottom: 20px;
+    color: #000;
 }
 
 .nombre-resaltado {
     color: #4a90e2;
+    display: inline-block; /* Ayuda a que el resaltado se mantenga unido */
 }
 
 .inicio-subtitle {
-    /* Aumentado: Mínimo 1.4rem, Máximo 2.2rem */
-    font-size: clamp(1.4rem, 2.5vw, 2.2rem); 
+    font-size: clamp(1.2rem, 2.5vw, 2rem); 
     color: #666;
-    margin-bottom: 45px;
-    display: block;
-    width: 100%;
+    margin-bottom: 40px;
+    line-height: 1.4;
+    max-width: 600px; /* Evita que las líneas sean demasiado largas en desktop */
 }
 
-/* Botones en su propia línea */
+/* --- GRUPO DE BOTONES --- */
 .botones-inicio-group {
     display: flex;
     flex-direction: row;
-    gap: 12px;
+    gap: 15px;
     flex-wrap: wrap;
 }
 
 .btn-inicio-outline, .btn-inicio-solid {
-    /* Ligeramente más grandes para acompañar el texto */
-    padding: 16px 28px;
+    padding: 16px 32px;
     font-size: 1.1rem;
-    border-radius: 8px;
-    font-weight: 600;
+    border-radius: 12px; /* Un poco más redondeado, más moderno */
+    font-weight: 700;
     cursor: pointer;
     border: none;
     white-space: nowrap;
+    transition: all 0.3s ease;
 }
 
-.btn-inicio-outline { background:  #003366; color: white; }
-.btn-inicio-solid { background:  #003366; color: white; }
+/* Colores institucionales */
+.btn-inicio-outline { 
+    background: #003366; 
+    color: white; 
+}
 
-/* Imagen a la derecha */
+.btn-inicio-solid { 
+    background: #4a90e2; /* Cambié uno para crear contraste visual */
+    color: white; 
+}
+
+.btn-inicio-outline:hover, .btn-inicio-solid:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(0, 51, 102, 0.2);
+}
+
+/* --- IMAGEN HERO --- */
 .inicio-visual {
     flex: 1 1 500px;
     display: flex;
@@ -82,47 +95,69 @@
 
 .img-inicio-hero {
     width: 100%;
-    max-width: 700px;
+    max-width: 650px;
     height: auto;
-    max-height: 700px; /* Mantiene tu tamaño deseado */
-    border-radius: 20px;
-    object-fit: contain;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+    border-radius: 30px; /* Más suave */
+    object-fit: cover;
+    box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+    /* Animación sutil de entrada */
+    animation: float 6s ease-in-out infinite;
 }
 
-/* --- MEDIA QUERIES PARA RESPONSIVIDAD --- */
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-15px); }
+    100% { transform: translateY(0px); }
+}
+
+/* --- MEDIA QUERIES --- */
 
 @media (max-width: 992px) {
+    .inicio-wrapper {
+        padding: 60px 20px;
+    }
+
     .inicio-container {
-        flex-direction: column;
+        flex-direction: column-reverse; /* Imagen abajo en tablets */
         text-align: center;
-        gap: 30px;
+        gap: 50px;
     }
 
     .inicio-content {
-        flex: 1 1 100%;
-        text-align: center;
         align-items: center;
+        text-align: center;
     }
 
-    .botones-inicio-group {
-        justify-content: center;
+    .inicio-subtitle {
+        margin-left: auto;
+        margin-right: auto;
     }
 
     .img-inicio-hero {
-        max-height: 450px;
+        max-width: 80%;
     }
 }
 
 @media (max-width: 480px) {
     .inicio-title {
-        font-size: 2.5rem;
+        font-size: 2.2rem; /* Ajuste para que no rompa en pantallas de 320px */
     }
     
+    .botones-inicio-group {
+        flex-direction: column; /* Botones uno sobre otro en celulares */
+        width: 100%;
+    }
+
+    .btn-inicio-outline, .btn-inicio-solid {
+        width: 100%; /* Botones de ancho completo para pulgares */
+    }
+
     .img-inicio-hero {
-        max-height: 350px;
+        max-width: 100%;
+        max-height: 300px;
     }
 }
 
+/* MODO OSCURO */
 .dark .inicio-title { color: white; }
-.dark .inicio-subtitle { color: #cbd5e0; }
+.dark .inicio-subtitle { color: #a0aec0; }

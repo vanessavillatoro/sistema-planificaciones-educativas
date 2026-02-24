@@ -1,4 +1,4 @@
-/* --- BLOQUE CORREGIDO --- */
+/* --- RESET Y BASE --- */
 * {
   margin: 0;
   padding: 0;
@@ -9,34 +9,28 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 20px; 
+  padding: 0 20px; 
   background-color: var(--nav-bg);
   border-bottom: 1px solid rgba(0,0,0,0.1);
   height: 80px;
-  position: relative;
+  position: sticky; /* Cambiado a sticky para que siempre esté visible al hacer scroll */
+  top: 0;
   z-index: 2000;
   width: 100%;
-  box-sizing: border-box; 
 }
 
-/* --- TUS ESTILOS ORIGINALES (MANTENIDOS) --- */
-.navbar a, .nav-menu a, .nav-dropbtn {
-  font-size: 1.2rem ;
-  text-decoration: none;
-  color: inherit;
-  font-weight: 500;
-}
-
+/* --- BRAND / LOGO --- */
 .brand-container { 
   display: flex; 
   align-items: center; 
   gap: 12px; 
-  text-decoration: none; 
+  text-decoration: none;
+  flex-shrink: 0; /* Evita que el logo se encoja */
 }
 
 .logo-img { 
-  width: 55px;
-  height: 55px; 
+  width: 50px;
+  height: 50px; 
   border-radius: 50%; 
   border: 1px solid #ddd; 
   object-fit: cover; 
@@ -50,41 +44,29 @@
   color: #000; 
 }
 
-.app.dark .brand-text { 
-  color: #fff; 
-}
+.app.dark .brand-text { color: #fff; }
+.brand-top { font-size: 1.2rem; }
+.brand-bottom { font-size: 1.4rem; text-transform: lowercase; }
 
-.brand-top { 
-  font-size: 1.4rem; 
-}
-
-.brand-bottom { 
-  font-size: 1.6rem; 
-  text-transform: lowercase; 
-}
-
+/* --- MENÚ DE NAVEGACIÓN --- */
 .nav-menu { 
   display: flex; 
   align-items: center;
-  gap: 30px; 
+  gap: 25px; 
   color: var(--nav-text); 
   margin: 0;
 }
 
-.nav-dropdown {
-  position: relative; 
-  display: inline-block; 
+.nav-menu a, .nav-dropbtn {
+  font-size: 1.1rem;
+  text-decoration: none;
+  color: inherit;
+  font-weight: 500;
+  white-space: nowrap;
 }
-   
-.nav-dropbtn { 
-  background: none; 
-  border: none; 
-  color: inherit; 
-  cursor: pointer;
-  display: flex; 
-  align-items: center;
-  gap: 8px; 
-}
+
+/* --- DROPDOWNS --- */
+.nav-dropdown { position: relative; }
 
 .nav-dropdown-content {
   position: absolute; 
@@ -92,176 +74,101 @@
   left: 50%; 
   transform: translateX(-50%);
   background-color: var(--nav-bg);
-  min-width: 250px;
+  min-width: 220px;
   box-shadow: 0 8px 16px rgba(0,0,0,0.25); 
   border-radius: 12px;
-  overflow: hidden; 
   border: 1px solid var(--input-border);
-  margin-top: 15px; 
+  margin-top: 10px; 
   z-index: 3000; 
-  display: flex;
-  flex-direction: column;
 }
 
-.nav-dropdown-content a { 
-  padding: 12px 20px; 
-  display: block; 
-  font-size: 1rem ; 
-  color: var(--nav-text) ; 
-}
-
-.nav-dropdown-content a:hover {
-  background-color: rgba(0,0,0,0.05);
-}
-
+/* --- PERFIL DROPDOWN --- */
 .avatar-img {
-  width: 50px; 
-  height: 50px; 
+  width: 45px; 
+  height: 45px; 
   border-radius: 50%;
   object-fit: cover;
   border: 2px solid #edf2f7; 
+  cursor: pointer;
 }
 
 .perfil-dropdown {
   position: absolute;
-  top: 60px;
-  right: 0;
+  top: 70px;
+  right: 10px;
   width: 280px;
   border-radius: 15px;
-  padding: 20px;
-  z-index: 1000;
+  padding: 15px;
+  z-index: 3100;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-  transition: all 0.3s ease;
 }
 
-.navbar.light .perfil-dropdown {
-  background-color: #ffffff;
-  color: #333333;
-}
+.navbar.dark .perfil-dropdown { background-color: #1a1a1a; color: white; }
+.navbar.light .perfil-dropdown { background-color: white; color: #333; }
 
-.navbar.dark .perfil-dropdown {
-  background-color: black ;
-  color: #ffffff;
-}
-
-.perfil-header {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  margin-bottom: 15px;
-  position: relative;
-}
-
-.perfil-header img {
-  width: 55px;
-  height: 55px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid #ddd;
-}
-
-/* NUEVO: Contenedor de info para evitar desbordamiento */
-.perfil-user-info {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden; /* Evita que el contenido empuje el cuadro */
-  flex: 1; 
-}
-
-.perfil-user-info h4 {
-  margin: 0;
-  font-size: 16px;
+.user-email {
+  font-size: 12px;
+  opacity: 0.7;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-/* NUEVO: Estilo para truncar el correo */
-.user-email {
-  margin: 0;
-  font-size: 12px;
-  opacity: 0.7;
-  white-space: nowrap;      /* No permite saltos de línea */
-  overflow: hidden;         /* Oculta el exceso */
-  text-overflow: ellipsis;  /* Agrega los "..." */
+  max-width: 180px;
   display: block;
-  max-width: 170px;         /* Limita el ancho máximo del texto */
 }
 
-.close-btn {
-  position: absolute;
-  top: -10px;
-  right: -10px;
-  background: none;
-  border: none;
-  font-size: 18px;
-  cursor: pointer;
-  color: inherit;
+/* --- MEDIA QUERIES PARA RESPONSIVIDAD TOTAL --- */
+
+/* Tablets y Laptops pequeñas */
+@media (max-width: 900px) {
+    .brand-text { display: none; } /* Ocultamos texto, dejamos solo el logo */
+    .nav-menu { gap: 15px; }
 }
 
-.perfil-dropdown hr {
-  border: 0;
-  border-top: 1px solid rgba(128, 128, 128, 0.2);
-  margin: 10px 0;
-}
-
-.perfil-menu-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.perfil-menu-list li {
-  padding: 12px 15px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  cursor: pointer;
-  border-radius: 10px;
-  font-size: 14px;
-  transition: background 0.2s;
-}
-
-.navbar.light .perfil-menu-list li:hover {
-  background-color: #f0f4ff;
-}
-
-.navbar.dark .perfil-menu-list li:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-.perfil-menu-list i {
-  font-size: 18px;
-  width: 20px;
-  text-align: center;
-}
-
-/* --- ADAPTACIÓN RESPONSIVA --- */
-@media (max-width: 850px) {
-    .brand-text {
-        display: none; 
-    }
-}
-
+/* Smartphones (iPhone, Android) */
 @media (max-width: 600px) {
     .navbar {
-        padding: 10px 15px;
+        height: 70px;
+        padding: 0 15px;
     }
+
     .nav-menu {
-        gap: 10px;
+        gap: 12px;
     }
-    .navbar a, .nav-menu a, .nav-dropbtn {
-        font-size: 0.9rem !important;
+
+    /* Ajustamos el tamaño de las fuentes para que quepan en una línea */
+    .nav-menu a, .nav-dropbtn {
+        font-size: 0.85rem !important;
     }
-    .logo-img, .avatar-img {
+
+    .logo-img {
         width: 40px;
         height: 40px;
     }
-    .perfil-dropdown {
-        width: 260px;
-        right: 0;
+
+    .avatar-img {
+        width: 38px;
+        height: 38px;
     }
-    .user-email {
-        max-width: 140px; /* Más pequeño para móviles */
+
+    /* El dropdown de perfil se ajusta al ancho de la pantalla */
+    .perfil-dropdown {
+        width: calc(100vw - 20px);
+        right: 10px;
+        left: 10px;
+    }
+
+    /* Ocultamos elementos menos importantes si es necesario */
+    .nav-dropdown-content {
+        min-width: 180px;
+    }
+}
+
+/* Corrección para pantallas extra pequeñas (iPhone SE / Fold) */
+@media (max-width: 380px) {
+    .nav-menu {
+        gap: 8px;
+    }
+    .nav-menu a, .nav-dropbtn {
+        font-size: 0.75rem !important;
     }
 }

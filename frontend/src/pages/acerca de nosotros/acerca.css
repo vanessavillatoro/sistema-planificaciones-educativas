@@ -1,88 +1,105 @@
 /* --- ESTILOS BASE --- */
 .acerca-container {
-    padding: 40px;
+    padding: 20px; /* Reducido de 40px para móviles */
     max-width: 1100px; 
     margin: 0 auto;
-    font-family: Arial, sans-serif;
-    transition: color 0.3s ease;
-    font-size: 1.2rem; 
+    font-family: 'Segoe UI', Arial, sans-serif;
+    transition: all 0.3s ease;
+    font-size: 1.1rem; /* Un poco más pequeño para base responsiva */
 }
 
-/* --- MODO CLARO (Letra Negra) --- */
-.acerca-container.light-mode {
-    color: #000000;
-}
-
-/* --- MODO OSCURO (Letra Blanca) --- */
-.acerca-container.dark-mode {
-    color: #ffffff;
-}
+/* --- MODOS DE COLOR --- */
+.acerca-container.light-mode { color: #000000; }
+.acerca-container.dark-mode { color: #ffffff; }
 
 .acerca-header {
     text-align: center;
-    margin-bottom: 40px;
+    margin-bottom: 30px;
     border-bottom: 2px solid #003366;
     padding-bottom: 15px;
 }
 
 .acerca-header h1 {
-    font-size: 2.8rem;
+    font-size: clamp(1.8rem, 5vw, 2.8rem); /* Tamaño fluido según pantalla */
     margin-bottom: 10px;
 }
 
 .acerca-header h3 {
-    font-size: 1.8rem;
+    font-size: clamp(1.2rem, 3vw, 1.8rem);
 }
 
 .acerca-content p {
-    font-size: 1.3rem;
+    font-size: 1.15rem;
     line-height: 1.6;
-    margin-bottom: 25px;
+    margin-bottom: 20px;
+    text-align: justify; /* Mejora la estética institucional */
 }
 
-/* --- TABLA PROFESIONAL (Optimización Módulo 1 para PDF) --- */
-.tabla-institucional-pro {
+/* --- CONTENEDOR DE TABLA (CLAVE PARA RESPONSIVIDAD) --- */
+.tabla-responsive-container {
     width: 100%;
-    border-collapse: collapse;
-    margin: 40px 0;
-    font-size: 1.15rem;
-    background-color: #ffffff;
-    color: #333333;
+    overflow-x: auto; /* Permite scroll lateral en móviles */
+    margin: 30px 0;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 8px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
+.tabla-institucional-pro {
+    width: 100%;
+    min-width: 600px; /* Asegura que la tabla no se colapse en móviles */
+    border-collapse: collapse;
+    background-color: #ffffff;
+    color: #333333;
+}
+
 .tabla-institucional-pro thead tr {
-    background-color:#003366; /* Encabezado oscuro profesional */
+    background-color: #003366;
     color: #ffffff;
 }
 
 .tabla-institucional-pro th, 
 .tabla-institucional-pro td {
-    /* Borde negro forzado para visibilidad en PDF */
     border: 1px solid #000000 !important; 
-    padding: 18px 25px;
+    padding: 15px 20px;
     text-align: left;
 }
 
-/* Filas alternas para mejor lectura en pantalla */
 .tabla-institucional-pro tbody tr:nth-of-type(even) {
     background-color: #f8fafc;
 }
 
-.tabla-institucional-pro td strong {
-    color: #003366; /* Color de énfasis para categorías */
-    text-transform: uppercase;
-    font-size: 0.95rem;
-    letter-spacing: 0.5px;
-}
-
 /* --- BLOQUE INFERIOR --- */
 .acerca-footer-text {
-    padding: 30px;
+    padding: 20px;
     border-radius: 8px;
     font-style: italic;
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     background-color: rgba(128, 128, 128, 0.1); 
     line-height: 1.5;
-    border-left: 5px solid #003366; /* Detalle visual de cierre */
+    border-left: 5px solid #003366;
+}
+
+/* --- MEDIA QUERIES --- */
+
+@media (max-width: 768px) {
+    .acerca-container {
+        padding: 15px;
+    }
+    
+    .acerca-header {
+        margin-bottom: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .acerca-content p {
+        font-size: 1rem;
+        text-align: left; /* En pantallas muy pequeñas es mejor no justificar */
+    }
+
+    .acerca-footer-text {
+        font-size: 0.95rem;
+        padding: 15px;
+    }
 }
