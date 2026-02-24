@@ -39,7 +39,6 @@ if (!fs.existsSync(uploadsDir)){
 }
 
 // --- CONFIGURACIÓN DE CORS REFORZADA ---
-// Asegúrate de que allowedOrigins tenga las URLs exactas también
 const allowedOrigins = [
   'https://sistema-planificaciones-educativas.vercel.app',
   'https://sistema-planificaciones-educativas-ten.vercel.app',
@@ -48,18 +47,17 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Si no hay origen (como apps móviles o Postman) o está en la lista o es Vercel
     if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
       callback(null, true);
     } else {
-      console.log("Origen bloqueado por política:", origin); // Esto te dirá en la consola del back quién es el intruso
+      console.log("Origen bloqueado por política:", origin);
       callback(new Error('Bloqueado por CORS'));
     }
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
   credentials: true,
-  optionsSuccessStatus: 200 // MUY IMPORTANTE para navegadores antiguos y algunos modernos
+  optionsSuccessStatus: 200
 }));
 
 app.use((req, res, next) => {
@@ -388,11 +386,13 @@ app.delete('/api/papelera/permanente/:id', async (req, res) => {
     }
 });
 
-// --- GESTIÓN DE PERFIL ---
+// --- GESTIÓN DE PERFIL (ACTUALIZADO) ---
 app.get('/api/usuario/perfil', async (req, res) => {
     try {
         const { userId } = req.query;
-        if (!userId || userId === "undefined") return res.status(400).json({ error: "Falta userId" });
+        if (!userId || userId === "undefined" || userId === "null") {
+            return res.status(400).json({ error: "Falta userId válido" });
+        }
         const usuario = await User.findById(userId);
         if (!usuario) return res.status(404).json({ error: "No encontrado" });
         res.json(usuario);
@@ -559,6 +559,11 @@ app.post('/api/auth/login', async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: "Error" });
   }
+});
+
+// --- MANEJO DE RUTAS NO ENCONTRADAS (FIX HTML/JSON ERROR) ---
+app.use('/api/*', (req, res) => {
+    res.status(404).json({ error: `Ruta API ${req.originalUrl} no encontrada.` });
 });
 
 const PORT = process.env.PORT || 5000;
