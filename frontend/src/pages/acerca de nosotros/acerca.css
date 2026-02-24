@@ -1,105 +1,123 @@
 /* --- ESTILOS BASE --- */
 .acerca-container {
-    padding: 20px; /* Reducido de 40px para móviles */
+    padding: 40px;
     max-width: 1100px; 
     margin: 0 auto;
-    font-family: 'Segoe UI', Arial, sans-serif;
-    transition: all 0.3s ease;
-    font-size: 1.1rem; /* Un poco más pequeño para base responsiva */
+    font-family: Arial, sans-serif;
+    transition: color 0.3s ease;
+    font-size: 1.2rem; 
 }
 
-/* --- MODOS DE COLOR --- */
-.acerca-container.light-mode { color: #000000; }
-.acerca-container.dark-mode { color: #ffffff; }
+/* --- MODO CLARO (Letra Negra) --- */
+.acerca-container.light-mode {
+    color: #000000;
+}
+
+/* --- MODO OSCURO (Letra Blanca) --- */
+.acerca-container.dark-mode {
+    color: #ffffff;
+}
 
 .acerca-header {
     text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: 40px;
     border-bottom: 2px solid #003366;
     padding-bottom: 15px;
 }
 
 .acerca-header h1 {
-    font-size: clamp(1.8rem, 5vw, 2.8rem); /* Tamaño fluido según pantalla */
+    font-size: 2.8rem;
     margin-bottom: 10px;
 }
 
 .acerca-header h3 {
-    font-size: clamp(1.2rem, 3vw, 1.8rem);
+    font-size: 1.8rem;
 }
 
 .acerca-content p {
-    font-size: 1.15rem;
+    font-size: 1.3rem;
     line-height: 1.6;
-    margin-bottom: 20px;
-    text-align: justify; /* Mejora la estética institucional */
+    margin-bottom: 25px;
 }
 
-/* --- CONTENEDOR DE TABLA (CLAVE PARA RESPONSIVIDAD) --- */
-.tabla-responsive-container {
+/* --- TABLA PROFESIONAL (Optimización Módulo 1 para PDF) --- */
+.tabla-institucional-pro {
     width: 100%;
-    overflow-x: auto; /* Permite scroll lateral en móviles */
-    margin: 30px 0;
-    -webkit-overflow-scrolling: touch;
-    border-radius: 8px;
+    border-collapse: collapse;
+    margin: 40px 0;
+    font-size: 1.15rem;
+    background-color: #ffffff;
+    color: #333333;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
-.tabla-institucional-pro {
-    width: 100%;
-    min-width: 600px; /* Asegura que la tabla no se colapse en móviles */
-    border-collapse: collapse;
-    background-color: #ffffff;
-    color: #333333;
-}
-
 .tabla-institucional-pro thead tr {
-    background-color: #003366;
+    background-color:#003366; /* Encabezado oscuro profesional */
     color: #ffffff;
 }
 
 .tabla-institucional-pro th, 
 .tabla-institucional-pro td {
+    /* Borde negro forzado para visibilidad en PDF */
     border: 1px solid #000000 !important; 
-    padding: 15px 20px;
+    padding: 18px 25px;
     text-align: left;
 }
 
+/* Filas alternas para mejor lectura en pantalla */
 .tabla-institucional-pro tbody tr:nth-of-type(even) {
     background-color: #f8fafc;
 }
 
-/* --- BLOQUE INFERIOR --- */
-.acerca-footer-text {
-    padding: 20px;
-    border-radius: 8px;
-    font-style: italic;
-    font-size: 1.1rem;
-    background-color: rgba(128, 128, 128, 0.1); 
-    line-height: 1.5;
-    border-left: 5px solid #003366;
+.tabla-institucional-pro td strong {
+    color: #003366; /* Color de énfasis para categorías */
+    text-transform: uppercase;
+    font-size: 0.95rem;
+    letter-spacing: 0.5px;
 }
 
-/* --- MEDIA QUERIES --- */
+/* --- BLOQUE INFERIOR --- */
+.acerca-footer-text {
+    padding: 30px;
+    border-radius: 8px;
+    font-style: italic;
+    font-size: 1.25rem;
+    background-color: rgba(128, 128, 128, 0.1); 
+    line-height: 1.5;
+    border-left: 5px solid #003366; /* Detalle visual de cierre */
+}
 
+/* --- RESPONSIVIDAD (SOLO AJUSTES DE PANTALLA) --- */
 @media (max-width: 768px) {
     .acerca-container {
-        padding: 15px;
+        padding: 20px;
+        font-size: 1.1rem;
     }
-    
-    .acerca-header {
-        margin-bottom: 20px;
+    .acerca-header h1 {
+        font-size: 2rem;
+    }
+    .acerca-header h3 {
+        font-size: 1.4rem;
+    }
+    .acerca-content p {
+        font-size: 1.1rem;
+    }
+    /* Permite scroll horizontal en la tabla si es muy ancha para el móvil */
+    .tabla-institucional-pro {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+    .tabla-institucional-pro th, 
+    .tabla-institucional-pro td {
+        padding: 12px 15px;
+        font-size: 1rem;
     }
 }
 
 @media (max-width: 480px) {
-    .acerca-content p {
-        font-size: 1rem;
-        text-align: left; /* En pantallas muy pequeñas es mejor no justificar */
-    }
-
     .acerca-footer-text {
-        font-size: 0.95rem;
-        padding: 15px;
+        font-size: 1.1rem;
+        padding: 20px;
     }
 }

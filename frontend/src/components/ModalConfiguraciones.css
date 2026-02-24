@@ -1,146 +1,116 @@
-/* --- CONTENEDOR PRINCIPAL --- */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 3000;
-  padding: 15px; /* Margen para que el modal no toque los bordes del celular */
-}
-
+/* --- MODIFICACIÓN RESPONSIVE --- */
 .modal-config-content {
-  width: 100%;
+  /* Cambiamos width fijo por max-width y un ancho porcentual */
+  width: 90%;
   max-width: 450px; 
   border-radius: 20px;
   padding: 30px;
   position: relative;
   box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-  transition: background 0.3s ease, transform 0.2s ease;
+  transition: background 0.3s ease;
+  /* Asegura que no se pegue a los bordes de la pantalla */
+  margin: auto; 
 }
 
 .modal-config-content.light { background: white; color: #333; }
 .modal-config-content.dark { background: #2c3444; color: white; }
 
-/* --- HEADER --- */
 .modal-config-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 5px;
 }
 
 .modal-config-header h2 {
-  font-size: 22px;
+  font-size: 24px;
   margin: 0;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .close-btn-config {
   background: none;
   border: none;
-  font-size: 32px; /* Más grande para que sea fácil de tocar */
+  font-size: 28px;
   cursor: pointer;
   color: inherit;
   line-height: 1;
-  padding: 5px;
 }
 
 .modal-divider {
   border: 0;
   border-top: 1px solid rgba(128, 128, 128, 0.2);
-  margin: 10px 0;
+  margin: 15px 0 10px 0;
 }
 
-/* --- ITEMS DE CONFIGURACIÓN --- */
 .config-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 18px 0;
-  border-bottom: 1px solid rgba(128, 128, 128, 0.05); /* Separador sutil entre opciones */
-}
-
-.config-item:last-of-type {
-  border-bottom: none;
+  padding: 20px 0;
 }
 
 .config-item span {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 500;
-  flex: 1;
 }
 
 .select-wrapper {
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: rgba(128, 128, 128, 0.08); /* Fondo ligero para identificar área de clic */
-  padding: 6px 12px;
-  border-radius: 10px;
-  transition: background 0.2s;
-}
-
-.select-wrapper:active {
-  background: rgba(128, 128, 128, 0.15); /* Efecto de pulsación */
+  gap: 10px;
 }
 
 .config-item select {
   border: none;
   background: transparent;
   color: #636e72;
-  font-size: 16px;
+  font-size: 18px;
   cursor: pointer;
   outline: none;
-  appearance: none; /* Oculta flecha nativa */
+  appearance: none;
   text-align: right;
   font-family: inherit;
-  padding-right: 5px;
 }
 
 .modal-config-content.dark select {
   color: #b2bec3;
 }
 
-/* --- MEDIA QUERIES --- */
+.arrow-icon-svg {
+  width: 16px;
+  height: 16px;
+  color: #636e72;
+  pointer-events: none;
+}
 
+/* --- AJUSTES PARA DISPOSITIVOS TÁCTILES Y MÓVILES --- */
 @media (max-width: 480px) {
   .modal-config-content {
-    padding: 20px;
-    border-radius: 18px;
+    padding: 20px; 
+    width: 95%;    
   }
 
   .modal-config-header h2 {
-    font-size: 19px;
+    font-size: 20px; 
   }
 
-  .config-item {
-    padding: 15px 0;
+  /* Aumentamos el área de toque para el select en móviles */
+  .config-item select {
+    font-size: 16px;
+    padding: 5px;
   }
 
   .config-item span {
-    font-size: 15px;
-  }
-
-  .config-item select {
-    font-size: 15px;
+    font-size: 16px;
   }
 }
 
-/* Ajuste para pantallas muy pequeñas o teléfonos antiguos */
-@media (max-width: 350px) {
-  .config-item {
-    flex-direction: column; /* Apila texto y selector si no hay ancho suficiente */
-    align-items: flex-start;
-    gap: 10px;
-  }
-  
-  .select-wrapper {
-    width: 100%;
-    justify-content: space-between;
+/* Para evitar que el modal se oculte si el teclado del móvil aparece o la pantalla es muy corta */
+@media (max-height: 500px) {
+  .modal-config-content {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    max-height: 90vh;
+    overflow-y: auto;
   }
 }

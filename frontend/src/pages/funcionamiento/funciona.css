@@ -1,6 +1,6 @@
 /* Contenedor General */
 .funciona-container {
-    padding: 40px 15px; /* Reducido para ganar espacio en móviles */
+    padding: 50px 20px;
     max-width: 1200px;
     margin: 0 auto;
     min-height: 80vh;
@@ -9,37 +9,33 @@
 
 .funciona-header {
     text-align: center;
-    margin-bottom: 40px; /* Ajustado para móviles */
+    margin-bottom: 60px;
 }
 
-/* El título principal con tamaño fluido */
+/* El título principal sí puede cambiar a blanco en modo oscuro para ser legible */
 .funciona-header h1 {
-    font-size: clamp(1.8rem, 5vw, 2.5rem);
+    font-size: 2.5rem;
     color: black;
     margin-bottom: 10px;
     transition: color 0.3s ease;
 }
 
-/* Grid de Módulos Responsivo */
+/* Grid de Módulos */
 .modulos-grid {
     display: grid;
-    /* Cambiado para que en móviles muy pequeños baje a 1 columna sin romper nada */
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 30px; /* Espacio ligeramente reducido para móviles */
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 40px;
 }
 
 /* Tarjetas Individuales: Forzamos fondo blanco */
 .modulo-card {
-    background: #ffffff !important;
-    padding: 30px 20px; /* Padding más eficiente */
+    background: #ffffff !important; /* Forzado a blanco */
+    padding: 40px 30px;
     border-radius: 15px;
     box-shadow: 0 8px 25px rgba(0,0,0,0.08);
     position: relative;
     border: 1px solid #eef2f7;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-    display: flex;
-    flex-direction: column;
-    align-items: center; /* Asegura centrado de todo el contenido */
 }
 
 .modulo-card:hover {
@@ -50,66 +46,96 @@
 .modulo-badge {
     position: absolute;
     top: -12px;
-    left: 50%; /* Centrado en móviles para mejor estética */
-    transform: translateX(-50%);
+    left: 25px;
     background: #003366;
     color: #fff;
     padding: 5px 15px;
     border-radius: 20px;
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     font-weight: bold;
-    white-space: nowrap;
 }
 
 .modulo-icon {
-    font-size: clamp(2.5rem, 8vw, 3.5rem); /* Icono más pequeño en celular */
-    margin-bottom: 20px;
+    font-size: 3.5rem;
+    margin-bottom: 25px;
     display: flex;
     justify-content: center;
 }
 
+/* Forzamos títulos negros */
 .modulo-card h3 {
-    font-size: 1.25rem;
-    color: #2d3748 !important;
+    font-size: 1.4rem;
+    color: #2d3748 !important; /* Gris muy oscuro/negro */
     margin-bottom: 15px;
     text-align: center;
 }
 
+/* Forzamos descripción oscura */
 .modulo-card p {
-    font-size: 0.95rem;
+    font-size: 1rem;
     line-height: 1.6;
-    color: #4a5568 !important;
+    color: #4a5568 !important; /* Gris oscuro para lectura */
     text-align: center;
 }
 
 .funciona-disclaimer {
-    margin-top: 40px;
+    margin-top: 50px;
     text-align: center;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     color: #718096;
-    padding: 0 10px;
 }
 
-/* --- MEDIA QUERIES --- */
+/* Adaptación para Modo Oscuro (Solo elementos externos a las tarjetas) */
 
-@media (max-width: 600px) {
-    .funciona-container {
-        padding-top: 20px;
-    }
-    
-    .modulos-grid {
-        grid-template-columns: 1fr; /* Forzar una columna en teléfonos */
-        gap: 40px; /* Más espacio entre tarjetas apiladas */
-    }
-
-    .modulo-card {
-        padding: 35px 20px 25px 20px;
-    }
+/* El título fuera de la tarjeta cambia a blanco para no perderse en el fondo oscuro de la página */
+.dark .funciona-header h1 { 
+    color: #ffffff; 
 }
 
-/* Adaptación para Modo Oscuro (Elementos externos) */
-.dark .funciona-header h1 { color: #ffffff; }
-.dark .modulo-card { background: #ffffff !important; border-color: #eef2f7; }
+/* Las tarjetas mantienen su estilo original incluso en .dark */
+.dark .modulo-card {
+    background: #ffffff !important;
+    border-color: #eef2f7;
+}
+
 .dark .modulo-card h3 { color: #2d3748 !important; }
 .dark .modulo-card p { color: #4a5568 !important; }
-.dark .funciona-disclaimer { color: #cbd5e0; }
+
+/* El texto aclaratorio inferior también cambia a gris claro para ser legible */
+.dark .funciona-disclaimer {
+    color: #cbd5e0;
+}
+
+/* --- RESPONSIVIDAD (SOLO AJUSTES DE PANTALLA) --- */
+@media (max-width: 768px) {
+    .funciona-container {
+        padding: 30px 15px;
+    }
+    .funciona-header {
+        margin-bottom: 40px;
+    }
+    .funciona-header h1 {
+        font-size: 2rem;
+    }
+    .modulos-grid {
+        gap: 30px;
+        /* En tablets pequeñas o móviles grandes, asegurar que el minmax no rompa el diseño */
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+}
+
+@media (max-width: 480px) {
+    .modulo-card {
+        padding: 30px 20px;
+    }
+    .modulo-icon {
+        font-size: 2.8rem;
+        margin-bottom: 15px;
+    }
+    .modulo-card h3 {
+        font-size: 1.2rem;
+    }
+    .funciona-disclaimer {
+        font-size: 0.8rem;
+    }
+}

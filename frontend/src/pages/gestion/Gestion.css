@@ -1,152 +1,214 @@
-/* --- CONTENEDOR DE GESTIÓN --- */
+/* --- ESTILOS DE GESTIÓN CORREGIDOS --- */
+
 .gestion-container {
-    padding: 30px 20px;
+    padding: 40px;
     text-align: center;
     min-height: 100vh;
 }
 
-/* TÍTULOS DINÁMICOS */
-.main-title { 
-    font-size: clamp(1.8rem, 5vw, 3rem); 
-    margin-bottom: 5px; 
-}
-.section-subtitle { 
-    font-size: clamp(1rem, 3vw, 1.5rem); 
-    margin-bottom: 25px; 
-    color: #666; 
-}
-
-/* FILTROS: Optimización para Pulgares */
+/* CONTENEDOR DE BÚSQUEDA Y FILTROS */
 .search-filters-container {
-    display: flex;
-    align-items: center;
+    display: flex !important;
+    align-items: center !important;
     justify-content: center;
-    gap: 12px;
+    gap: 15px;
     margin-bottom: 30px;
     width: 100%;
-    flex-wrap: wrap; /* Permite que bajen si no caben */
 }
 
+/* ESTILO BASE PARA AMBOS (ALTURA Y BORDES) */
 .gestion-container select, 
 .gestion-container input[type="text"] {
-    height: 50px; /* Un poco más estilizado */
-    border-radius: 12px;
-    border: 1px solid #000;
-    padding: 0 15px;
-    font-size: 16px !important; /* Evita el zoom automático en iPhone */
-    background-color: #fff;
-    transition: all 0.2s;
+    height: 55px !important;
+    min-height: 55px !important;
+    box-sizing: border-box !important;
+    border-radius: 12px !important;
+    border: 1px solid #000000 !important;
+    padding: 0 15px !important;
+    font-size: 1rem !important;
+    background-color: #ffffff;
+    color: #000000;
+    margin: 0 !important;
 }
 
-.gestion-container input[type="text"] {
-    flex: 2;
-    min-width: 200px; /* No deja que el buscador se vuelva invisible */
-}
-
+/* SOLO PARA LOS SELECTORES: AGREGAR FLECHA Y QUITAR FONDO REPETIDO */
 .gestion-container select {
-    flex: 1;
-    min-width: 140px;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 12px center;
-    background-size: 12px;
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    padding-right: 40px !important; 
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 15px center !important;
+    background-size: 14px !important;
+    cursor: pointer;
 }
 
-/* GRID DE TARJETAS */
+/* SOLO PARA EL BUSCADOR: ASEGURAR QUE NO TENGA FONDO DE FLECHAS */
+.gestion-container input[type="text"] {
+    background-image: none !important; /* Limpia el patrón de flechas de la imagen */
+    flex: 2;
+}
+
+/* --- RESTO DE ESTILOS (Títulos, Cards, etc.) --- */
+.main-title { font-size: 3rem; margin-bottom: 0; }
+.section-subtitle { font-size: 1.5rem; margin-bottom: 20px; color: #555; text-transform: capitalize; }
+
 .cards-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 20px;
 }
 
 .card {
-    min-height: 180px;
-    border-radius: 15px;
+    height: 200px;
+    border: 2px solid #ddd;
+    border-radius: 12px;
+    position: relative;
     background: white;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding: 20px;
-    border: 1px solid #eee;
-    border-left: 8px solid #ddd; /* Borde de color más grueso para móviles */
-    box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+    padding: 15px;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.plan-card { border-left-color: #28a745; }
-.recurso-card { border-left-color: #6f42c1; }
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
 
-/* MENÚS DESPLEGABLES (EL RETO RESPONSIVO) */
-.card-options { position: absolute; top: 12px; right: 12px; }
+.plan-card { border-left: 6px solid #28a745; }
+.recurso-card { border-left: 6px solid #6f42c1; }
+
+.card-info h3 { font-size: 1.1rem; margin-bottom: 5px; color: #333; }
+.card-info p { font-size: 0.9rem; color: #666; }
+
+.card-options { 
+    position: absolute; 
+    top: 10px; 
+    right: 10px; 
+    z-index: 100;
+}
+
+.dots-btn { background: none; border: none; cursor: pointer; font-size: 1.5rem; color: #888; }
 
 .dropdown-menu {
     position: absolute;
-    right: 0; /* Alineado a la derecha para que no se salga */
-    top: 35px;
+    left: 0;
+    top: 30px;
     background: white;
-    width: 200px;
-    border-radius: 12px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     z-index: 1000;
-    border: 1px solid #eee;
+    width: 180px;
+    border-radius: 8px;
+    overflow: visible; 
 }
 
-/* Submenú adaptado: En lugar de abrirse a la derecha, se despliega hacia abajo en móviles */
-.submenu {
-    position: static; /* Cambiado de absolute a static */
+.dropdown-menu button, .submenu-trigger {
     width: 100%;
-    background: #f9f9f9;
-    display: none;
-    border-radius: 0 0 10px 10px;
+    padding: 10px 15px;
+    border: none;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+    font-size: 0.9rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #333;
 }
 
-.submenu-trigger:hover .submenu,
-.submenu-trigger:active .submenu {
-    display: block;
+.dropdown-menu button:hover, .submenu-trigger:hover {
+    background-color: #f5f5f5;
 }
 
-/* --- MODO OSCURO --- */
-.dark .card { background: #1a202c; border-color: #2d3748; }
-.dark .card-info h3 { color: #fff; }
-.dark .dropdown-menu { background: #2d3748; border-color: #4a5568; }
-.dark .dropdown-menu button { color: #eee; }
-.dark .submenu { background: #1a202c; }
+.submenu-trigger { position: relative; }
 
-/* --- MEDIA QUERIES --- */
+.submenu {
+    position: absolute;
+    left: 100%;
+    top: 0;
+    width: 180px;
+    background: white;
+    border: 1px solid #ddd;
+    box-shadow: 4px 4px 12px rgba(0,0,0,0.15);
+    display: none; 
+    border-radius: 8px;
+    margin-left: 2px;
+}
 
+.submenu-trigger:hover .submenu {
+    display: block; 
+}
+
+/* --- MODO OSCURO (CORREGIDO PARA NO ENSUCIAR EL BUSCADOR) --- */
+.dark .card { background: #2d3748; border-color: #4a5568; }
+.dark .card-info h3 { color: #edf2f7; }
+.dark .card-info p { color: #a0aec0; }
+.dark .dropdown-menu, .dark .submenu { background: #1a202c; border-color: #4a5568; }
+.dark .dropdown-menu button, .dark .submenu-trigger { color: #edf2f7; }
+.dark .dropdown-menu button:hover, .dark .submenu-trigger:hover { background: #2d3748; }
+.dark .section-subtitle { color: #a0aec0; }
+
+/* AJUSTE DE FILTROS EN MODO OSCURO */
+.dark .gestion-container input[type="text"] {
+    background-color: #2d3748;
+    color: #ffffff;
+    border: 1px solid #ffffff !important;
+    background-image: none !important; /* SE ASEGURA DE QUITAR LAS FLECHAS */
+}
+
+.dark .gestion-container select {
+    background-color: #2d3748;
+    color: #ffffff;
+    border: 1px solid #ffffff !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 15px center !important;
+}
+
+.loading-msg, .empty-text {
+    color: #888;
+    font-style: italic;
+    grid-column: 1 / -1;
+    padding: 20px;
+}
+
+/* --- AJUSTES RESPONSIVE --- */
 @media (max-width: 768px) {
+    .gestion-container { padding: 20px; }
+    .main-title { font-size: 2rem; }
+    .cards-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 15px;
+    }
     .search-filters-container {
         flex-direction: column;
         gap: 10px;
     }
-
-    .gestion-container input[type="text"],
-    .gestion-container select {
+    .gestion-container select, 
+    .gestion-container input[type="text"] {
         width: 100%;
-        flex: none;
-    }
-
-    .cards-grid {
-        grid-template-columns: 1fr; /* Una tarjeta por fila en celular */
-    }
-
-    .card {
-        min-height: 150px;
-    }
-
-    /* Ajuste de dropdown para evitar que el dedo lo tape */
-    .dropdown-menu {
-        width: 220px;
-        padding: 5px;
-    }
-    
-    .dropdown-menu button {
-        padding: 15px; /* Área de toque más grande */
-        font-size: 1rem;
     }
 }
 
-@media (max-width: 400px) {
-    .main-title { font-size: 1.5rem; }
-    .card-info h3 { font-size: 1rem; }
+@media (max-width: 480px) {
+    .main-title { font-size: 1.6rem; }
+    .section-subtitle { font-size: 1.1rem; }
+    .cards-grid { grid-template-columns: 1fr; }
+    
+    .submenu {
+        position: static;
+        width: 100%;
+        left: 0;
+        margin-left: 0;
+        box-shadow: none;
+        border: none;
+        border-left: 2px solid #ddd;
+        background: rgba(0,0,0,0.02);
+    }
+    .dropdown-menu { left: auto; right: 0; }
+    .dark .submenu { background: rgba(255,255,255,0.05); }
 }
