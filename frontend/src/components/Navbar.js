@@ -30,16 +30,11 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
     ? "http://localhost:5000" 
     : "https://sistema-planificaciones-educativas-ten.vercel.app";
 
-  // --- FUNCIÓN CORREGIDA: NO AÑADIR TIMESTAMP A BASE64 ---
   const obtenerUrlImagen = (url) => {
     if (!url) return fotoPerfil;
-    
-    // Si la imagen es Base64, blob o externa, usar tal cual (SIN timestamp)
     if (url.startsWith('data:') || url.startsWith('blob:') || url.startsWith('http')) {
       return url;
     }
-    
-    // Solo si es una ruta de archivo antigua (/uploads/...) añadimos el timestamp para evitar caché
     const rutaBase = url.startsWith('/') ? url : `/${url}`;
     return `${API_BASE_URL}${rutaBase}?v=${Date.now()}`;
   };
@@ -50,14 +45,16 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
 
   const cargarDatos = useCallback(async () => {
     try {
-      if (!userId) {
-        setUsuario({ nombre: 'Invitado', correo: '', fotoUrl: '', celular: '', municipio: '', departamento: '', direccion: '' });
+      // AJUSTE: Solo procedemos si el userId es válido para evitar error "<"
+      if (!userId || userId === "null" || userId === "undefined" || userId === "Invitado") {
         return;
       }
 
-      // Añadimos timestamp a la petición API para bypass de caché del servidor
       const response = await fetch(`${API_BASE_URL}/api/usuario/perfil?userId=${userId}&t=${Date.now()}`);
-      if (response.ok) {
+      
+      // Verificamos que sea una respuesta JSON válida
+      const contentType = response.headers.get("content-type");
+      if (response.ok && contentType && contentType.includes("application/json")) {
         const data = await response.json();
         
         const nombrePersistente = data.userName || data.nombre || data.name || 'Docente';
@@ -74,7 +71,6 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
           direccion: data.userDireccion || data.direccion || ''
         });
 
-        // Sincronizar LocalStorage
         localStorage.setItem('userName', nombrePersistente);
         localStorage.setItem('userFoto', fotoPersistente);
         localStorage.setItem('userEmail', correoPersistente);
@@ -86,15 +82,17 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
         if (setNombreApp) setNombreApp(nombrePersistente);
       }
     } catch (error) {
-      console.log("Error de conexión perfil.");
+      console.log("Sesión no disponible.");
     }
   }, [setNombreApp, API_BASE_URL, userId]);
 
   useEffect(() => {
-    cargarDatos();
+    // AJUSTE: Candado para no disparar la carga si no hay sesión activa
+    if (userId && userId !== "null" && userId !== "undefined" && userId !== "Invitado") {
+      cargarDatos();
+    }
 
     const manejarCambioPerfil = () => {
-      // Forzamos la relectura total del LocalStorage
       setUsuario({
         nombre: localStorage.getItem('userName') || 'Docente',
         correo: localStorage.getItem('userEmail') || '',
@@ -116,10 +114,9 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
       window.removeEventListener('perfilActualizado', manejarCambioPerfil);
       window.removeEventListener('storage', manejarCambioPerfil);
     };
-  }, [cargarDatos, setNombreApp]);
+  }, [cargarDatos, setNombreApp, userId]); // Agregado userId a dependencias
 
   const handleSave = () => {
-    // Al guardar en el modal, esto gatilla el evento que el useEffect escucha arriba
     window.dispatchEvent(new Event('perfilActualizado'));
     setModalAbierta(false);
   };
@@ -127,6 +124,8 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
   const handleLogout = () => {
     localStorage.clear();
     setUsuario({ nombre: 'Invitado', correo: '', fotoUrl: '', celular: '', municipio: '', departamento: '', direccion: '' });
+    
+    // AJUSTE: Redirección completa para limpiar políticas de seguridad (Google COOP)
     window.location.href = '/auth';
   };
 
@@ -156,7 +155,7 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
               src={obtenerUrlImagen(usuario.fotoUrl)} 
               alt="Perfil" 
               className="avatar-img" 
-              key={`nav-trigger-${usuario.fotoUrl}`} // Key única para forzar refresco visual
+              key={`nav-trigger-${usuario.fotoUrl}`}
               onError={(e) => { e.target.src = fotoPerfil; }} 
             />
           </div>
@@ -180,7 +179,7 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
               <hr />
 
               <ul className="perfil-menu-list">
-                {userId ? (
+                {userId && userId !== "Invitado" ? (
                   <>
                     <li onClick={() => { setModalAbierta(true); setMenuAbierto(false); }}>
                       <i className="icon-user"></i> Mi perfil
