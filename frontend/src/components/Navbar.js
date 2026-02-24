@@ -11,7 +11,6 @@ import fotoPerfil from './perfil.png';
 
 const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
   const [menuAbierto, setMenuAbierto] = useState(false);
-  const [hamburguesaAbierta, setHamburguesaAbierta] = useState(false); 
   const [modalAbierta, setModalAbierta] = useState(false);
   const [modalConfigAbierta, setModalConfigAbierta] = useState(false); 
   
@@ -31,11 +30,16 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
     ? "http://localhost:5000" 
     : "https://sistema-planificaciones-educativas-ten.vercel.app";
 
+  // --- FUNCIÓN CORREGIDA: NO AÑADIR TIMESTAMP A BASE64 ---
   const obtenerUrlImagen = (url) => {
     if (!url) return fotoPerfil;
+    
+    // Si la imagen es Base64, blob o externa, usar tal cual (SIN timestamp)
     if (url.startsWith('data:') || url.startsWith('blob:') || url.startsWith('http')) {
       return url;
     }
+    
+    // Solo si es una ruta de archivo antigua (/uploads/...) añadimos el timestamp para evitar caché
     const rutaBase = url.startsWith('/') ? url : `/${url}`;
     return `${API_BASE_URL}${rutaBase}?v=${Date.now()}`;
   };
@@ -44,51 +48,53 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
     setMenuAbierto(!menuAbierto);
   };
 
-  const toggleHamburguesa = () => {
-    setHamburguesaAbierta(!hamburguesaAbierta);
-  };
-
   const cargarDatos = useCallback(async () => {
     try {
-      if (!userId) return;
-
-      const url = `${API_BASE_URL}/api/usuario/perfil?userId=${userId}&t=${Date.now()}`;
-      const response = await fetch(url);
-
-      if (!response.ok) {
-        throw new Error(`Error HTTP: ${response.status}`);
+      if (!userId) {
+        setUsuario({ nombre: 'Invitado', correo: '', fotoUrl: '', celular: '', municipio: '', departamento: '', direccion: '' });
+        return;
       }
 
-      const data = await response.json();
-      
-      const nombrePersistente = data.userName || data.nombre || data.name || 'Docente';
-      const fotoPersistente = data.userFoto || data.fotoUrl || '';
-      const correoPersistente = data.userEmail || data.email || data.correo || '';
-      
-      setUsuario({
-        nombre: nombrePersistente,
-        correo: correoPersistente,
-        fotoUrl: fotoPersistente,
-        celular: data.userCelular || data.celular || '',
-        municipio: data.userMunicipio || data.municipio || '',
-        departamento: data.userDepartamento || data.departamento || '',
-        direccion: data.userDireccion || data.direccion || ''
-      });
+      // Añadimos timestamp a la petición API para bypass de caché del servidor
+      const response = await fetch(`${API_BASE_URL}/api/usuario/perfil?userId=${userId}&t=${Date.now()}`);
+      if (response.ok) {
+        const data = await response.json();
+        
+        const nombrePersistente = data.userName || data.nombre || data.name || 'Docente';
+        const fotoPersistente = data.userFoto || data.fotoUrl || '';
+        const correoPersistente = data.userEmail || data.email || data.correo || '';
+        
+        setUsuario({
+          nombre: nombrePersistente,
+          correo: correoPersistente,
+          fotoUrl: fotoPersistente,
+          celular: data.userCelular || data.celular || '',
+          municipio: data.userMunicipio || data.municipio || '',
+          departamento: data.userDepartamento || data.departamento || '',
+          direccion: data.userDireccion || data.direccion || ''
+        });
 
-      localStorage.setItem('userName', nombrePersistente);
-      localStorage.setItem('userFoto', fotoPersistente);
-      localStorage.setItem('userEmail', correoPersistente);
-      
-      if (setNombreApp) setNombreApp(nombrePersistente);
+        // Sincronizar LocalStorage
+        localStorage.setItem('userName', nombrePersistente);
+        localStorage.setItem('userFoto', fotoPersistente);
+        localStorage.setItem('userEmail', correoPersistente);
+        localStorage.setItem('userCelular', data.userCelular || data.celular || '');
+        localStorage.setItem('userMunicipio', data.userMunicipio || data.municipio || '');
+        localStorage.setItem('userDepartamento', data.userDepartamento || data.departamento || '');
+        localStorage.setItem('userDireccion', data.userDireccion || data.direccion || '');
 
+        if (setNombreApp) setNombreApp(nombrePersistente);
+      }
     } catch (error) {
-      console.error("Detalle del error:", error.message);
+      console.log("Error de conexión perfil.");
     }
   }, [setNombreApp, API_BASE_URL, userId]);
 
   useEffect(() => {
     cargarDatos();
+
     const manejarCambioPerfil = () => {
+      // Forzamos la relectura total del LocalStorage
       setUsuario({
         nombre: localStorage.getItem('userName') || 'Docente',
         correo: localStorage.getItem('userEmail') || '',
@@ -98,17 +104,22 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
         departamento: localStorage.getItem('userDepartamento') || '',
         direccion: localStorage.getItem('userDireccion') || ''
       });
+
+      const nuevoNombre = localStorage.getItem('userName');
+      if (setNombreApp && nuevoNombre) setNombreApp(nuevoNombre);
     };
 
     window.addEventListener('perfilActualizado', manejarCambioPerfil);
     window.addEventListener('storage', manejarCambioPerfil);
+
     return () => {
       window.removeEventListener('perfilActualizado', manejarCambioPerfil);
       window.removeEventListener('storage', manejarCambioPerfil);
     };
-  }, [cargarDatos]);
+  }, [cargarDatos, setNombreApp]);
 
   const handleSave = () => {
+    // Al guardar en el modal, esto gatilla el evento que el useEffect escucha arriba
     window.dispatchEvent(new Event('perfilActualizado'));
     setModalAbierta(false);
   };
@@ -121,37 +132,22 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
 
   return (
     <nav className={`navbar ${darkMode ? 'dark' : 'light'}`}>
-      
-      {/* SECCIÓN IZQUIERDA: Siempre visible (Hamburguesa + Logo) */}
-      <div className="nav-left-section" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-        <button 
-          className={`menu-hamburguesa ${hamburguesaAbierta ? 'active' : ''}`} 
-          onClick={toggleHamburguesa}
-        >
-          <span className="bar"></span>
-          <span className="bar"></span>
-          <span className="bar"></span>
-        </button>
+      <Link to="/" className="brand-container">
+        <img src={logoApp} alt="Logo Villatoro" className="logo-img" />
+        <div className="brand-text">
+          <span className="brand-top">Villatoro's</span>
+          <span className="brand-bottom">Solutions</span>
+        </div>
+      </Link>
 
-        <Link to="/" className="brand-container">
-          <img src={logoApp} alt="Logo Villatoro" className="logo-img" />
-          <div className="brand-text">
-            <span className="brand-top">Villatoro's</span>
-            <span className="brand-bottom">Solutions</span>
-          </div>
-        </Link>
-      </div>
-
-      {/* MENÚ DE NAVEGACIÓN (Se oculta en móvil tras la hamburguesa) */}
-      <div className={`nav-menu ${hamburguesaAbierta ? 'active' : ''}`}>
+      <div className="nav-menu">
         <NavDropdown />
-        <Link to="/acerca-de-nosotros" onClick={() => setHamburguesaAbierta(false)}>Acerca de nosotros</Link>
-        <Link to="/blog" onClick={() => setHamburguesaAbierta(false)}>Blog</Link>
-        <Link to="/funciona" onClick={() => setHamburguesaAbierta(false)}>¿Cómo funciona?</Link>
+        <Link to="/acerca-de-nosotros">Acerca de nosotros</Link>
+        <Link to="/blog">Blog</Link>
+        <Link to="/funciona">¿Cómo funciona?</Link>
       </div>
 
-      {/* SECCIÓN DERECHA: Siempre visible (ThemeToggle + Perfil) */}
-      <div className="navbar-actions">
+      <div className="navbar-actions" style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
         <ThemeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
         
         <div className="perfil-container" style={{ position: 'relative' }}>
@@ -160,7 +156,7 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
               src={obtenerUrlImagen(usuario.fotoUrl)} 
               alt="Perfil" 
               className="avatar-img" 
-              key={`nav-trigger-${usuario.fotoUrl}`}
+              key={`nav-trigger-${usuario.fotoUrl}`} // Key única para forzar refresco visual
               onError={(e) => { e.target.src = fotoPerfil; }} 
             />
           </div>
@@ -207,7 +203,6 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
         </div>
       </div>
 
-      {/* MODALES */}
       {modalAbierta && (
         <ModalPerfil 
           onClose={() => setModalAbierta(false)} 
