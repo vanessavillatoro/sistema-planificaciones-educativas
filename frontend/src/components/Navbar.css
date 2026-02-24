@@ -256,7 +256,7 @@
   transition: all 0.3s ease;
 }
 
-/* --- ADAPTACIÓN RESPONSIVA ACTUALIZADA --- */
+/* --- ADAPTACIÓN RESPONSIVA (ACTUALIZADA PARA MENÚ A LA IZQUIERDA) --- */
 @media (max-width: 850px) {
     .brand-text {
         display: none; 
@@ -266,24 +266,27 @@
         display: flex;
     }
 
+    /* El menú ahora sale desde la IZQUIERDA */
     .nav-menu {
         position: fixed;
         top: 0;
-        right: -100%; /* Oculto a la derecha */
-        width: 250px;
+        left: -100%; 
+        right: auto;
+        width: 280px;
         height: 100vh;
         background-color: var(--nav-bg);
         flex-direction: column;
         justify-content: flex-start;
         padding: 100px 20px;
         gap: 20px;
-        transition: right 0.4s ease;
-        box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+        transition: left 0.4s ease;
+        box-shadow: 5px 0 15px rgba(0,0,0,0.1);
         z-index: 2050;
     }
 
     .nav-menu.active {
-        right: 0; /* Aparece al estar activo */
+        left: 0; /* Aparece desde la izquierda */
+        right: auto;
     }
 
     /* Animación X de hamburguesa */
@@ -303,8 +306,14 @@
         padding: 10px 15px;
         height: 70px;
     }
+    
+    /* Mantenemos el logo y las acciones (derecha) alineadas */
+    .nav-left-section {
+        gap: 10px;
+    }
+
     .navbar a, .nav-menu a, .nav-dropbtn {
-        font-size: 1rem !important; /* Ajustado para mejor legibilidad en menú lateral */
+        font-size: 1rem !important;
     }
     .logo-img, .avatar-img {
         width: 40px;
@@ -314,9 +323,6 @@
         width: 260px;
         right: 10px;
         top: 70px;
-    }
-    .user-email {
-        max-width: 140px; 
     }
 }
 

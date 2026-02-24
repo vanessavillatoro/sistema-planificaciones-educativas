@@ -11,7 +11,7 @@ import fotoPerfil from './perfil.png';
 
 const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
   const [menuAbierto, setMenuAbierto] = useState(false);
-  const [hamburguesaAbierta, setHamburguesaAbierta] = useState(false); // NUEVO ESTADO
+  const [hamburguesaAbierta, setHamburguesaAbierta] = useState(false); 
   const [modalAbierta, setModalAbierta] = useState(false);
   const [modalConfigAbierta, setModalConfigAbierta] = useState(false); 
   
@@ -44,46 +44,45 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
     setMenuAbierto(!menuAbierto);
   };
 
-  // NUEVA FUNCIÓN PARA HAMBURGUESA
   const toggleHamburguesa = () => {
     setHamburguesaAbierta(!hamburguesaAbierta);
   };
 
   const cargarDatos = useCallback(async () => {
     try {
-      if (!userId) {
-        setUsuario({ nombre: 'Invitado', correo: '', fotoUrl: '', celular: '', municipio: '', departamento: '', direccion: '' });
-        return;
-      }
-      const response = await fetch(`${API_BASE_URL}/api/usuario/perfil?userId=${userId}&t=${Date.now()}`);
-      if (response.ok) {
-        const data = await response.json();
-        const nombrePersistente = data.userName || data.nombre || data.name || 'Docente';
-        const fotoPersistente = data.userFoto || data.fotoUrl || '';
-        const correoPersistente = data.userEmail || data.email || data.correo || '';
-        
-        setUsuario({
-          nombre: nombrePersistente,
-          correo: correoPersistente,
-          fotoUrl: fotoPersistente,
-          celular: data.userCelular || data.celular || '',
-          municipio: data.userMunicipio || data.municipio || '',
-          departamento: data.userDepartamento || data.departamento || '',
-          direccion: data.userDireccion || data.direccion || ''
-        });
+      if (!userId) return;
 
-        localStorage.setItem('userName', nombrePersistente);
-        localStorage.setItem('userFoto', fotoPersistente);
-        localStorage.setItem('userEmail', correoPersistente);
-        localStorage.setItem('userCelular', data.userCelular || data.celular || '');
-        localStorage.setItem('userMunicipio', data.userMunicipio || data.municipio || '');
-        localStorage.setItem('userDepartamento', data.userDepartamento || data.departamento || '');
-        localStorage.setItem('userDireccion', data.userDireccion || data.direccion || '');
+      const url = `${API_BASE_URL}/api/usuario/perfil?userId=${userId}&t=${Date.now()}`;
+      const response = await fetch(url);
 
-        if (setNombreApp) setNombreApp(nombrePersistente);
+      if (!response.ok) {
+        throw new Error(`Error HTTP: ${response.status}`);
       }
+
+      const data = await response.json();
+      
+      const nombrePersistente = data.userName || data.nombre || data.name || 'Docente';
+      const fotoPersistente = data.userFoto || data.fotoUrl || '';
+      const correoPersistente = data.userEmail || data.email || data.correo || '';
+      
+      setUsuario({
+        nombre: nombrePersistente,
+        correo: correoPersistente,
+        fotoUrl: fotoPersistente,
+        celular: data.userCelular || data.celular || '',
+        municipio: data.userMunicipio || data.municipio || '',
+        departamento: data.userDepartamento || data.departamento || '',
+        direccion: data.userDireccion || data.direccion || ''
+      });
+
+      localStorage.setItem('userName', nombrePersistente);
+      localStorage.setItem('userFoto', fotoPersistente);
+      localStorage.setItem('userEmail', correoPersistente);
+      
+      if (setNombreApp) setNombreApp(nombrePersistente);
+
     } catch (error) {
-      console.log("Error de conexión perfil.");
+      console.error("Detalle del error:", error.message);
     }
   }, [setNombreApp, API_BASE_URL, userId]);
 
@@ -99,8 +98,6 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
         departamento: localStorage.getItem('userDepartamento') || '',
         direccion: localStorage.getItem('userDireccion') || ''
       });
-      const nuevoNombre = localStorage.getItem('userName');
-      if (setNombreApp && nuevoNombre) setNombreApp(nuevoNombre);
     };
 
     window.addEventListener('perfilActualizado', manejarCambioPerfil);
@@ -109,7 +106,7 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
       window.removeEventListener('perfilActualizado', manejarCambioPerfil);
       window.removeEventListener('storage', manejarCambioPerfil);
     };
-  }, [cargarDatos, setNombreApp]);
+  }, [cargarDatos]);
 
   const handleSave = () => {
     window.dispatchEvent(new Event('perfilActualizado'));
@@ -124,25 +121,28 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
 
   return (
     <nav className={`navbar ${darkMode ? 'dark' : 'light'}`}>
-      <Link to="/" className="brand-container">
-        <img src={logoApp} alt="Logo Villatoro" className="logo-img" />
-        <div className="brand-text">
-          <span className="brand-top">Villatoro's</span>
-          <span className="brand-bottom">Solutions</span>
-        </div>
-      </Link>
+      
+      {/* SECCIÓN IZQUIERDA: Siempre visible (Hamburguesa + Logo) */}
+      <div className="nav-left-section" style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+        <button 
+          className={`menu-hamburguesa ${hamburguesaAbierta ? 'active' : ''}`} 
+          onClick={toggleHamburguesa}
+        >
+          <span className="bar"></span>
+          <span className="bar"></span>
+          <span className="bar"></span>
+        </button>
 
-      {/* BOTÓN HAMBURGUESA */}
-      <button 
-        className={`menu-hamburguesa ${hamburguesaAbierta ? 'active' : ''}`} 
-        onClick={toggleHamburguesa}
-      >
-        <span className="bar"></span>
-        <span className="bar"></span>
-        <span className="bar"></span>
-      </button>
+        <Link to="/" className="brand-container">
+          <img src={logoApp} alt="Logo Villatoro" className="logo-img" />
+          <div className="brand-text">
+            <span className="brand-top">Villatoro's</span>
+            <span className="brand-bottom">Solutions</span>
+          </div>
+        </Link>
+      </div>
 
-      {/* NAV-MENU CON CLASE CONDICIONAL */}
+      {/* MENÚ DE NAVEGACIÓN (Se oculta en móvil tras la hamburguesa) */}
       <div className={`nav-menu ${hamburguesaAbierta ? 'active' : ''}`}>
         <NavDropdown />
         <Link to="/acerca-de-nosotros" onClick={() => setHamburguesaAbierta(false)}>Acerca de nosotros</Link>
@@ -150,6 +150,7 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
         <Link to="/funciona" onClick={() => setHamburguesaAbierta(false)}>¿Cómo funciona?</Link>
       </div>
 
+      {/* SECCIÓN DERECHA: Siempre visible (ThemeToggle + Perfil) */}
       <div className="navbar-actions">
         <ThemeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
         
@@ -206,6 +207,7 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
         </div>
       </div>
 
+      {/* MODALES */}
       {modalAbierta && (
         <ModalPerfil 
           onClose={() => setModalAbierta(false)} 
