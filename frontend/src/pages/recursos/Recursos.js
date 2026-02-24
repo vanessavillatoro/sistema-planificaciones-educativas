@@ -22,7 +22,8 @@ const Recursos = ({ darkMode }) => {
   const [openDropdown, setOpenDropdown] = useState(null);
   const dropdownRef = useRef(null);
 
-  const API_BASE_URL = 'https://sistema-planificaciones-back.vercel.app';
+  // URL CORREGIDA según tu indicación
+  const API_BASE_URL = 'https://sistema-planificaciones-educativas.vercel.app';
 
   const ajustarAlturaTextareas = () => {
     setTimeout(() => {
@@ -55,7 +56,6 @@ const Recursos = ({ darkMode }) => {
         }
       } catch (error) {
         console.error("Error al eliminar:", error);
-        alert("❌ Error de conexión.");
       }
     }
   };
@@ -65,20 +65,16 @@ const Recursos = ({ darkMode }) => {
     return texto.replace(/\*/g, '').split(/(?<=[.!?])\s+/).map(frase => frase.trim()).filter(frase => frase.length > 3).join('\n');
   };
 
-  // --- CARGAR DATOS CORREGIDO (Sin headers para evitar bloqueo CORS) ---
   const cargarDatos = useCallback(async () => {
     const userId = localStorage.getItem('userId'); 
-    if (!userId) {
-      console.warn("⚠️ No se encontró userId en localStorage");
-      return;
-    }
+    if (!userId) return;
 
     try {
       setLoading(true);
-      // Simplificamos la petición para evitar el preflight de CORS en navegadores estrictos
+      // Petición sin headers adicionales para maximizar compatibilidad CORS
       const response = await fetch(`${API_BASE_URL}/api/gestion?userId=${userId}`);
       
-      if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
       
       const data = await response.json();
       
@@ -115,14 +111,13 @@ const Recursos = ({ darkMode }) => {
               objetivos: formatearTextoPorLineas(data.objetivos || ''),
               indicadores: formatearTextoPorLineas(data.indicadores || '')
             });
-            
             if (data.contenido || data.datos?.contenido) {
               setResultado(data.contenido || data.datos?.contenido);
             }
             ajustarAlturaTextareas(); 
           }
         })
-        .catch(err => console.error("Error al cargar datos de edición:", err));
+        .catch(err => console.error("Error en edición:", err));
     }
   }, [location, API_BASE_URL]);
 
@@ -157,7 +152,6 @@ const Recursos = ({ darkMode }) => {
       });
 
       if (!response.ok) throw new Error("Error en el servidor al generar");
-
       const data = await response.json();
       setResultado(formatearContenidoIA(data.contenido)); 
     } catch (error) {
@@ -199,14 +193,14 @@ const Recursos = ({ darkMode }) => {
       });
 
       if (response.ok) {
-        alert(editId ? "¡Recurso actualizado con éxito!" : "¡Recurso enviado al Módulo de Gestión!");
+        alert(editId ? "¡Recurso actualizado!" : "¡Recurso enviado a Gestión!");
         if (editId) navigate('/gestion'); 
       } else {
         throw new Error("Error en la operación");
       }
     } catch (error) {
       console.error("Error al exportar:", error);
-      alert("❌ Error al procesar en el módulo de Gestión.");
+      alert("❌ Error al procesar.");
     } finally {
       setSaving(false);
     }
@@ -215,29 +209,24 @@ const Recursos = ({ darkMode }) => {
   const copiarConFormato = async () => {
     const elemento = document.querySelector('.markdown-body');
     if (!elemento) return;
-
     try {
       const clono = elemento.cloneNode(true);
       const ruidos = clono.querySelectorAll('.katex-html, [aria-hidden="true"]');
       ruidos.forEach(r => r.remove());
-
       const todos = clono.querySelectorAll('*');
       todos.forEach(el => {
         el.removeAttribute('class');
         el.removeAttribute('id');
         el.style.fontFamily = "Arial, sans-serif";
       });
-
       const htmlFinal = `<div style="font-family: Arial;">${clono.innerHTML}</div>`;
       const blobHTML = new Blob([htmlFinal], { type: "text/html" });
       const blobText = new Blob([elemento.innerText], { type: "text/plain" });
-
       const data = [new ClipboardItem({ "text/html": blobHTML, "text/plain": blobText })];
       await navigator.clipboard.write(data);
       alert("Recurso copiado");
     } catch (err) {
       console.error("Error al copiar:", err);
-      alert("Error al copiar formato.");
     }
   };
 
