@@ -29,7 +29,7 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
 
   const API_BASE_URL = window.location.hostname === "localhost" 
     ? "http://localhost:5000" 
-    : "https://sistema-planificaciones-educativas-ten.vercel.app";
+    : "https://sistema-planificaciones-educativas.vercel.app";
 
   const obtenerUrlImagen = (url) => {
     if (!url) return fotoPerfil;
