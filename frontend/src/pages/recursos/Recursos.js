@@ -65,7 +65,7 @@ const Recursos = ({ darkMode }) => {
     return texto.replace(/\*/g, '').split(/(?<=[.!?])\s+/).map(frase => frase.trim()).filter(frase => frase.length > 3).join('\n');
   };
 
-  // --- CARGAR DATOS CORREGIDO ---
+  // --- CARGAR DATOS CORREGIDO (Sin headers para evitar bloqueo CORS) ---
   const cargarDatos = useCallback(async () => {
     const userId = localStorage.getItem('userId'); 
     if (!userId) {
@@ -75,25 +75,18 @@ const Recursos = ({ darkMode }) => {
 
     try {
       setLoading(true);
-      // Usamos una URL limpia y verificamos que el servidor responda
-      const response = await fetch(`${API_BASE_URL}/api/gestion?userId=${userId}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+      // Simplificamos la petición para evitar el preflight de CORS en navegadores estrictos
+      const response = await fetch(`${API_BASE_URL}/api/gestion?userId=${userId}`);
       
       if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
       
       const data = await response.json();
       
       if (Array.isArray(data)) {
-        // Filtramos para obtener solo las planificaciones (tipo !== recurso)
         const soloPlanes = data.filter(item => item.tipo !== 'recurso');
         setPlanificaciones(soloPlanes);
       }
     } catch (error) {
-      // Línea 119 original: Manejo del error de conexión
       console.error("❌ Error al conectar con el servidor:", error);
     } finally {
       setLoading(false);
@@ -102,7 +95,7 @@ const Recursos = ({ darkMode }) => {
 
   useEffect(() => {
     cargarDatos();
-  }, [cargarDatos]); // Se añade cargarDatos para eliminar el warning de la consola
+  }, [cargarDatos]);
 
   useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
@@ -151,7 +144,7 @@ const Recursos = ({ darkMode }) => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/generar-recurso-v2`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }, // Línea 147 original
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           materia: formData.materia,
           tema: formData.nombreUnidad, 

@@ -39,22 +39,27 @@ if (!fs.existsSync(uploadsDir)){
 }
 
 // --- CONFIGURACIÓN DE CORS REFORZADA ---
+// Asegúrate de que allowedOrigins tenga las URLs exactas también
 const allowedOrigins = [
   'https://sistema-planificaciones-educativas.vercel.app',
+  'https://sistema-planificaciones-educativas-ten.vercel.app',
   'http://localhost:3000'
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
+    // Si no hay origen (como apps móviles o Postman) o está en la lista o es Vercel
     if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
       callback(null, true);
     } else {
+      console.log("Origen bloqueado por política:", origin); // Esto te dirá en la consola del back quién es el intruso
       callback(new Error('Bloqueado por CORS'));
     }
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
-  credentials: true
+  credentials: true,
+  optionsSuccessStatus: 200 // MUY IMPORTANTE para navegadores antiguos y algunos modernos
 }));
 
 app.use((req, res, next) => {
