@@ -134,7 +134,7 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
       <Link to="/" className="brand-container">
         <img src={logoApp} alt="Logo Villatoro" className="logo-img" />
         <div className="brand-text">
-          <span className="brand-top">Villatoro's</span>
+          <span className="brand-top">Villatoros</span>
           <span className="brand-bottom">Solutions</span>
         </div>
       </Link>
