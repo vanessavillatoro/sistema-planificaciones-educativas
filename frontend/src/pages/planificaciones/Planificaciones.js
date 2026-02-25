@@ -19,7 +19,6 @@ const Planificaciones = ({ darkMode }) => {
   const dropdownRef = useRef(null);
   const [planId, setPlanId] = useState(null); 
 
-  // --- OBTENER EL ID DEL USUARIO ---
   const userId = localStorage.getItem('userId');
 
   useEffect(() => {
@@ -27,12 +26,7 @@ const Planificaciones = ({ darkMode }) => {
     if (datosParaEditar) {
       try {
         const item = JSON.parse(datosParaEditar);
-        console.log("Datos recuperados con éxito:", item);
-        
-        // Guardamos el ID del plan que se está editando
-        if (item._id) {
-          setPlanId(item._id);
-        }
+        if (item._id) setPlanId(item._id);
 
         setFormData(prev => ({
           ...prev,
@@ -102,14 +96,6 @@ const Planificaciones = ({ darkMode }) => {
     }
   };
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const editId = params.get('edit');
-    if (editId) {
-      console.log("Modo edición activado para ID:", editId);
-    }
-  }, []);
-
   const listaEdades = ['Edad', ...Array.from({ length: 51 }, (_, i) => `${i + 20} años`)];
   const listaSecciones = ['Seccion', 'Sección A', 'Sección B', 'Sección C'];
   const listaDeptos = ['Departamento', 'Ahuachapán', 'Cabañas', 'Chalatenango', 'Cuscatlán', 'La Libertad', 'La Paz', 'La Unión', 'Morazán', 'San Miguel', 'San Salvador', 'San Vicente', 'Santa Ana', 'Sonsonate', 'Usulután'];
@@ -143,15 +129,11 @@ const Planificaciones = ({ darkMode }) => {
       alert("No se encontró la tabla para copiar.");
       return;
     }
-
     try {
       const clon = tablaOriginal.cloneNode(true);
       const celdasClonadas = clon.querySelectorAll('th, td');
-
       celdasClonadas.forEach((celdaCopia) => {
-        if (celdaCopia.classList.contains('header-blue') || 
-            celdaCopia.classList.contains('label-blue') || 
-            celdaCopia.tagName === 'TH') {
+        if (celdaCopia.classList.contains('header-blue') || celdaCopia.classList.contains('label-blue') || celdaCopia.tagName === 'TH') {
           celdaCopia.style.backgroundColor = "#002855";
           celdaCopia.style.color = "#ffffff";
           celdaCopia.style.fontWeight = "bold";
@@ -165,93 +147,74 @@ const Planificaciones = ({ darkMode }) => {
         celdaCopia.style.padding = "4pt"; 
         celdaCopia.style.width = "auto";
         celdaCopia.style.whiteSpace = "normal";
-        celdaCopia.style.msoElement = "para-border-div";
         celdaCopia.setAttribute('contenteditable', 'true');
       });
-
       clon.style.width = "100%";
       clon.style.borderCollapse = "collapse";
-      clon.style.tableLayout = "auto";
-
-      const htmlFinal = `
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <style>
-            @page { size: A4 portrait; margin: 1cm; }
-            table { width: 100%; border-collapse: collapse; }
-            tr { mso-shading: windowtext; } 
-          </style>
-        </head>
-        <body>
-          ${clon.outerHTML}
-        </body>
-        </html>
-      `;
-
+      const htmlFinal = `<html><head><meta charset="utf-8"></head><body>${clon.outerHTML}</body></html>`;
       const blobHtml = new Blob([htmlFinal], { type: 'text/html' });
       const data = [new ClipboardItem({ 'text/html': blobHtml })];
       await navigator.clipboard.write(data);
-      alert("✅ ¡Copiado con colores y formato ajustable!");
+      alert("✅ ¡Copiado!");
     } catch (err) {
-      console.error("Error al copiar:", err);
       alert("Error al copiar.");
     }
   };
 
   const generarConAPI = async () => {
-  const camposObligatorios = [
-    'nombre', 'apellido', 'edad', 'seccion', 'municipio', 'departamento',
-    'duracion', 'nivel', 'materia', 'nombreUnidad', 'numUnidad', 'tema', 'grado', 
-    'dificultad', 'centroEscolar', 'fecha'
-  ];
-
-  const vacios = camposObligatorios.filter(campo => !formData[campo] || formData[campo].trim() === '');
-  
-  if (vacios.length > 0) {
-    alert(`Por favor, completa todos los campos obligatorios.`);
-    return;
-  }
-
-  setLoading(true);
-  try {
-    const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-    const datosParaEnviar = { ...formData };
+    const camposObligatorios = ['nombre', 'apellido', 'edad', 'seccion', 'municipio', 'departamento', 'duracion', 'nivel', 'materia', 'nombreUnidad', 'numUnidad', 'tema', 'grado', 'dificultad', 'centroEscolar', 'fecha'];
+    const vacios = camposObligatorios.filter(campo => !formData[campo] || formData[campo].trim() === '');
     
-    if (datosParaEnviar.grado === 'Grado') datosParaEnviar.grado = '';
-    if (datosParaEnviar.dificultad === 'Nivel de dificultad') datosParaEnviar.dificultad = '';
-    if (datosParaEnviar.edad === 'Edad') datosParaEnviar.edad = '';
-
-    const response = await fetch(`${baseUrl}/api/generar-plan-completa`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...datosParaEnviar, userId, planActual: resultado }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Error en la respuesta del servidor');
+    if (vacios.length > 0) {
+      alert(`Por favor, completa todos los campos obligatorios.`);
+      return;
     }
 
-    const data = await response.json();
-    setResultado(data);
+    setLoading(true);
+    try {
+      const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      const datosParaEnviar = { ...formData };
+      
+      // Sanitización básica
+      if (datosParaEnviar.grado === 'Grado') datosParaEnviar.grado = '';
+      if (datosParaEnviar.dificultad === 'Nivel de dificultad') datosParaEnviar.dificultad = '';
+      if (datosParaEnviar.edad === 'Edad') datosParaEnviar.edad = '';
 
-    // --- NUEVO: GUARDAR EN LOCALSTORAGE PARA EL MÓDULO DE RECURSOS ---
-    localStorage.setItem('planificacionReciente', JSON.stringify({
-      tema: formData.tema || formData.nombreUnidad,
-      materia: formData.materia,
-      dificultad: formData.dificultad,
-      objetivos: data.objetivos,
-      indicadores: data.indicadoresLogro || data.indicadoresEvaluacion
-    }));
+      const response = await fetch(`${baseUrl}/api/generar-plan-completa`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...datosParaEnviar, userId, planActual: resultado }),
+      });
 
-  } catch (error) {
-    console.error("DETALLE DEL ERROR:", error);
-    alert(`Error al procesar: ${error.message}`);
-  } finally {
-    setLoading(false);
-  }
-};
+      // --- AJUSTE DE SEGURIDAD PARA EVITAR ERROR DE JSON ---
+      if (!response.ok) {
+        const errorMsg = await response.text(); 
+        throw new Error(errorMsg || 'El servidor devolvió un error interno (500)');
+      }
+
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error("El servidor no envió un formato JSON válido.");
+      }
+
+      const data = await response.json();
+      setResultado(data);
+
+      localStorage.setItem('planificacionReciente', JSON.stringify({
+        tema: formData.tema || formData.nombreUnidad,
+        materia: formData.materia,
+        dificultad: formData.dificultad,
+        objetivos: data.objetivos,
+        indicadores: data.indicadoresLogro || data.indicadoresEvaluacion
+      }));
+
+    } catch (error) {
+      console.error("DETALLE DEL ERROR:", error.message);
+      alert(`Error al procesar: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const guardarPlanificacion = async () => {
     if (!resultado) {
@@ -264,7 +227,7 @@ const Planificaciones = ({ darkMode }) => {
       const datosParaGuardar = {
         ...formData,
         userId, 
-        tipo: 'planificacion', // Ajustado a minúsculas para coincidir con el filtro de Recursos
+        tipo: 'planificacion',
         tema: (formData.tema || formData.nombreUnidad || "Sin Título").trim(),
         nombreUnidad: (formData.nombreUnidad || formData.tema || "Sin Unidad").trim(),
         objetivos: resultado.objetivos,
@@ -283,7 +246,6 @@ const Planificaciones = ({ darkMode }) => {
       });
 
       if (response.ok) {
-        // --- NUEVO: ASEGURAR QUE EL LOCALSTORAGE ESTÉ ACTUALIZADO AL GUARDAR ---
         localStorage.setItem('planificacionReciente', JSON.stringify({
           tema: datosParaGuardar.tema,
           materia: datosParaGuardar.materia,
@@ -291,72 +253,68 @@ const Planificaciones = ({ darkMode }) => {
           objetivos: datosParaGuardar.objetivos,
           indicadores: datosParaGuardar.indicadores
         }));
-        alert("✅ ¡Sincronizado! Ahora puedes usar esta planificación en el Módulo de Recursos.");
+        alert("✅ ¡Sincronizado con Recursos!");
       } else {
         throw new Error("Error al guardar");
       }
     } catch (error) {
-      console.error("Error al guardar:", error);
       alert("❌ Error de conexión al guardar.");
     } finally {
       setSaving(false);
     }
   };
 
-const exportarAGestion = async () => {
-  if (!resultado) {
-    alert("Primero debes generar una planificación.");
-    return;
-  }
-  setSaving(true);
-
-  try {
-    const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-    
-    const actividadesEstructuradas = (resultado.tiempos || []).slice(0, 8).map(t => ({
-      inicio: t.inicio || '',
-      desarrollo: t.desarrollo || '',
-      cierre: t.cierre || ''
-    }));
-
-    const datosGestion = {
-      ...formData,
-      userId, 
-      idActualizar: planId || null, 
-      tipo: 'planificacion', // Ajustado para consistencia
-      objetivos: resultado.objetivos,
-      indicadoresLogro: resultado.indicadoresLogro,
-      indicadoresEvaluacion: resultado.indicadoresEvaluacion,
-      actividadesComplementarias: resultado.actividadesComplementarias,
-      tiempos: actividadesEstructuradas, 
-      actividades: actividadesEstructuradas, 
-      materiales: (resultado.materiales || []).slice(0, 8),
-      listaMateriales: (resultado.materiales || []).slice(0, 8),
-      inicios: actividadesEstructuradas.map(a => a.inicio),
-      desarrollos: actividadesEstructuradas.map(a => a.desarrollo),
-      cierres: actividadesEstructuradas.map(a => a.cierre),
-      fechaExportacion: new Date()
-    };
-
-    const response = await fetch(`${baseUrl}/api/exportar-gestion`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(datosGestion),
-    });
-
-    if (response.ok) {
-      alert("✅ ¡Guardado con éxito! Los cambios ya están en Gestión.");
-      setPlanId(null);
-    } else {
-      throw new Error("Respuesta no exitosa");
+  const exportarAGestion = async () => {
+    if (!resultado) {
+      alert("Primero debes generar una planificación.");
+      return;
     }
-  } catch (error) {
-    console.error("Error detallado:", error);
-    alert("❌ No se pudo guardar. Revisa que el servidor esté encendido.");
-  } finally {
-    setSaving(false);
-  }
-};
+    setSaving(true);
+    try {
+      const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      const actividadesEstructuradas = (resultado.tiempos || []).slice(0, 8).map(t => ({
+        inicio: t.inicio || '',
+        desarrollo: t.desarrollo || '',
+        cierre: t.cierre || ''
+      }));
+
+      const datosGestion = {
+        ...formData,
+        userId, 
+        idActualizar: planId || null, 
+        tipo: 'planificacion',
+        objetivos: resultado.objetivos,
+        indicadoresLogro: resultado.indicadoresLogro,
+        indicadoresEvaluacion: resultado.indicadoresEvaluacion,
+        actividadesComplementarias: resultado.actividadesComplementarias,
+        tiempos: actividadesEstructuradas, 
+        actividades: actividadesEstructuradas, 
+        materiales: (resultado.materiales || []).slice(0, 8),
+        listaMateriales: (resultado.materiales || []).slice(0, 8),
+        inicios: actividadesEstructuradas.map(a => a.inicio),
+        desarrollos: actividadesEstructuradas.map(a => a.desarrollo),
+        cierres: actividadesEstructuradas.map(a => a.cierre),
+        fechaExportacion: new Date()
+      };
+
+      const response = await fetch(`${baseUrl}/api/exportar-gestion`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(datosGestion),
+      });
+
+      if (response.ok) {
+        alert("✅ ¡Guardado en Gestión!");
+        setPlanId(null);
+      } else {
+        throw new Error("Respuesta no exitosa");
+      }
+    } catch (error) {
+      alert("❌ Error al guardar en gestión.");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const limpiarFormulario = () => {
     setFormData(estadoInicial);
@@ -367,9 +325,7 @@ const exportarAGestion = async () => {
   };
 
   const getMunisDisponibles = () => {
-    if (!formData.departamento || formData.departamento === 'Departamento') {
-      return ['Municipio (Selecciona Depto.)'];
-    }
+    if (!formData.departamento || formData.departamento === 'Departamento') return ['Municipio (Selecciona Depto.)'];
     return ['Municipio', ...municipiosPorDepto[formData.departamento]];
   };
 
@@ -377,13 +333,11 @@ const exportarAGestion = async () => {
     const valorLimpio = valor.includes('años') ? valor.replace(' años', '') : valor;
     const esPlaceholder = ['Edad', 'Seccion', 'Departamento', 'Nivel educativo', 'n° unidad', 'Grado', 'Nivel de dificultad', 'Duracion semanal', 'Municipio'].some(p => valor === p) || valor.includes('Municipio (Selecciona');
     const finalValue = esPlaceholder ? '' : valorLimpio;
-    
     setFormData(prev => {
       const nuevoEstado = { ...prev, [campo]: finalValue };
       if (campo === 'departamento') nuevoEstado.municipio = '';
       return nuevoEstado;
     });
-    
     if (cerrar) {
       setOpenDropdown(null);
       setHighlightedIndex(-1);
@@ -394,60 +348,33 @@ const exportarAGestion = async () => {
     const valorActual = formData[campo] || lista[0];
     let displayValue = valorActual;
     if (campo === 'edad' && formData[campo]) displayValue = `${formData[campo]} años`;
-    if (campo === 'duracion' && formData[campo]) {
-        displayValue = formData[campo].includes('hora') ? formData[campo] : `${formData[campo]} ${formData[campo] === '1' ? 'hora' : 'horas'}`;
-    }
+    if (campo === 'duracion' && formData[campo]) displayValue = formData[campo].includes('hora') ? formData[campo] : `${formData[campo]} ${formData[campo] === '1' ? 'hora' : 'horas'}`;
     const currentIndex = lista.indexOf(displayValue);
 
     if (openDropdown !== campo) {
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        const next = Math.min(currentIndex + 1, lista.length - 1);
-        seleccionarOpcion(campo, lista[next], false);
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        const prev = Math.max(currentIndex - 1, 0);
-        seleccionarOpcion(campo, lista[prev], false);
-      } else if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        setOpenDropdown(campo);
-        setHighlightedIndex(currentIndex === -1 ? 0 : currentIndex);
-      }
+      if (e.key === 'ArrowDown') seleccionarOpcion(campo, lista[Math.min(currentIndex + 1, lista.length - 1)], false);
+      else if (e.key === 'ArrowUp') seleccionarOpcion(campo, lista[Math.max(currentIndex - 1, 0)], false);
+      else if (e.key === 'Enter') setOpenDropdown(campo);
       return;
     }
-
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      setHighlightedIndex(prev => Math.min(prev + 1, lista.length - 1));
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setHighlightedIndex(prev => Math.max(prev - 1, 0));
-    } else if (e.key === 'Enter') {
-      e.preventDefault();
-      if (highlightedIndex !== -1) seleccionarOpcion(campo, lista[highlightedIndex], true);
-    } else if (e.key === 'Escape' || e.key === 'Tab') {
-      setOpenDropdown(null);
-    }
+    if (e.key === 'ArrowDown') setHighlightedIndex(prev => Math.min(prev + 1, lista.length - 1));
+    else if (e.key === 'ArrowUp') setHighlightedIndex(prev => Math.max(prev - 1, 0));
+    else if (e.key === 'Enter') if (highlightedIndex !== -1) seleccionarOpcion(campo, lista[highlightedIndex], true);
   };
 
   useEffect(() => {
-    const clickFuera = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setOpenDropdown(null);
-    };
+    const clickFuera = (e) => { if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setOpenDropdown(null); };
     document.addEventListener('mousedown', clickFuera);
     return () => document.removeEventListener('mousedown', clickFuera);
   }, []);
 
   const RenderDropdown = (campo, lista, placeholder) => {
     const isOpen = openDropdown === campo;
-    let display = formData[campo] ? formData[campo] : placeholder;
+    let display = formData[campo] || placeholder;
     if (formData[campo]) {
-        if (campo === 'edad') display = `${formData[campo]} años`;
-        if (campo === 'duracion' && !formData[campo].includes('hora')) {
-            display = `${formData[campo]} ${formData[campo] === '1' ? 'hora' : 'horas'}`;
-        }
+      if (campo === 'edad') display = `${formData[campo]} años`;
+      if (campo === 'duracion' && !formData[campo].includes('hora')) display = `${formData[campo]} ${formData[campo] === '1' ? 'hora' : 'horas'}`;
     }
-
     return (
       <div className={`custom-dropdown ${isOpen ? 'is-open' : ''}`} tabIndex="0" onKeyDown={(e) => manejarTeclado(e, campo, lista)}>
         <div className="dropdown-header" onClick={() => setOpenDropdown(isOpen ? null : campo)}>
@@ -504,7 +431,7 @@ const exportarAGestion = async () => {
 
         <textarea
           className="objetivos-area"
-          placeholder="Escriba los cambios que desea realizar a su planificacion, (por ejemplo, agregar 4 indicadores de logro en lugar de 3)"
+          placeholder="Escriba los cambios que desea realizar..."
           value={formData.sugerencias}
           onChange={(e) => setFormData({...formData, sugerencias: e.target.value})}
         ></textarea>
@@ -516,34 +443,17 @@ const exportarAGestion = async () => {
           
           {resultado && (
             <>
-              <button 
-                className="btn-primary" 
-                onClick={guardarPlanificacion} 
-                disabled={saving}
-                style={{ backgroundColor: ' #003366', marginLeft: '10px' }}
-              >
+              <button className="btn-primary" onClick={guardarPlanificacion} disabled={saving} style={{ backgroundColor: ' #003366', marginLeft: '10px' }}>
                 {saving ? "Guardando..." : "Exportar a recursos"}
               </button>
-
-              <button 
-                className="btn-primary" 
-                onClick={exportarAGestion} 
-                disabled={saving}
-                style={{ backgroundColor: ' #003366', marginLeft: '10px' }}
-              >
+              <button className="btn-primary" onClick={exportarAGestion} disabled={saving} style={{ backgroundColor: ' #003366', marginLeft: '10px' }}>
                 {saving ? "Exportando..." : "Exportar a gestión"}
               </button>
-
-              <button 
-                className="btn-primary" 
-                onClick={copiarPlanificacion}
-                style={{ backgroundColor: ' #003366', marginLeft: '10px' }}
-              >
+              <button className="btn-primary" onClick={copiarPlanificacion} style={{ backgroundColor: ' #003366', marginLeft: '10px' }}>
                 Copiar planificación
               </button>
             </>
           )}
-
           <button className="btn-secondary" onClick={moverAPapelera}>Limpiar campos</button>
         </div>
 
