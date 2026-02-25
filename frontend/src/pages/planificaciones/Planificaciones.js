@@ -83,7 +83,7 @@ const Planificaciones = ({ darkMode }) => {
       return;
     }
     try {
-      const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      const baseUrl = process.env.REACT_APP_API_URL;
       const identificador = formData.tema || formData.nombreUnidad;
       
       const response = await fetch(`${baseUrl}/api/planificaciones-por-tema/${encodeURIComponent(identificador)}?userId=${userId}`, {
@@ -215,7 +215,7 @@ const Planificaciones = ({ darkMode }) => {
 
   setLoading(true);
   try {
-    const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+    const baseUrl = process.env.REACT_APP_API_URL;
     const datosParaEnviar = { ...formData };
     
     if (datosParaEnviar.grado === 'Grado') datosParaEnviar.grado = '';
@@ -261,7 +261,7 @@ const Planificaciones = ({ darkMode }) => {
     }
     setSaving(true);
     try {
-      const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+      const baseUrl = process.env.REACT_APP_API_URL ;
       const datosParaGuardar = {
         ...formData,
         userId, 
@@ -312,7 +312,7 @@ const exportarAGestion = async () => {
   setSaving(true);
 
   try {
-    const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+    const baseUrl = process.env.REACT_APP_API_URL;
     
     const actividadesEstructuradas = (resultado.tiempos || []).slice(0, 8).map(t => ({
       inicio: t.inicio || '',
