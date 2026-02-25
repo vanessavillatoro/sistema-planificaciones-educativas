@@ -83,7 +83,7 @@ const Planificaciones = ({ darkMode }) => {
       return;
     }
     try {
-      const baseUrl = process.env.REACT_APP_API_URL;
+      const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
       const identificador = formData.tema || formData.nombreUnidad;
       
       const response = await fetch(`${baseUrl}/api/planificaciones-por-tema/${encodeURIComponent(identificador)}?userId=${userId}`, {
@@ -215,7 +215,7 @@ const Planificaciones = ({ darkMode }) => {
 
   setLoading(true);
   try {
-    const baseUrl = process.env.REACT_APP_API_URL;
+    const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
     const datosParaEnviar = { ...formData };
     
     if (datosParaEnviar.grado === 'Grado') datosParaEnviar.grado = '';
@@ -228,10 +228,9 @@ const Planificaciones = ({ darkMode }) => {
       body: JSON.stringify({ ...datosParaEnviar, userId, planActual: resultado }),
     });
 
-    // --- NUEVA VALIDACIÓN: SI NO ES OK, NO INTENTAR LEER JSON ---
     if (!response.ok) {
-      const textoError = await response.text();
-      throw new Error(textoError || 'Error interno del servidor (500)');
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Error en la respuesta del servidor');
     }
 
     const data = await response.json();
@@ -261,7 +260,7 @@ const Planificaciones = ({ darkMode }) => {
     }
     setSaving(true);
     try {
-      const baseUrl = process.env.REACT_APP_API_URL ;
+      const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
       const datosParaGuardar = {
         ...formData,
         userId, 
@@ -312,7 +311,7 @@ const exportarAGestion = async () => {
   setSaving(true);
 
   try {
-    const baseUrl = process.env.REACT_APP_API_URL;
+    const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
     
     const actividadesEstructuradas = (resultado.tiempos || []).slice(0, 8).map(t => ({
       inicio: t.inicio || '',
