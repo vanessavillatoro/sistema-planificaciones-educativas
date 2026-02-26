@@ -33,7 +33,7 @@ Si quieres probar o contribuir al proyecto:
 Sigue estos pasos para usar el sistema. Todo es intuitivo y guiado por formularios.
 
 #### 1. Inicio de Sesión
-- Ve a la página principal (en desarrollo: http://localhost:3000; en producción: URL de Vercel).
+- Ve a la página principal: **https://sistema-planificaciones-educativas-ten.vercel.app**
 - Ingresa tu usuario y contraseña (si no tienes cuenta, regístrate con email y factor de seguridad opcional).
 - Una vez dentro, verás el navbar con opciones: Módulos, Blog, Acerca de, etc.
 
@@ -99,6 +99,6 @@ Sigue estos pasos para usar el sistema. Todo es intuitivo y guiado por formulari
 - **¿Cuánto cuesta?** Gratuito; desplegado en Vercel con dominio gratuito.
 
 ### Soporte
-- **Email:** vane.villatoro010306@gmail.com
+- **Email:** soporte@villatoros.com
 - **GitHub:** Reporta issues en https://github.com/vanessavillatoro/sistema-planificaciones-educativas/issues
 - **Actualizaciones:** El sistema se actualiza automáticamente; revisa el blog para nuevas features.
