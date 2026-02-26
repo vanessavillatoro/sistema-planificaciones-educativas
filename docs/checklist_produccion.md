@@ -377,7 +377,6 @@ Debilidades
 ⚠️ Touch targets pequeños en móvil
 Acciones Prioritarias
 Añadir landmark "main" al documento
-Aumentar tamaño de botones táctiles en móvil
 Implementar caching
 Reducir JavaScript no utilizado
 Siguientes Pasos
