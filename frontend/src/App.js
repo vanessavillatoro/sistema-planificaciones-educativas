@@ -1,16 +1,17 @@
-import React, { useState, useEffect, Suspense, lazy } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom'; 
 import './App.css';
 import Navbar from './components/Navbar';
-const Planificaciones = lazy(() => import('./pages/planificaciones/Planificaciones'));
-const Recursos = lazy(() => import('./pages/recursos/Recursos'));
-const Gestion = lazy(() => import('./pages/gestion/Gestion'));
-const AcercaDeNosotros = lazy(() => import('./pages/acerca de nosotros/acerca'));
-const Blog = lazy(() => import('./pages/blog/blog'));
-const Funciona = lazy(() => import('./pages/funcionamiento/funciona'));
-const Inicio = lazy(() => import('./pages/inicio/inicio'));
-const Auth = lazy(() => import('./pages/sesion/auth'));
-const PapeleraFlotante = lazy(() => import('./components/PapeleraFlotante'));
+import Planificaciones from './pages/planificaciones/Planificaciones'; 
+import Recursos from './pages/recursos/Recursos'; 
+import Gestion from './pages/gestion/Gestion'; 
+import AcercaDeNosotros from './pages/acerca de nosotros/acerca'; 
+import Blog from './pages/blog/blog'; 
+import Funciona from './pages/funcionamiento/funciona'; 
+import Inicio from './pages/inicio/inicio';
+import PapeleraFlotante from './components/PapeleraFlotante';
+
+import Auth from './pages/sesion/auth'; 
 
 // URL de producción para que el celular conecte con el servidor real
 const API_BASE_URL = "https://sistema-planificaciones-educativas.vercel.app";
@@ -41,34 +42,42 @@ function App() {
         setDarkMode={setDarkMode} 
         setNombreApp={setNombreUsuario} 
       />
-<Suspense fallback={<div className="loading">Cargando...</div>}>
-  <Routes>
-    <Route 
-      path="/auth" 
-      element={isAuth ? <Navigate to="/" /> : <Auth API_BASE_URL={API_BASE_URL} />} 
-    />
-    <Route 
-      path="/" 
-      element={isAuth ? <Inicio darkMode={darkMode} nombre={nombreUsuario} /> : <Navigate to="/auth" />} 
-    />
-    <Route 
-      path="/planificaciones" 
-      element={isAuth ? <Planificaciones darkMode={darkMode} API_BASE_URL={API_BASE_URL} /> : <Navigate to="/auth" />} 
-    />
-    <Route 
-      path="/recursos" 
-      element={isAuth ? <Recursos darkMode={darkMode} API_BASE_URL={API_BASE_URL} /> : <Navigate to="/auth" />} 
-    />
-    <Route 
-      path="/gestion" 
-      element={isAuth ? <Gestion darkMode={darkMode} API_BASE_URL={API_BASE_URL} /> : <Navigate to="/auth" />} 
-    />
-    <Route path="/acerca-de-nosotros" element={<AcercaDeNosotros darkMode={darkMode} />} />
-    <Route path="/blog" element={<Blog darkMode={darkMode} />} />
-    <Route path="/funciona" element={<Funciona darkMode={darkMode} />} />
-    <Route path="*" element={<Navigate to={isAuth ? "/" : "/auth"} />} />
-  </Routes>
-</Suspense>
+      
+      <Routes>
+        {/* Si ya está logueado y trata de ir a auth, lo mandamos al inicio */}
+        <Route 
+          path="/auth" 
+          element={isAuth ? <Navigate to="/" /> : <Auth API_BASE_URL={API_BASE_URL} />} 
+        />
+
+        {/* Ruta principal: Inicio si hay sesión, sino a Auth */}
+        <Route 
+          path="/" 
+          element={isAuth ? <Inicio darkMode={darkMode} nombre={nombreUsuario} /> : <Navigate to="/auth" />} 
+        />
+
+        {/* --- RUTAS PROTEGIDAS --- */}
+        <Route 
+          path="/planificaciones" 
+          element={isAuth ? <Planificaciones darkMode={darkMode} API_BASE_URL={API_BASE_URL} /> : <Navigate to="/auth" />} 
+        />
+        <Route 
+          path="/recursos" 
+          element={isAuth ? <Recursos darkMode={darkMode} API_BASE_URL={API_BASE_URL} /> : <Navigate to="/auth" />} 
+        />
+        <Route 
+        path="/gestion" 
+        element={isAuth ? <Gestion darkMode={darkMode} API_BASE_URL={API_BASE_URL} /> : <Navigate to="/auth" />} 
+        />
+
+        {/* --- RUTAS PÚBLICAS --- */}
+        <Route path="/acerca-de-nosotros" element={<AcercaDeNosotros darkMode={darkMode} />} />
+        <Route path="/blog" element={<Blog darkMode={darkMode} />} />
+        <Route path="/funciona" element={<Funciona darkMode={darkMode} />} />
+        
+        {/* Redirección por defecto */}
+        <Route path="*" element={<Navigate to={isAuth ? "/" : "/auth"} />} />
+      </Routes>
 
       <PapeleraFlotante API_BASE_URL={API_BASE_URL} />
     </div>
