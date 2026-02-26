@@ -37,7 +37,10 @@ const Inicio = ({ darkMode, nombre }) => {
           <img 
             src={imagenVillatoro} 
             alt="Villatoro's Solutions" 
-            className="img-inicio-hero" 
+            className="img-inicio-hero"
+            width="600" 
+            height="400" 
+            loading="lazy"
           />
         </div>
 
