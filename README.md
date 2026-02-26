@@ -1,68 +1,174 @@
-Configuración de Red
-URL de Producción: https://sistema-planificaciones-educativas.vercel.app
+# Sistema de Planificaciones Educativas
 
-URL de Desarrollo: http://localhost:5000
+Sistema pedagógico con inteligencia artificial para generar planificaciones y recursos didácticos para docentes en El Salvador.
 
-Seguridad: Los endpoints protegidos requieren el Header: Authorization: Bearer <TU_TOKEN_JWT>.
+## 🚀 Producción
 
-🚀 APIs del Backend - Endpoints Disponibles
-GET /api/test
+**URL**: https://sistema-planificaciones-educativas-ten.vercel.app
 
-Descripción: Verifica que el servidor esté activo.
+**URL Backend**: https://sistema-planificaciones-educativas.vercel.app
 
-Respuesta: {"message": "API funcionando"}
+## 📋 Estado del Proyecto
 
-POST /api/generar-plan-completa
+- **Semana 14**: Completada
+- **Lanzamiento**: En progreso
+- **Estado**: Funcional
 
-Descripción: Genera una planificación pedagógica con IA Gemini.
+## 🛠️ Tecnologías
+Tecnología
 
-Body: {"materia": "...", "tema": "...", "sugerencias": "...", "planificacionPrevia": {...}}
+Uso
 
-POST /api/generate-resource
+React.js
 
-Descripción: Crea recursos didácticos (como cuestionarios) según dificultad.
+Frontend
 
-Body: {"descripcion": "...", "dificultad": "refuerzo"}
+Node.js + Express
 
-POST /api/save-resource
+Backend
 
-Descripción: Almacena un recurso generado en la base de datos.
+MongoDB Atlas
 
-Body: {"descripcion": "...", "dificultad": "...", "output": "..."}
+Base de datos
 
-POST /api/save-plan
+Google Gemini
 
-Descripción: Guarda una planificación completa en la DB.
+Inteligencia artificial
 
-Body: {"materia": "...", "grado": "...", "output": "..."}
+Vercel
 
-GET /api/planificaciones
+Despliegue
 
-Descripción: Obtiene el listado de todas las planificaciones guardadas.
+📊 Métricas de Lighthouse
+Métrica
 
-Respuesta: Array de objetos [{"_id": "...", "materia": "...", ...}]
+Desktop
 
-PUT /api/planificaciones/:id
+Móvil
 
-Descripción: Edita los datos de una planificación existente por su ID.
+Objetivo
 
-Body: {"materia": "Nuevo Nombre"}
+Performance
 
-DELETE /api/planificaciones/:id
+89
 
-Descripción: Elimina una planificación de la base de datos.
+76
 
-GET /api/export-plan/:id
+90
 
-Respuesta: Descarga la planificación en formato PDF.
+Accessibility
 
-GET /api/export-plan/:id/docx
+97
 
-Respuesta: Descarga la planificación en formato DOCX.
+89
 
-📝 Notas de Implementación
-Formato de datos: Todos los endpoints de escritura requieren Content-Type: application/json.
+90
 
-Manejo de Errores: 400 (Faltan campos), 404 (No encontrado), 500 (Error de servidor/IA).
+Best Practices
 
-Diseño UI: Para el modo oscuro del login, se ha definido un fondo negro ligeramente más claro que los cuadros de texto para garantizar el contraste visual [cite: 2026-02-05].
+100
+
+100
+
+100
+
+SEO
+
+89
+
+100
+
+90
+
+Métrica Técnica
+
+Valor
+
+Objetivo
+
+Tiempo de generación IA
+
+~8-10s
+
+<10s ✅
+
+Carga de página
+
+~2s
+
+<6s ✅
+
+📱 Funcionalidades
+Generación de planificaciones con IA
+Generación de recursos didácticos
+Gestión y exportación (PDF/DOCX)
+Autenticación (email + Google)
+Diseño responsivo (móvil + PC)
+Modo oscuro/claro
+🔗 APIs del Backend
+Endpoints Disponibles
+Endpoint
+
+Método
+
+Descripción
+
+/api/test
+
+GET
+
+Verifica que el servidor esté activo
+
+/api/generar-plan-completa
+
+POST
+
+Genera planificación con IA
+
+/api/generate-resource
+
+POST
+
+Crea recursos didácticos
+
+/api/save-resource
+
+POST
+
+Almacena recurso en DB
+
+/api/save-plan
+
+POST
+
+Guarda planificación en DB
+
+/api/planificaciones
+
+GET
+
+Obtiene listado de planificaciones
+
+/api/planificaciones/:id
+
+PUT
+
+Edita planificación
+
+/api/planificaciones/:id
+
+DELETE
+
+Elimina planificación
+
+/api/export-plan/:id
+
+GET
+
+Descarga PDF
+
+/api/export-plan/:id/docx
+
+GET
+
+Descarga DOCX
