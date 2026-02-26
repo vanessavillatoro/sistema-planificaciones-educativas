@@ -46,7 +46,7 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
   const cargarDatos = useCallback(async () => {
     try {
       // AJUSTE: Solo procedemos si el userId es válido para evitar error "<"
-      if (!userId || userId === "null" || userId === "" || userId === "Invitado") {
+      if (!userId || userId === "null" || userId === "undefined" || userId === "Invitado") {
         return;
       }
 
@@ -132,14 +132,7 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
   return (
     <nav className={`navbar ${darkMode ? 'dark' : 'light'}`}>
       <Link to="/" className="brand-container">
-        <img 
-          src={logoApp} 
-          alt="Logo Villatoro" 
-          className="logo-img"
-          width="150" 
-          height="50" 
-          loading="lazy"
-        />
+        <img src={logoApp} alt="Logo Villatoro" className="logo-img" />
         <div className="brand-text">
           <span className="brand-top">Villatoro's</span>
           <span className="brand-bottom">Solutions</span>
@@ -163,10 +156,7 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
               alt="Perfil" 
               className="avatar-img" 
               key={`nav-trigger-${usuario.fotoUrl}`}
-              onError={(e) => { e.target.src = fotoPerfil; }}
-              width="40" 
-              height="40" 
-              loading="lazy"
+              onError={(e) => { e.target.src = fotoPerfil; }} 
             />
           </div>
 
@@ -177,10 +167,7 @@ const Navbar = ({ darkMode, setDarkMode, setNombreApp }) => {
                   src={obtenerUrlImagen(usuario.fotoUrl)} 
                   alt="User" 
                   key={`nav-header-${usuario.fotoUrl}`}
-                  onError={(e) => { e.target.src = fotoPerfil; }}
-                  width="60" 
-                  height="60" 
-                  loading="lazy"
+                  onError={(e) => { e.target.src = fotoPerfil; }} 
                 />
                 <div className="perfil-user-info">
                   <h4>{usuario.nombre}</h4>
