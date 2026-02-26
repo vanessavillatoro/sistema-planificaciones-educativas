@@ -39,7 +39,6 @@ if (!fs.existsSync(uploadsDir)){
 }
 
 // --- CONFIGURACIÓN DE CORS REFORZADA ---
-// Asegúrate de que allowedOrigins tenga las URLs exactas también
 const allowedOrigins = [
   'https://sistema-planificaciones-educativas.vercel.app',
   'https://sistema-planificaciones-educativas-ten.vercel.app',
@@ -48,18 +47,17 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Si no hay origen (como apps móviles o Postman) o está en la lista o es Vercel
     if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
       callback(null, true);
     } else {
-      console.log("Origen bloqueado por política:", origin); // Esto te dirá en la consola del back quién es el intruso
+      console.log("Origen bloqueado por política:", origin);
       callback(new Error('Bloqueado por CORS'));
     }
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
   credentials: true,
-  optionsSuccessStatus: 200 // MUY IMPORTANTE para navegadores antiguos y algunos modernos
+  optionsSuccessStatus: 200
 }));
 
 app.use((req, res, next) => {
@@ -100,12 +98,19 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-// --- CONEXIÓN A MONGODB ---
-mongoose.connect(process.env.MONGO_URI, {
-    serverSelectionTimeoutMS: 5000
-})
-  .then(() => console.log('✅ Se logró la conexión a MongoDB'))
-  .catch(err => console.error('❌ Error de conexión a MongoDB:', err));
+// --- CONEXIÓN A MONGODB (AJUSTADA PARA VERCEL) ---
+let cachedConnection = null;
+const conectarDB = async () => {
+    if (cachedConnection && mongoose.connection.readyState === 1) return cachedConnection;
+    cachedConnection = await mongoose.connect(process.env.MONGO_URI, {
+        serverSelectionTimeoutMS: 5000
+    });
+    return cachedConnection;
+};
+
+// Intento de conexión inicial
+conectarDB().then(() => console.log('✅ Se logró la conexión a MongoDB'))
+  .catch(err => console.error('❌ Error de conexión:', err));
 
 // --- FUNCIÓN DE LIMPIEZA REUTILIZABLE ---
 const procesarRespuestaIA = (text) => {
@@ -265,6 +270,7 @@ app.post('/api/generar-recurso-ia', async (req, res) => {
 // --- RUTAS DE CONSULTA Y GUARDADO ---
 app.post('/api/save-plan', async (req, res) => {
   try {
+    await conectarDB();
     const nuevaPlanificacion = new Planificacion(req.body);
     await nuevaPlanificacion.save();
     res.status(200).json({ message: "Planificación guardada con éxito." });
@@ -275,6 +281,7 @@ app.post('/api/save-plan', async (req, res) => {
 
 app.get('/api/planificaciones', async (req, res) => {
   try {
+    await conectarDB();
     const { userId } = req.query;
     const query = userId ? { usuarioId: userId, borrado: { $ne: true } } : { borrado: { $ne: true } };
     const planes = await Planificacion.find(query).sort({ _id: -1 });
@@ -286,6 +293,7 @@ app.get('/api/planificaciones', async (req, res) => {
 
 app.delete('/api/planificaciones-por-tema/:tema', async (req, res) => {
     try {
+      await conectarDB();
       const resultado = await Planificacion.findOneAndUpdate(
         { $or: [{ tema: req.params.tema }, { nombreUnidad: req.params.tema }] },
         { borrado: true },
@@ -299,6 +307,7 @@ app.delete('/api/planificaciones-por-tema/:tema', async (req, res) => {
 
 app.post('/api/exportar-gestion', async (req, res) => {
   try {
+    await conectarDB();
     const datosAGuardar = { ...req.body };
     if (datosAGuardar.userId) {
         datosAGuardar.usuarioId = datosAGuardar.userId;
@@ -313,6 +322,7 @@ app.post('/api/exportar-gestion', async (req, res) => {
 
 app.get('/api/gestion', async (req, res) => {
   try {
+    await conectarDB();
     const { userId } = req.query;
     const query = userId ? { usuarioId: userId, borrado: { $ne: true } } : { borrado: { $ne: true } };
     const rows = await Gestion.find(query).sort({ fechaExportacion: -1 });
@@ -324,6 +334,7 @@ app.get('/api/gestion', async (req, res) => {
 
 app.get('/api/gestion/:id', async (req, res) => {
     try {
+      await conectarDB();
       const item = await Gestion.findById(req.params.id);
       res.status(item ? 200 : 404).json(item || { error: "No encontrado" });
     } catch (error) {
@@ -333,6 +344,7 @@ app.get('/api/gestion/:id', async (req, res) => {
 
 app.delete('/api/gestion/:id', async (req, res) => {
   try {
+    await conectarDB();
     await Gestion.findByIdAndUpdate(req.params.id, { borrado: true });
     res.status(200).json({ mensaje: "OK" });
   } catch (error) {
@@ -342,6 +354,7 @@ app.delete('/api/gestion/:id', async (req, res) => {
 
 app.put('/api/gestion/:id', async (req, res) => {
     try {
+      await conectarDB();
       const itemActualizado = await Gestion.findByIdAndUpdate(
         req.params.id,
         { ...req.body, fechaExportacion: new Date() },
@@ -355,6 +368,7 @@ app.put('/api/gestion/:id', async (req, res) => {
 
 app.get('/api/papelera', async (req, res) => {
     try {
+        await conectarDB();
         const planesBorrados = await Planificacion.find({ borrado: true }).lean();
         const gestionBorrados = await Gestion.find({ borrado: true }).lean();
         const todoBorrados = [
@@ -369,6 +383,7 @@ app.get('/api/papelera', async (req, res) => {
 
 app.patch('/api/papelera/restaurar/:id', async (req, res) => {
     try {
+        await conectarDB();
         const id = req.params.id;
         await Planificacion.findByIdAndUpdate(id, { borrado: false });
         await Gestion.findByIdAndUpdate(id, { borrado: false });
@@ -380,6 +395,7 @@ app.patch('/api/papelera/restaurar/:id', async (req, res) => {
 
 app.delete('/api/papelera/permanente/:id', async (req, res) => {
     try {
+        await conectarDB();
         await Planificacion.findByIdAndDelete(req.params.id);
         await Gestion.findByIdAndDelete(req.params.id);
         res.json({ mensaje: "Eliminado" });
@@ -391,6 +407,7 @@ app.delete('/api/papelera/permanente/:id', async (req, res) => {
 // --- GESTIÓN DE PERFIL ---
 app.get('/api/usuario/perfil', async (req, res) => {
     try {
+        await conectarDB();
         const { userId } = req.query;
         if (!userId || userId === "undefined") return res.status(400).json({ error: "Falta userId" });
         const usuario = await User.findById(userId);
@@ -403,6 +420,7 @@ app.get('/api/usuario/perfil', async (req, res) => {
 
 app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
     try {
+        await conectarDB();
         const userId = req.body.userId;
         if (!userId || userId === "undefined" || userId === "null") {
             return res.status(400).json({ error: "ID de usuario no proporcionado" });
@@ -466,6 +484,7 @@ app.patch('/api/usuario/perfil', upload.single('foto'), async (req, res) => {
 
 app.post('/api/usuario/foto', upload.single('foto'), async (req, res) => {
     try {
+        await conectarDB();
         if (!req.file) return res.status(400).json({ error: "No hay imagen" });
         const buffer = fs.readFileSync(req.file.path);
         const base64Image = `data:${req.file.mimetype};base64,${buffer.toString('base64')}`;
@@ -483,6 +502,7 @@ app.post('/api/usuario/foto', upload.single('foto'), async (req, res) => {
 // --- AUTENTICACIÓN ---
 app.post('/api/auth/google', async (req, res) => {
     try {
+        await conectarDB();
         const { token } = req.body;
         const ticket = await client.verifyIdToken({
             idToken: token,
@@ -523,6 +543,7 @@ app.post('/api/auth/google', async (req, res) => {
 
 app.post('/api/auth/register', async (req, res) => {
   try {
+    await conectarDB();
     const { name, apellido, email, password, edad } = req.body;
     if (parseInt(edad) < 20) return res.status(400).json({ error: "Mínimo 20 años" });
     const passRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
@@ -544,6 +565,7 @@ app.post('/api/auth/register', async (req, res) => {
 
 app.post('/api/auth/login', async (req, res) => {
   try {
+    await conectarDB();
     const usuario = await User.findOne({ email: req.body.email, password: req.body.password });
     if (!usuario) return res.status(401).json({ error: "Credenciales inválidas" });
     res.json({ 
