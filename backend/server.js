@@ -98,23 +98,22 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-// --- CONEXIÓN A MONGODB (AJUSTADA PARA VERCEL) ---
-let cachedConnection = null;
+// --- CONEXIÓN A MONGODB (OPTIMIZADA) ---
+let cachedDB = null;
 const conectarDB = async () => {
-    if (cachedConnection && mongoose.connection.readyState === 1) return cachedConnection;
-    cachedConnection = await mongoose.connect(process.env.MONGO_URI, {
-        serverSelectionTimeoutMS: 5000
-    });
-    return cachedConnection;
+    if (cachedDB && mongoose.connection.readyState === 1) return cachedDB;
+    cachedDB = await mongoose.connect(process.env.MONGO_URI, { serverSelectionTimeoutMS: 5000 });
+    return cachedDB;
 };
 
-// Intento de conexión inicial
-conectarDB().then(() => console.log('✅ Se logró la conexión a MongoDB'))
-  .catch(err => console.error('❌ Error de conexión:', err));
+conectarDB()
+  .then(() => console.log('✅ Se logró la conexión a MongoDB'))
+  .catch(err => console.error('❌ Error de conexión a MongoDB:', err));
 
-// --- FUNCIÓN DE LIMPIEZA REUTILIZABLE ---
+// --- FUNCIÓN DE LIMPIEZA REUTILIZABLE (CORREGIDA PARA ERROR JSON) ---
 const procesarRespuestaIA = (text) => {
     let rawText = text.replace(/```json/gi, "").replace(/```/g, "").trim();
+    // Buscar el primer '{' para evitar basura al inicio
     const inicioJson = rawText.indexOf('{');
     const finJson = rawText.lastIndexOf('}');
     if (inicioJson !== -1 && finJson !== -1) {
